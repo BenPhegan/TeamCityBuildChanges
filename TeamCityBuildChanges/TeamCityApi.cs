@@ -51,17 +51,28 @@ namespace TeamCityBuildChanges
             return response.Data != null ? response.Data.Publications : new List<Artifact>();
         }
 
-        public IEnumerable<string> GetReleaseNotesForLastBuildByBuildId(string buildType)
+        public IEnumerable<ChangeDetail> GetReleaseNotesForLastBuildByBuildType(string buildType)
         {
-            var releaseNotes = new List<String>();
             var builds = GetBuildsByBuildType(buildType);
             var latestBuild = builds.OrderByDescending(b => b.BuildTypeId).FirstOrDefault();
-            var changeList = GetChangeListByBuildId(latestBuild.Id);
-            foreach (var change in changeList.Changes)
-            {
-                var details = GetChangeDetailsByChangeId(change.Id);
-                releaseNotes.Add(String.Format("{0} - {1}", details.Version, details.Comment));
-            }
+            return GetReleaseNotesByBuildId(latestBuild.Id);
+        }
+
+        private IEnumerable<ChangeDetail> GetReleaseNotesByBuildId(string buildId)
+        {
+            var changeList = GetChangeListByBuildId(buildId);
+            var changeDetails = changeList.Changes.Select(c => GetChangeDetailsByChangeId(c.Id)).ToList();
+            return changeDetails;
+        }
+
+        public IEnumerable<ChangeDetail> GetReleaseNotesForCurrentBuildByBuildType(string buildType)
+        {
+            var request = GetXmlBuildRequest("app/rest/builds/?locator=buildType:{BT},running:true", "BT", buildType);
+            var response = _client.Execute<BuildDetails>(request);
+            if (response.Data == null)
+                return new List<ChangeDetail>();
+
+            var releaseNotes = GetReleaseNotesByBuildId(response.Data.Id);
             return releaseNotes;
         }
 
