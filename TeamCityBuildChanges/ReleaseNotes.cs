@@ -21,7 +21,7 @@ namespace TeamCityBuildChanges
             var releaseNotes = api.GetReleaseNotesForLastBuildByBuildId(_buildType);
             foreach (var line in releaseNotes)
             {
-                Console.WriteLine(line);
+                Console.WriteLine(line.TrimEnd(Environment.NewLine.ToCharArray()));
             }
             return 0;
         }
