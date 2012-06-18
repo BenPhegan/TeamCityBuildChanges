@@ -68,11 +68,11 @@ namespace TeamCityBuildChanges
         public IEnumerable<ChangeDetail> GetReleaseNotesForCurrentBuildByBuildType(string buildType)
         {
             var request = GetXmlBuildRequest("app/rest/builds/?locator=buildType:{BT},running:true", "BT", buildType);
-            var response = _client.Execute<BuildDetails>(request);
+            var response = _client.Execute<List<Build>>(request);
             if (response.Data == null)
                 return new List<ChangeDetail>();
 
-            var releaseNotes = GetReleaseNotesByBuildId(response.Data.Id);
+            var releaseNotes = GetReleaseNotesByBuildId(response.Data.FirstOrDefault().Id);
             return releaseNotes;
         }
 
