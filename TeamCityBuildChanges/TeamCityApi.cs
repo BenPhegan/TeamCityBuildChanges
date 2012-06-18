@@ -58,7 +58,7 @@ namespace TeamCityBuildChanges
             return GetReleaseNotesByBuildId(latestBuild.Id);
         }
 
-        private IEnumerable<ChangeDetail> GetReleaseNotesByBuildId(string buildId)
+        public IEnumerable<ChangeDetail> GetReleaseNotesByBuildId(string buildId)
         {
             var changeList = GetChangeListByBuildId(buildId);
             var changeDetails = changeList.Changes.Select(c => GetChangeDetailsByChangeId(c.Id)).ToList();
