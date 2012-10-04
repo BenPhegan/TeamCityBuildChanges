@@ -7,8 +7,8 @@ namespace TeamCityBuildChanges
 {
     internal class TeamCityApi
     {
-        private string _teamCityServer;
-        private RestClient _client;
+        private readonly string _teamCityServer;
+        private readonly RestClient _client;
 
         public TeamCityApi(string server)
         {
@@ -74,6 +74,35 @@ namespace TeamCityBuildChanges
 
             var releaseNotes = GetReleaseNotesByBuildId(response.Data.FirstOrDefault().Id);
             return releaseNotes;
+        }
+
+        private IEnumerable<ChangeDetail> GetReleaseNotesByBuildTypeAndBuildId(string buildType, string from, string to, Func<Build, string, bool> comparitor)
+        {
+            var builds = GetBuildsByBuildType(buildType);
+            var changeDeltas = new List<ChangeDetail>();
+            var captureChanges = false;
+            foreach (var build in builds.OrderBy(b => b.Id))
+            {
+                if (comparitor(build, from))
+                    captureChanges = true;
+
+                if (captureChanges)
+                    changeDeltas.AddRange(GetReleaseNotesByBuildId(build.Id));
+
+                if (comparitor(build, to))
+                    break;
+            }
+            return changeDeltas;
+        }
+
+        public IEnumerable<ChangeDetail> GetReleaseNotesByBuildTypeAndBuildId(string buildType, string from, string to)
+        {
+            return GetReleaseNotesByBuildTypeAndBuildId(buildType, from, to, (build, s) => build.Id.Equals(s, StringComparison.InvariantCultureIgnoreCase));
+        }
+
+        public IEnumerable<ChangeDetail> GetReleaseNotesByBuildTypeAndBuildNumber(string buildType, string from, string to)
+        {
+            return GetReleaseNotesByBuildTypeAndBuildId(buildType, from, to, (build, s) => build.Number.Equals(s, StringComparison.InvariantCultureIgnoreCase));
         }
 
         public BuildDetails GetBuildDetailsByBuildId(string id)

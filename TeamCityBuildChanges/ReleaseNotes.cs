@@ -19,6 +19,8 @@ namespace TeamCityBuildChanges
         private string _buildId;
         private Boolean _xml;
         private string _output;
+        private string _from;
+        private string _to;
 
         public ReleaseNotes()
         {
@@ -30,6 +32,8 @@ namespace TeamCityBuildChanges
                               {"bi|buildid=", "Specific build id to get the release notes for", b => _buildId = b},
                               {"x|xmloutput", "Output to XML", x => _xml = true},
                               {"o|output=", "Output filename (otherwise to console)", x => _output = x},
+                              {"f|from=", "Build number to start checking from", x => _from = x},
+                              {"t|to=", "The build to check the delta change to", x => _to = x}
                           };
             IsCommand("releasenotes", "Provides release notes from TeamCity being the set of comments associated with commits that triggered a build");
             HasRequiredOption("s|server=", "TeamCity server to target (just use base URL and have guestAuth enabled", s => _serverName = s);
@@ -42,14 +46,20 @@ namespace TeamCityBuildChanges
 
             if (!string.IsNullOrEmpty(_buildId))
             {
-                changeDetails = api.GetReleaseNotesByBuildId(_buildId).ToList();
+                    changeDetails = api.GetReleaseNotesByBuildId(_buildId).ToList();
             }
             else
             {
-                if (_currentOnly)
-                    changeDetails = api.GetReleaseNotesForCurrentBuildByBuildType(_buildType).ToList();
+                if (!string.IsNullOrEmpty(_from) && !string.IsNullOrEmpty(_to) && !string.IsNullOrEmpty(_buildType))
+                {
+                    changeDetails = api.GetReleaseNotesByBuildTypeAndBuildNumber(_buildType, _from, _to).ToList();
+                }
                 else
-                    changeDetails = api.GetReleaseNotesForLastBuildByBuildType(_buildType).ToList();
+                {
+                    changeDetails = _currentOnly
+                                        ? api.GetReleaseNotesForCurrentBuildByBuildType(_buildType).ToList()
+                                        : api.GetReleaseNotesForLastBuildByBuildType(_buildType).ToList();
+                }
             }
 
             if (_xml)
@@ -82,14 +92,15 @@ namespace TeamCityBuildChanges
             return _noVersion ? ChangeDetailNoVersion(a) : ChangeDetailWithVersion(a);
         }
 
-        private string ChangeDetailNoVersion(ChangeDetail changeDetail)
+        private static string ChangeDetailNoVersion(ChangeDetail changeDetail)
         {
             return string.Format("  *  {0}", changeDetail.Comment.TrimEnd(Environment.NewLine.ToCharArray()));
         }
 
-        private string ChangeDetailWithVersion(ChangeDetail changeDetail)
+        private static string ChangeDetailWithVersion(ChangeDetail changeDetail)
         {
             return string.Format("{0} - {1}", changeDetail.Version, changeDetail.Comment.TrimEnd(Environment.NewLine.ToCharArray()));
         }
+
     }
 }
