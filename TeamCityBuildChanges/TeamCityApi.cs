@@ -51,32 +51,32 @@ namespace TeamCityBuildChanges
             return response.Data != null ? response.Data.Publications : new List<Artifact>();
         }
 
-        public IEnumerable<ChangeDetail> GetReleaseNotesForLastBuildByBuildType(string buildType)
+        public IEnumerable<ChangeDetail> GetChangeDetailsForLastBuildByBuildType(string buildType)
         {
             var builds = GetBuildsByBuildType(buildType);
             var latestBuild = builds.OrderByDescending(b => b.BuildTypeId).FirstOrDefault();
-            return GetReleaseNotesByBuildId(latestBuild.Id);
+            return GetChangeDetailsByBuildId(latestBuild.Id);
         }
 
-        public IEnumerable<ChangeDetail> GetReleaseNotesByBuildId(string buildId)
+        public IEnumerable<ChangeDetail> GetChangeDetailsByBuildId(string buildId)
         {
             var changeList = GetChangeListByBuildId(buildId);
             var changeDetails = changeList.Changes.Select(c => GetChangeDetailsByChangeId(c.Id)).ToList();
             return changeDetails;
         }
 
-        public IEnumerable<ChangeDetail> GetReleaseNotesForCurrentBuildByBuildType(string buildType)
+        public IEnumerable<ChangeDetail> GetChangeDetailsForCurrentBuildByBuildType(string buildType)
         {
             var request = GetXmlBuildRequest("app/rest/builds/?locator=buildType:{BT},running:true", "BT", buildType);
             var response = _client.Execute<List<Build>>(request);
             if (response.Data == null)
                 return new List<ChangeDetail>();
 
-            var releaseNotes = GetReleaseNotesByBuildId(response.Data.FirstOrDefault().Id);
+            var releaseNotes = GetChangeDetailsByBuildId(response.Data.FirstOrDefault().Id);
             return releaseNotes;
         }
 
-        private IEnumerable<ChangeDetail> GetReleaseNotesByBuildTypeAndBuildId(string buildType, string from, string to, Func<Build, string, bool> comparitor)
+        private IEnumerable<ChangeDetail> GetChangeDetailsByBuildTypeAndBuildId(string buildType, string from, string to, Func<Build, string, bool> comparitor)
         {
             var builds = GetBuildsByBuildType(buildType);
             var changeDeltas = new List<ChangeDetail>();
@@ -87,7 +87,7 @@ namespace TeamCityBuildChanges
                     captureChanges = true;
 
                 if (captureChanges)
-                    changeDeltas.AddRange(GetReleaseNotesByBuildId(build.Id));
+                    changeDeltas.AddRange(GetChangeDetailsByBuildId(build.Id));
 
                 if (comparitor(build, to))
                     break;
@@ -95,14 +95,14 @@ namespace TeamCityBuildChanges
             return changeDeltas;
         }
 
-        public IEnumerable<ChangeDetail> GetReleaseNotesByBuildTypeAndBuildId(string buildType, string from, string to)
+        public IEnumerable<ChangeDetail> GetChangeDetailsByBuildTypeAndBuildId(string buildType, string from, string to)
         {
-            return GetReleaseNotesByBuildTypeAndBuildId(buildType, from, to, (build, s) => build.Id.Equals(s, StringComparison.InvariantCultureIgnoreCase));
+            return GetChangeDetailsByBuildTypeAndBuildId(buildType, from, to, (build, s) => build.Id.Equals(s, StringComparison.InvariantCultureIgnoreCase));
         }
 
         public IEnumerable<ChangeDetail> GetReleaseNotesByBuildTypeAndBuildNumber(string buildType, string from, string to)
         {
-            return GetReleaseNotesByBuildTypeAndBuildId(buildType, from, to, (build, s) => build.Number.Equals(s, StringComparison.InvariantCultureIgnoreCase));
+            return GetChangeDetailsByBuildTypeAndBuildId(buildType, from, to, (build, s) => build.Number.Equals(s, StringComparison.InvariantCultureIgnoreCase));
         }
 
         public BuildDetails GetBuildDetailsByBuildId(string id)
