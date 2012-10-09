@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using ManyConsole;
 
 namespace TeamCityBuildChanges
@@ -14,7 +15,7 @@ namespace TeamCityBuildChanges
 
         static IEnumerable<ConsoleCommand> GetCommands()
         {
-            return ConsoleCommandDispatcher.FindCommandsInSameAssemblyAs(typeof(Program));
+            return ConsoleCommandDispatcher.FindCommandsInSameAssemblyAs(typeof(Program)).Where(c => !string.IsNullOrEmpty(c.Command));
         }
 
         
