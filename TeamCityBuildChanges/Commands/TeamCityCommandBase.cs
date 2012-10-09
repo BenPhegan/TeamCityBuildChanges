@@ -12,6 +12,9 @@ namespace TeamCityBuildChanges.Commands
         protected string OutputFileName;
         protected List<ChangeDetail> ChangeDetails;
         protected string ServerName;
+        protected string BuildType;
+        protected string ProjectName;
+        protected string BuildName;
 
         public TeamCityCommandBase()
         {
@@ -20,7 +23,9 @@ namespace TeamCityBuildChanges.Commands
                     {"noversion|nv", "Don't include the version in the output of the change details, instead use a *", v => NoVersion = true},
                     {"x|xmloutput", "OutputFileName to XML", x => Xml = true},
                     {"o|output=", "OutputFileName filename (otherwise to console)", x => OutputFileName = x},
-
+                    {"b=|buildType=", "TeamCity build type to get the details for.", s => BuildType = s},
+                    {"p=|project=", "TeamCity project to search within for specific build name.", s => ProjectName = s},
+                    {"bn=|buildName=", "TeamCity build type to get the details for.", s => BuildName = s},
                 };
             HasRequiredOption("s|server=", "TeamCity server to target (just use base URL and have guestAuth enabled", s => ServerName = s);
         }

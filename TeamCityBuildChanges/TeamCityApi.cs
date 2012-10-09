@@ -32,10 +32,11 @@ namespace TeamCityBuildChanges
             return response.Data;
         }
 
-        private static RestRequest GetXmlBuildRequest(string endpoint, string variable, string replacement)
+        private static RestRequest GetXmlBuildRequest(string endpoint, string variable = null, string replacement = null)
         {
             var request = new RestRequest(endpoint, Method.GET);
-            request.AddParameter(variable, replacement, ParameterType.UrlSegment);
+            if (variable != null && replacement != null)
+                request.AddParameter(variable, replacement, ParameterType.UrlSegment);
             request.RequestFormat = DataFormat.Xml;
             request.AddHeader("Accept", "application/xml");
             return request;
@@ -53,9 +54,22 @@ namespace TeamCityBuildChanges
 
         public IEnumerable<ChangeDetail> GetChangeDetailsForLastBuildByBuildType(string buildType)
         {
+            var latestBuild = GetLatestBuildByBuildType(buildType);
+            return GetChangeDetailsByBuildId(latestBuild.Id);
+        }
+
+        public Build GetLatestBuildByBuildType(string buildType)
+        {
             var builds = GetBuildsByBuildType(buildType);
             var latestBuild = builds.OrderByDescending(b => b.BuildTypeId).FirstOrDefault();
-            return GetChangeDetailsByBuildId(latestBuild.Id);
+            return latestBuild;
+        }
+
+        public Build GetLatestSuccesfulBuildByBuildType(string buildType)
+        {
+            var builds = GetBuildsByBuildType(buildType);
+            var latestBuild = builds.Where(b => b.Status == "Succesful").OrderByDescending(b => b.BuildTypeId).FirstOrDefault();
+            return latestBuild;
         }
 
         public IEnumerable<ChangeDetail> GetChangeDetailsByBuildId(string buildId)
@@ -67,13 +81,26 @@ namespace TeamCityBuildChanges
 
         public IEnumerable<ChangeDetail> GetChangeDetailsForCurrentBuildByBuildType(string buildType)
         {
-            var request = GetXmlBuildRequest("app/rest/builds/?locator=buildType:{BT},running:true", "BT", buildType);
-            var response = _client.Execute<List<Build>>(request);
-            if (response.Data == null)
+            var response = GetRunningBuildByBuildType(buildType);
+            if (response == null)
                 return new List<ChangeDetail>();
 
-            var releaseNotes = GetChangeDetailsByBuildId(response.Data.FirstOrDefault().Id);
+            var releaseNotes = GetChangeDetailsByBuildId(response.FirstOrDefault().Id);
             return releaseNotes;
+        }
+
+        public IEnumerable<Build> GetRunningBuildByBuildType(string buildType)
+        {
+            var request = GetXmlBuildRequest("app/rest/builds/?locator=buildType:{BT},running:true", "BT", buildType);
+            var response = _client.Execute<List<Build>>(request).Data;
+            return response;
+        }
+
+        public IEnumerable<BuildType> GetBuildTypeByProjectAndName(string project, string buildName)
+        {
+            var request = GetXmlBuildRequest("app/rest/buildTypes");
+            var response = _client.Execute<List<BuildType>>(request);
+            return response.Data.Where(b => b.ProjectName.Equals(project, StringComparison.InvariantCultureIgnoreCase) && b.Name.Equals(buildName, StringComparison.InvariantCultureIgnoreCase));
         }
 
         private IEnumerable<ChangeDetail> GetChangeDetailsByBuildTypeAndBuildId(string buildType, string from, string to, Func<Build, string, bool> comparitor)

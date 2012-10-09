@@ -52,12 +52,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Commands\BuildDelta.cs" />
+    <Compile Include="Commands\AggregateBuildDelta.cs" />
     <Compile Include="ChangeDetailOutputFormatter.cs" />
     <Compile Include="Commands\TeamCityCommandBase.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Commands\ReleaseNotes.cs" />
+    <Compile Include="Commands\SingleBuildDelta.cs" />
     <Compile Include="TeamCityApi.cs" />
   </ItemGroup>
   <ItemGroup>
