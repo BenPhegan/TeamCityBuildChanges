@@ -68,7 +68,7 @@ namespace TeamCityBuildChanges
         public Build GetLatestSuccesfulBuildByBuildType(string buildType)
         {
             var builds = GetBuildsByBuildType(buildType);
-            var latestBuild = builds.Where(b => b.Status == "Succesful").OrderByDescending(b => b.BuildTypeId).FirstOrDefault();
+            var latestBuild = builds.Where(b => b.Status == "SUCCESS").OrderByDescending(b => b.BuildTypeId).FirstOrDefault();
             return latestBuild;
         }
 

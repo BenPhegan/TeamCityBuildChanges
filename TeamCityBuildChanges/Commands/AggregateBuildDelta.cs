@@ -25,7 +25,14 @@ namespace TeamCityBuildChanges.Commands
 
             ResolveBuildTypeId(api);
 
-            _from = _from ?? api.GetLatestSuccesfulBuildByBuildType(BuildType).Number;
+            if (string.IsNullOrEmpty(_from))
+            {
+                var latestSuccesfull = api.GetLatestSuccesfulBuildByBuildType(BuildType);
+                if (latestSuccesfull != null)
+                    _from = latestSuccesfull.Number;
+                else
+                    throw new ApplicationException(string.Format("Could not find latest build for build type {0}", BuildType));
+            }
             if (string.IsNullOrEmpty(_to))
             {
                 var runningBuild = api.GetRunningBuildByBuildType(BuildType).FirstOrDefault();
