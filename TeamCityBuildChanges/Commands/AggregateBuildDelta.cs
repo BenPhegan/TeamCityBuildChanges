@@ -47,7 +47,10 @@ namespace TeamCityBuildChanges.Commands
             {
                 ChangeDetails = api.GetReleaseNotesByBuildTypeAndBuildNumber(buildWithCommitData, _from, _to).ToList();
             }
-
+            var test = api.GetBuildsByBuildType(BuildType);
+            var buildDetails = test.Select(build => api.GetBuildDetailsByBuildId(build.Id)).ToList();
+            var issues = buildDetails.SelectMany(b => b.RelatedIssues).Select(i => i.Issue).Distinct().ToList();
+            issues.ForEach(i => Console.WriteLine(i.Id));
             OutputChanges();
             return 0;
         }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using RestSharp;
 
@@ -27,7 +28,7 @@ namespace TeamCityBuildChanges
 
         public BuildTypeDetails GetBuildTypeDetailsById(string id)
         {
-            var buildDetails = GetXmlBuildRequest("app/rest/buildTypes/id:{ID}","ID",id);
+            var buildDetails = GetXmlBuildRequest("app/rest/buildTypes/id:{ID}", "ID", id);
             var response = _client.Execute<BuildTypeDetails>(buildDetails);
             return response.Data;
         }
@@ -129,7 +130,7 @@ namespace TeamCityBuildChanges
 
         public IEnumerable<ChangeDetail> GetReleaseNotesByBuildTypeAndBuildNumber(string buildType, string from, string to)
         {
-            return GetChangeDetailsByBuildTypeAndBuildId(buildType, from, to, (build, s) => build.Number.Equals(s, StringComparison.InvariantCultureIgnoreCase));
+            return GetChangeDetailsByBuildTypeAndBuildId(buildType, from, to, (build, s) => build.Number.Equals("None", StringComparison.InvariantCultureIgnoreCase) ? build.Id.ToString().Equals(s, StringComparison.InvariantCultureIgnoreCase) : build.Number.Equals(s, StringComparison.InvariantCultureIgnoreCase));
         }
 
         public BuildDetails GetBuildDetailsByBuildId(string id)
@@ -189,14 +190,18 @@ namespace TeamCityBuildChanges
         public List<Feature> Features { get; set; }
     }
 
-    public class Feature : GenericTeamCityPropertyGroup {}
+    public class Feature : GenericTeamCityPropertyGroup
+    {
+    }
 
     public class Step : GenericTeamCityPropertyGroup
     {
         public string Name { get; set; }
     }
 
-    public class Trigger : GenericTeamCityPropertyGroup {}
+    public class Trigger : GenericTeamCityPropertyGroup
+    {
+    }
 
     public class GenericTeamCityPropertyGroup
     {
@@ -269,14 +274,45 @@ namespace TeamCityBuildChanges
         public Boolean Pinned { get; set; }
         public string StatusText { get; set; }
         public BuildType BuildType { get; set; }
-        public DateTime StartDate { get; set; }
-        public DateTime FinishDate { get; set; }
+        public string StartDate { get; set; }
+        public string FinishDate { get; set; }
         public Agent Agent { get; set; }
         public List<Tag> Tags { get; set; }
         public List<Property> Properties { get; set; }
         public List<Revision> Revisions { get; set; }
         public Triggered Triggered { get; set; }
         public ChangeSummary ChangeSummary { get; set; }
+        public List<IssueUsage> RelatedIssues { get; set; }
+
+    
+        public static DateTimeOffset GetDateTimeOffset(string value)
+        {
+            //Values come in looking like this: 20121022T215947+1100
+            var splitString = value.Split("+-".ToCharArray()).ToList();
+            if (splitString.Count == 2)
+            {
+                var datePortion = DateTime.ParseExact(splitString[0], "yyyymmddTHHmmss", CultureInfo.CurrentCulture);
+            }
+            return new DateTimeOffset();
+        }
+    }
+
+    public class IssueUsage
+    {
+        public Issue Issue { get; set; }
+        public List<Changes> Changes { get; set; } 
+    }
+
+    public class Changes
+    {
+        public int Count { get; set; }
+        public List<Change> ChangeList { get; set; }
+    }
+
+    public class Issue
+    {
+        public string Id { get; set; }
+        public string Url { get; set; }
     }
 
     public class ChangeSummary
@@ -289,7 +325,7 @@ namespace TeamCityBuildChanges
     {
         public string Type { get; set; }
         public string Details { get; set; }
-        public DateTime Date { get; set; }
+        public string Date { get; set; }
         public User User { get; set; }
     }
 
