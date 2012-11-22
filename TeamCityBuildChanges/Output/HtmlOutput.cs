@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using RazorEngine;
+using TeamCityBuildChanges.Output;
 
 namespace TeamCityBuildChanges.Output
 {
@@ -10,17 +12,10 @@ namespace TeamCityBuildChanges.Output
     {
         public static string Render(ChangeManifest manifest)
         {
-            const  string template = 
-                      @"<html>
-                          <head>
-                            <title>Hello @Model</title>
-                          </head>
-                          <body>
-                            Email: @Html.TextBoxFor(m => m.Email)
-                          </body>
-                        </html>";
 
-            return Razor.Parse<ChangeManifest>(template, manifest, "Changes");
+            var defaultTemplate = File.ReadAllText(@".\Templates\Default.cshtml");
+            var result = Razor.Parse(defaultTemplate,manifest);
+            return result;
         }
     }
 }
