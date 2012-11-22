@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using NDesk.Options;
 using TeamCityBuildChanges.ExternalApi;
 using TeamCityBuildChanges.ExternalApi.Jira;
 using TeamCityBuildChanges.ExternalApi.TeamCity;
 using TeamCityBuildChanges.IssueDetailResolvers;
+using TeamCityBuildChanges.Output;
 
 namespace TeamCityBuildChanges.Commands
 {
@@ -71,6 +73,10 @@ namespace TeamCityBuildChanges.Commands
             var issueDetails = issueDetailResolver.GetExternalIssueDetails(IssueDetails);
             ChangeManifest.ChangeDetails.AddRange(ChangeDetails);
             ChangeManifest.IssueDetails.AddRange(issueDetails);
+            ChangeManifest.Generated = DateTime.Now;
+
+            var output = HtmlOutput.Render(ChangeManifest);
+            File.WriteAllText("output.html",output);
 
             OutputChanges();
             return 0;

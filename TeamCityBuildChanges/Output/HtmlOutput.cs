@@ -1,19 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
+﻿using System.IO;
 using RazorEngine;
-using TeamCityBuildChanges.Output;
 
 namespace TeamCityBuildChanges.Output
 {
     public class HtmlOutput
     {
-        public static string Render(ChangeManifest manifest)
+        public static string Render(ChangeManifest manifest, string templateFile = @".\Templates\Default.cshtml")
         {
-
-            var defaultTemplate = File.ReadAllText(@".\Templates\Default.cshtml");
+            var defaultTemplate = File.ReadAllText(templateFile);
             var result = Razor.Parse(defaultTemplate,manifest);
             return result;
         }

@@ -4,6 +4,10 @@
     @if (Model.ChangeDetails.Any())
     {
         <table>
+            <tr>
+                <td>VCS Version</td>
+                <td>Commit Comment</td>
+            </tr>
             @foreach (var change in Model.ChangeDetails)
             {
                 <tr>
@@ -14,16 +18,21 @@
         </table>
     }
 </div>
-<div>
+ <div>
     @if (Model.IssueDetails.Any())
     {
         <table>
-            @foreach (var change in Model.IssueDetails)
+            <tr>
+                <td>Issue ID</td>
+                <td>Status</td>
+                <td>Created</td>
+            </tr>
+            @foreach (var issue in Model.IssueDetails)
             {
                 <tr>
-                    <td>@change.Id</td>
-                    <td>@change.Status</td>
-                    <td>@change.Created</td>
+                    <td>@issue.Id</td>
+                    <td>@issue.Status</td>
+                    <td>@issue.Created</td>
                 </tr>
             }
         </table>
