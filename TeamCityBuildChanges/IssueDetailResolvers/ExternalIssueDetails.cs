@@ -9,5 +9,6 @@ namespace TeamCityBuildChanges.IssueDetailResolvers
         public string Status { get; set; }
         public string Created { get; set; }
         public List<string> Comments { get; set; }
+        public List<ExternalIssueDetails> SubIssues { get; set; }
     }
 }

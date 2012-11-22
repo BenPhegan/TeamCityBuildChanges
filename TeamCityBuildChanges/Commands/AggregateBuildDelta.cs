@@ -16,6 +16,7 @@ namespace TeamCityBuildChanges.Commands
         private string _referenceBuild;
         private string _jiraUrl;
         private string _jiraToken;
+        private string _tfsCollection;
 
         public AggregateBuildDelta()
         {
@@ -23,8 +24,11 @@ namespace TeamCityBuildChanges.Commands
             Options.Add("rb=|referencebuild=", "Reference build to query resolved version deltas from", s => _referenceBuild = s);
             Options.Add("f|from=", "Build number to start checking from", x => _from = x);
             Options.Add("t|to=", "The build to check the delta change to", x => _to = x);
+
             Options.Add("jiraurl=", "The Jira URL to query for issue details", x => _jiraUrl = x);
             Options.Add("jiraauthtoken=", "The Jira authorisation token to use (refer to 'encode' subcommand", x => _jiraToken = x);
+
+            Options.Add("tfscollection=", "TFS collection to check issues on.", x => _tfsCollection = x);
 
             base.SkipsCommandSummaryBeforeRunning();
         }
@@ -53,6 +57,7 @@ namespace TeamCityBuildChanges.Commands
             }
 
             var buildWithCommitData = _referenceBuild ?? BuildType;
+            //TODO TFS collection data should come from the BuildType/VCS root data from TeamCity...but not for now...
             if (!string.IsNullOrEmpty(_from) && !string.IsNullOrEmpty(_to) && !string.IsNullOrEmpty(buildWithCommitData))
             {
                 var builds = api.GetBuildsByBuildType(buildWithCommitData).ToList();

@@ -1,0 +1,17 @@
+@using System.Linq
+@using Output
+@functions  {
+    public ChangeManifest Model { get; set; }
+}
+    @if (Model.ChangeDetails.Any())
+    {
+        <table>
+            @foreach (var change in Model.ChangeDetails)
+            {
+                <tr>
+                    <td>@change.Id</td>
+                    <td>@change.Comment</td>
+                </tr>
+            }
+        </table>
+    }
