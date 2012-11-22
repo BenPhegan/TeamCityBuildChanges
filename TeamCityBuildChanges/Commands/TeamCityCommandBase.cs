@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using ManyConsole;
 using NDesk.Options;
+using TeamCityBuildChanges.ExternalApi;
+using TeamCityBuildChanges.ExternalApi.TeamCity;
 
 namespace TeamCityBuildChanges.Commands
 {
@@ -11,6 +13,8 @@ namespace TeamCityBuildChanges.Commands
         protected Boolean Xml;
         protected string OutputFileName;
         protected List<ChangeDetail> ChangeDetails;
+        protected List<Issue> IssueDetails;
+        protected ChangeManifest ChangeManifest = new ChangeManifest(); 
         protected string ServerName;
         protected string BuildType;
         protected string ProjectName;
@@ -37,14 +41,14 @@ namespace TeamCityBuildChanges.Commands
 
         protected void OutputChanges()
         {
-            var outputFormatter = new ChangeDetailOutputFormatter();
+            var outputFormatter = new ChangeDetailOutputFormatter(ChangeDetails, IssueDetails);
             if (Xml)
             {
-                outputFormatter.OutputAsXml(ChangeDetails, NoVersion, OutputFileName);
+                outputFormatter.OutputAsXml(NoVersion, OutputFileName);
             }
             else
             {
-                outputFormatter.OutputAsText(ChangeDetails, NoVersion, OutputFileName);
+                outputFormatter.OutputAsText(NoVersion, OutputFileName);
             }
         }
     }

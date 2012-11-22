@@ -2,6 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using NDesk.Options;
+using TeamCityBuildChanges.ExternalApi;
+using TeamCityBuildChanges.ExternalApi.Jira;
+using TeamCityBuildChanges.ExternalApi.TeamCity;
+using TeamCityBuildChanges.IssueDetailResolvers;
 
 namespace TeamCityBuildChanges.Commands
 {
@@ -10,6 +14,8 @@ namespace TeamCityBuildChanges.Commands
         private string _from;
         private string _to;
         private string _referenceBuild;
+        private string _jiraUrl;
+        private string _jiraToken;
 
         public AggregateBuildDelta()
         {
@@ -17,6 +23,10 @@ namespace TeamCityBuildChanges.Commands
             Options.Add("rb=|referencebuild=", "Reference build to query resolved version deltas from", s => _referenceBuild = s);
             Options.Add("f|from=", "Build number to start checking from", x => _from = x);
             Options.Add("t|to=", "The build to check the delta change to", x => _to = x);
+            Options.Add("jiraurl=", "The Jira URL to query for issue details", x => _jiraUrl = x);
+            Options.Add("jiraauthtoken=", "The Jira authorisation token to use (refer to 'encode' subcommand", x => _jiraToken = x);
+
+            base.SkipsCommandSummaryBeforeRunning();
         }
 
         public override int Run(string[] remainingArguments)
@@ -43,14 +53,20 @@ namespace TeamCityBuildChanges.Commands
             }
 
             var buildWithCommitData = _referenceBuild ?? BuildType;
-            if (!string.IsNullOrEmpty(_from) && !string.IsNullOrEmpty(_to) && !string.IsNullOrEmpty(BuildType))
+            if (!string.IsNullOrEmpty(_from) && !string.IsNullOrEmpty(_to) && !string.IsNullOrEmpty(buildWithCommitData))
             {
-                ChangeDetails = api.GetReleaseNotesByBuildTypeAndBuildNumber(buildWithCommitData, _from, _to).ToList();
+                var builds = api.GetBuildsByBuildType(buildWithCommitData).ToList();
+                ChangeDetails = api.GetChangeDetailsByBuildTypeAndBuildNumber(buildWithCommitData, _from, _to, builds).ToList();
+                IssueDetails = api.GetIssuesByBuildTypeAndBuildRange(buildWithCommitData, _from, _to, builds).ToList();
             }
-            var test = api.GetBuildsByBuildType(BuildType);
-            var buildDetails = test.Select(build => api.GetBuildDetailsByBuildId(build.Id)).ToList();
-            var issues = buildDetails.SelectMany(b => b.RelatedIssues).Select(i => i.Issue).Distinct().ToList();
-            issues.ForEach(i => Console.WriteLine(i.Id));
+
+            var resolvers = new List<IExternalIssueResolver>{new JiraExternalIssueResolver(new JiraApi(_jiraUrl, _jiraToken))};
+
+            var issueDetailResolver = new IssueDetailResolver(resolvers);
+            var issueDetails = issueDetailResolver.GetExternalIssueDetails(IssueDetails);
+            ChangeManifest.ChangeDetails.AddRange(ChangeDetails);
+            ChangeManifest.IssueDetails.AddRange(issueDetails);
+
             OutputChanges();
             return 0;
         }

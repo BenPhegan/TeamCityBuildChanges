@@ -17,7 +17,5 @@ namespace TeamCityBuildChanges
         {
             return ConsoleCommandDispatcher.FindCommandsInSameAssemblyAs(typeof(Program)).Where(c => !string.IsNullOrEmpty(c.Command));
         }
-
-        
     }
 }

@@ -4,7 +4,7 @@ using System.Globalization;
 using System.Linq;
 using RestSharp;
 
-namespace TeamCityBuildChanges
+namespace TeamCityBuildChanges.ExternalApi.TeamCity
 {
     internal class TeamCityApi
     {
@@ -104,10 +104,29 @@ namespace TeamCityBuildChanges
             return response.Data.Where(b => b.ProjectName.Equals(project, StringComparison.InvariantCultureIgnoreCase) && b.Name.Equals(buildName, StringComparison.InvariantCultureIgnoreCase));
         }
 
-        private IEnumerable<ChangeDetail> GetChangeDetailsByBuildTypeAndBuildId(string buildType, string from, string to, Func<Build, string, bool> comparitor)
+        public IEnumerable<ChangeDetail> GetChangeDetailsByBuildTypeAndBuildId(string buildType, string from, string to, Func<Build, string, bool> comparitor, IEnumerable<Build> buildList = null)
         {
-            var builds = GetBuildsByBuildType(buildType);
-            var changeDeltas = new List<ChangeDetail>();
+            var results = GetByBuildTypeAndBuildRange(buildType, from, to, comparitor, buildList, b => GetChangeDetailsByBuildId(b.Id));
+            return results;
+        }
+
+        public IEnumerable<Issue> GetIssuesByBuildTypeAndBuildRange(string buildType, string from, string to, IEnumerable<Build> buildList = null)
+        {
+            var results = GetByBuildTypeAndBuildRange(buildType, from, to, BuildNumberComparitor(), buildList, b => GetIssuesFromBuild(b.Id));
+            return results;
+        }
+
+        public IEnumerable<Issue> GetIssuesFromBuild(string buildId)
+        {
+            var buildDetails = GetBuildDetailsByBuildId(buildId);
+            return buildDetails.RelatedIssues.Select(i => i.Issue).Distinct().ToList();
+        }
+
+        private IEnumerable<T> GetByBuildTypeAndBuildRange<T>(string buildType, string from, string to, Func<Build, string, bool> comparitor, IEnumerable<Build> buildList, Func<Build,IEnumerable<T>> retriever)
+        {
+            var builds = buildList ?? GetBuildsByBuildType(buildType);
+            var results = new List<T>();
+
             var captureChanges = false;
             foreach (var build in builds.OrderBy(b => b.Id))
             {
@@ -115,22 +134,36 @@ namespace TeamCityBuildChanges
                     captureChanges = true;
 
                 if (captureChanges)
-                    changeDeltas.AddRange(GetChangeDetailsByBuildId(build.Id));
+                    results.AddRange(retriever(build));
 
                 if (comparitor(build, to))
                     break;
             }
-            return changeDeltas;
+            return results;
         }
 
         public IEnumerable<ChangeDetail> GetChangeDetailsByBuildTypeAndBuildId(string buildType, string from, string to)
         {
-            return GetChangeDetailsByBuildTypeAndBuildId(buildType, from, to, (build, s) => build.Id.Equals(s, StringComparison.InvariantCultureIgnoreCase));
+            return GetChangeDetailsByBuildTypeAndBuildId(buildType, from, to, BuildIdComparitor());
         }
 
-        public IEnumerable<ChangeDetail> GetReleaseNotesByBuildTypeAndBuildNumber(string buildType, string from, string to)
+        private static Func<Build, string, bool> BuildIdComparitor()
         {
-            return GetChangeDetailsByBuildTypeAndBuildId(buildType, from, to, (build, s) => build.Number.Equals("None", StringComparison.InvariantCultureIgnoreCase) ? build.Id.ToString().Equals(s, StringComparison.InvariantCultureIgnoreCase) : build.Number.Equals(s, StringComparison.InvariantCultureIgnoreCase));
+            return (build, s) => build.Id.Equals(s, StringComparison.InvariantCultureIgnoreCase);
+        }
+
+        public IEnumerable<ChangeDetail> GetChangeDetailsByBuildTypeAndBuildNumber(string buildType, string from, string to, IEnumerable<Build> buildList = null)
+        {
+            return GetChangeDetailsByBuildTypeAndBuildId(buildType, 
+                from, 
+                to, 
+                BuildNumberComparitor(),
+                buildList);
+        }
+
+        private static Func<Build, string, bool> BuildNumberComparitor()
+        {
+            return (build, s) => build.Number.Equals("None", StringComparison.InvariantCultureIgnoreCase) ? build.Id.ToString().Equals(s, StringComparison.InvariantCultureIgnoreCase) : build.Number.Equals(s, StringComparison.InvariantCultureIgnoreCase);
         }
 
         public BuildDetails GetBuildDetailsByBuildId(string id)
