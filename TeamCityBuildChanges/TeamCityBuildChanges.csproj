@@ -53,12 +53,14 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Commands\AggregateBuildDelta.cs" />
-    <Compile Include="ChangeDetailOutputFormatter.cs" />
+    <Compile Include="IssueDetailResolvers\TFSIssueResolver.cs" />
+    <Compile Include="Output\ChangeDetailOutputFormatter.cs" />
+    <Compile Include="Output\ChangeManifest.cs" />
     <Compile Include="Commands\Encode.cs" />
     <Compile Include="IssueDetailResolvers\ExternalIssueDetails.cs" />
     <Compile Include="IssueDetailResolvers\IExternalIssueResolver.cs" />
     <Compile Include="IssueDetailResolvers\IssueDetailResolver.cs" />
-    <Compile Include="IssueDetailResolvers\JiraExternalIssueResolver.cs" />
+    <Compile Include="IssueDetailResolvers\JiraIssueResolver.cs" />
     <Compile Include="Commands\TeamCityCommandBase.cs" />
     <Compile Include="ExternalApi\Jira\JiraApi.cs" />
     <Compile Include="Program.cs" />

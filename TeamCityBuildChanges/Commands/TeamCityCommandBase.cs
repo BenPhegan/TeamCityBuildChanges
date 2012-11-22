@@ -4,6 +4,7 @@ using ManyConsole;
 using NDesk.Options;
 using TeamCityBuildChanges.ExternalApi;
 using TeamCityBuildChanges.ExternalApi.TeamCity;
+using TeamCityBuildChanges.Output;
 
 namespace TeamCityBuildChanges.Commands
 {

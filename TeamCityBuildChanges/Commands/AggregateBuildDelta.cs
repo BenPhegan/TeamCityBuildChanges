@@ -60,7 +60,7 @@ namespace TeamCityBuildChanges.Commands
                 IssueDetails = api.GetIssuesByBuildTypeAndBuildRange(buildWithCommitData, _from, _to, builds).ToList();
             }
 
-            var resolvers = new List<IExternalIssueResolver>{new JiraExternalIssueResolver(new JiraApi(_jiraUrl, _jiraToken))};
+            var resolvers = new List<IExternalIssueResolver>{new JiraIssueResolver(new JiraApi(_jiraUrl, _jiraToken))};
 
             var issueDetailResolver = new IssueDetailResolver(resolvers);
             var issueDetails = issueDetailResolver.GetExternalIssueDetails(IssueDetails);

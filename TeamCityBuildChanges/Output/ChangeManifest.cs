@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using TeamCityBuildChanges.ExternalApi.TeamCity;
 using TeamCityBuildChanges.IssueDetailResolvers;
 
-namespace TeamCityBuildChanges.Commands
+namespace TeamCityBuildChanges.Output
 {
     public class ChangeManifest
     {

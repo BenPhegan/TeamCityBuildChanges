@@ -4,10 +4,9 @@ using System.IO;
 using System.Text;
 using System.Xml;
 using System.Xml.Serialization;
-using TeamCityBuildChanges.ExternalApi;
 using TeamCityBuildChanges.ExternalApi.TeamCity;
 
-namespace TeamCityBuildChanges
+namespace TeamCityBuildChanges.Output
 {
     class ChangeDetailOutputFormatter
     {

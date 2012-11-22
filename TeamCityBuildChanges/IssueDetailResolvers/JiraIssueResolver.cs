@@ -4,11 +4,11 @@ using TeamCityBuildChanges.ExternalApi.TeamCity;
 
 namespace TeamCityBuildChanges.IssueDetailResolvers
 {
-    public class JiraExternalIssueResolver : IExternalIssueResolver
+    public class JiraIssueResolver : IExternalIssueResolver
     {
         private readonly JiraApi _api;
 
-        public JiraExternalIssueResolver(JiraApi api)
+        public JiraIssueResolver(JiraApi api)
         {
             _api = api;
         }
