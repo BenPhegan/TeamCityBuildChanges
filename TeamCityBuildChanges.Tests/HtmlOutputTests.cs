@@ -23,6 +23,7 @@ namespace TeamCityBuildChanges.Tests
         {
             return new ChangeManifest()
                 {
+                    Generated = DateTime.Now,
                     ChangeDetails = new List<ChangeDetail>()
                         {
                             new ChangeDetail

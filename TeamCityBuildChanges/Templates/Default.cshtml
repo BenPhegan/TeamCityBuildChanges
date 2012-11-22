@@ -1,1 +1,31 @@
-"<div>Hello</div>"
+@model TeamCityBuildChanges.Output.ChangeManifest 
+
+<div>
+    @if (Model.ChangeDetails.Any())
+    {
+        <table>
+            @foreach (var change in Model.ChangeDetails)
+            {
+                <tr>
+                    <td>@change.Id</td>
+                    <td>@change.Comment</td>
+                </tr>
+            }
+        </table>
+    }
+</div>
+<div>
+    @if (Model.IssueDetails.Any())
+    {
+        <table>
+            @foreach (var change in Model.IssueDetails)
+            {
+                <tr>
+                    <td>@change.Id</td>
+                    <td>@change.Status</td>
+                    <td>@change.Created</td>
+                </tr>
+            }
+        </table>
+    }
+</div>
