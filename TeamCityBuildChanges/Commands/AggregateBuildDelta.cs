@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using NDesk.Options;
-using TeamCityBuildChanges.ExternalApi;
 using TeamCityBuildChanges.ExternalApi.Jira;
 using TeamCityBuildChanges.ExternalApi.TeamCity;
 using TeamCityBuildChanges.IssueDetailResolvers;
@@ -18,7 +16,8 @@ namespace TeamCityBuildChanges.Commands
         private string _referenceBuild;
         private string _jiraUrl;
         private string _jiraToken;
-        private string _tfsCollection;
+        private string _tfsUrl;
+        private string _zeroChangesComment;
 
         public AggregateBuildDelta()
         {
@@ -27,12 +26,18 @@ namespace TeamCityBuildChanges.Commands
             Options.Add("f|from=", "Build number to start checking from", x => _from = x);
             Options.Add("t|to=", "The build to check the delta change to", x => _to = x);
 
+            //Jira specific
             Options.Add("jiraurl=", "The Jira URL to query for issue details", x => _jiraUrl = x);
             Options.Add("jiraauthtoken=", "The Jira authorisation token to use (refer to 'encode' subcommand", x => _jiraToken = x);
 
-            Options.Add("tfscollection=", "TFS collection to check issues on.", x => _tfsCollection = x);
+            //TFS Specific?
+            Options.Add("tfsurl=", "TFS URL to check issues on.", x => _tfsUrl = x);
+            
+            //Output specific
+            Options.Add("template=", "Template to use for output.  Must be a Razor template that accepts a ChangeManifest model.", x => _tfsUrl = x);
 
-            base.SkipsCommandSummaryBeforeRunning();
+            Options.Add("zerochangescomment=", "If there are no changes detected, add the provided comment rather than leave it null", x => _zeroChangesComment = x);
+            SkipsCommandSummaryBeforeRunning();
         }
 
         public override int Run(string[] remainingArguments)
@@ -67,13 +72,26 @@ namespace TeamCityBuildChanges.Commands
                 IssueDetails = api.GetIssuesByBuildTypeAndBuildRange(buildWithCommitData, _from, _to, builds).ToList();
             }
 
-            var resolvers = new List<IExternalIssueResolver>{new JiraIssueResolver(new JiraApi(_jiraUrl, _jiraToken))};
+            var resolvers = new List<IExternalIssueResolver>();
+            if (!string.IsNullOrEmpty(_jiraToken) && !string.IsNullOrEmpty(_jiraUrl))
+            {           
+                resolvers.Add(new JiraIssueResolver(new JiraApi(_jiraUrl, _jiraToken)));
+            }
+            if (!string.IsNullOrEmpty(_tfsUrl))
+            {
+                //TFS
+            }
+
 
             var issueDetailResolver = new IssueDetailResolver(resolvers);
             var issueDetails = issueDetailResolver.GetExternalIssueDetails(IssueDetails);
             ChangeManifest.ChangeDetails.AddRange(ChangeDetails);
             ChangeManifest.IssueDetails.AddRange(issueDetails);
             ChangeManifest.Generated = DateTime.Now;
+            ChangeManifest.FromVersion = _from;
+            ChangeManifest.ToVersion = _to;
+            ChangeManifest.BuildConfiguration = BuildType;
+            ChangeManifest.ReferenceBuildConfiguration = _referenceBuild ?? string.Empty;
 
             var output = HtmlOutput.Render(ChangeManifest);
             File.WriteAllText("output.html",output);
