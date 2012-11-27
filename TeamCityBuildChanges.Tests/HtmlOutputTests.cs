@@ -15,7 +15,7 @@ namespace TeamCityBuildChanges.Tests
         [Test]
         public void Test()
         {
-            var result = HtmlOutput.Render(CreateChangeManifest());
+            var result = new RazorOutputRenderer(@".\templates\text.cshtml").Render(CreateChangeManifest());
             Assert.True(true);//Giddyup.
         }
 
@@ -24,6 +24,10 @@ namespace TeamCityBuildChanges.Tests
             return new ChangeManifest()
                 {
                     Generated = DateTime.Now,
+                    FromVersion = "1.0",
+                    ToVersion = "1.1",
+                    BuildConfiguration = "Test",
+                    ReferenceBuildConfiguration = "ReferenceTest",
                     ChangeDetails = new List<ChangeDetail>()
                         {
                             new ChangeDetail

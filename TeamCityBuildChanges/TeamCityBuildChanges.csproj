@@ -82,11 +82,15 @@
     <Compile Include="IssueDetailResolvers\JiraIssueResolver.cs" />
     <Compile Include="Commands\TeamCityCommandBase.cs" />
     <Compile Include="ExternalApi\Jira\JiraApi.cs" />
-    <Compile Include="Output\HtmlOutput.cs" />
+    <Compile Include="Output\RazorOutputRenderer.cs" />
+    <Compile Include="Output\IOutputRenderer.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Commands\SingleBuildDelta.cs" />
     <Compile Include="ExternalApi\TeamCity\TeamCityApi.cs" />
+    <None Include="Templates\Text.cshtml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Include="Templates\Detailed.cshtml" />
     <None Include="Templates\Default.cshtml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>

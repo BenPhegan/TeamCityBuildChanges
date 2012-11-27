@@ -1,4 +1,7 @@
-﻿using System.Linq;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using TeamCityBuildChanges.ExternalApi;
 using TeamCityBuildChanges.ExternalApi.TeamCity;
 
@@ -31,7 +34,11 @@ namespace TeamCityBuildChanges.Commands
                                     : api.GetChangeDetailsForLastBuildByBuildType(BuildType).ToList();
             }
 
-            OutputChanges();
+            OutputChanges(CreateOutputRenderers(), new List<Action<string>>()
+                {
+                    Console.Write,
+                    a => File.WriteAllText(OutputFileName,a)
+                }); 
             return 0;
         }
     }

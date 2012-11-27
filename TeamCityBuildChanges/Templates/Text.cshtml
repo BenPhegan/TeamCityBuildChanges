@@ -1,0 +1,17 @@
+@model TeamCityBuildChanges.Output.ChangeManifest 
+@if (Model.ChangeDetails.Any())
+{
+<text>Version - Comment</text>
+    foreach (var change in Model.ChangeDetails)
+    {
+<text>@change.Id - @change.Comment</text>
+    }
+}
+@if (Model.IssueDetails.Any())
+{
+<text>Issue ID, Status, Created</text>
+        foreach (var issue in Model.IssueDetails)
+        {
+<text>@issue.Id, @issue.Status, @issue.Created</text>
+        }
+}

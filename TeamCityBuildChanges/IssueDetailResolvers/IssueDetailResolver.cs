@@ -16,9 +16,10 @@ namespace TeamCityBuildChanges.IssueDetailResolvers
         public IEnumerable<ExternalIssueDetails> GetExternalIssueDetails(IEnumerable<Issue> issues)
         {
             var details = new List<ExternalIssueDetails>();
-            foreach (IExternalIssueResolver resolver in _issueResolvers)
+            var issueList = issues as List<Issue> ?? issues.ToList();
+            foreach (var resolver in _issueResolvers)
             {
-                details.AddRange(resolver.GetDetails(issues));
+                details.AddRange(resolver.GetDetails(issueList));
             }
             return details;
         }

@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using TeamCityBuildChanges.ExternalApi.Jira;
 using TeamCityBuildChanges.ExternalApi.TeamCity;
 using TeamCityBuildChanges.IssueDetailResolvers;
 using TeamCityBuildChanges.Output;
@@ -14,9 +13,6 @@ namespace TeamCityBuildChanges.Commands
         private string _from;
         private string _to;
         private string _referenceBuild;
-        private string _jiraUrl;
-        private string _jiraToken;
-        private string _tfsUrl;
         private string _zeroChangesComment;
 
         public AggregateBuildDelta()
@@ -25,16 +21,6 @@ namespace TeamCityBuildChanges.Commands
             Options.Add("rb=|referencebuild=", "Reference build to query resolved version deltas from", s => _referenceBuild = s);
             Options.Add("f|from=", "Build number to start checking from", x => _from = x);
             Options.Add("t|to=", "The build to check the delta change to", x => _to = x);
-
-            //Jira specific
-            Options.Add("jiraurl=", "The Jira URL to query for issue details", x => _jiraUrl = x);
-            Options.Add("jiraauthtoken=", "The Jira authorisation token to use (refer to 'encode' subcommand", x => _jiraToken = x);
-
-            //TFS Specific?
-            Options.Add("tfsurl=", "TFS URL to check issues on.", x => _tfsUrl = x);
-            
-            //Output specific
-            Options.Add("template=", "Template to use for output.  Must be a Razor template that accepts a ChangeManifest model.", x => _tfsUrl = x);
 
             Options.Add("zerochangescomment=", "If there are no changes detected, add the provided comment rather than leave it null", x => _zeroChangesComment = x);
             SkipsCommandSummaryBeforeRunning();
@@ -67,20 +53,16 @@ namespace TeamCityBuildChanges.Commands
             //TODO TFS collection data should come from the BuildType/VCS root data from TeamCity...but not for now...
             if (!string.IsNullOrEmpty(_from) && !string.IsNullOrEmpty(_to) && !string.IsNullOrEmpty(buildWithCommitData))
             {
-                var builds = api.GetBuildsByBuildType(buildWithCommitData).ToList();
-                ChangeDetails = api.GetChangeDetailsByBuildTypeAndBuildNumber(buildWithCommitData, _from, _to, builds).ToList();
-                IssueDetails = api.GetIssuesByBuildTypeAndBuildRange(buildWithCommitData, _from, _to, builds).ToList();
+                var builds = api.GetBuildsByBuildType(buildWithCommitData);
+                if (builds != null)
+                {
+                    var buildList = builds as List<Build> ?? builds.ToList();
+                    ChangeDetails = api.GetChangeDetailsByBuildTypeAndBuildNumber(buildWithCommitData, _from, _to, buildList).ToList();
+                    IssueDetails = api.GetIssuesByBuildTypeAndBuildRange(buildWithCommitData, _from, _to, buildList).ToList();
+                }
             }
 
-            var resolvers = new List<IExternalIssueResolver>();
-            if (!string.IsNullOrEmpty(_jiraToken) && !string.IsNullOrEmpty(_jiraUrl))
-            {           
-                resolvers.Add(new JiraIssueResolver(new JiraApi(_jiraUrl, _jiraToken)));
-            }
-            if (!string.IsNullOrEmpty(_tfsUrl))
-            {
-                //TFS
-            }
+            var resolvers = CreateExternalIssueResolvers();
 
 
             var issueDetailResolver = new IssueDetailResolver(resolvers);
@@ -93,10 +75,12 @@ namespace TeamCityBuildChanges.Commands
             ChangeManifest.BuildConfiguration = BuildType;
             ChangeManifest.ReferenceBuildConfiguration = _referenceBuild ?? string.Empty;
 
-            var output = HtmlOutput.Render(ChangeManifest);
-            File.WriteAllText("output.html",output);
 
-            OutputChanges();
+            OutputChanges(CreateOutputRenderers(),new List<Action<string>>()
+                {
+                    Console.Write,
+                    a => File.WriteAllText(OutputFileName,a)
+                });
             return 0;
         }
 
