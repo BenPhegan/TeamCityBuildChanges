@@ -9,7 +9,7 @@ namespace TeamCityBuildChanges.ExternalApi.TFS
 {
     public class TfsApi
     {
-        private string _connectionUri;
+        private readonly string _connectionUri;
 
         private TfsTeamProjectCollection _connection;
         
@@ -57,8 +57,8 @@ namespace TeamCityBuildChanges.ExternalApi.TFS
 
         private int? GetParentId(WorkItem workItem)
         {
-            var parents = GetRelatedWorkItemLinks(workItem).Where(IsParentLink);
-            if (parents.Count() == 0) return null;
+            var parents = GetRelatedWorkItemLinks(workItem).Where(IsParentLink).ToList();
+            if (!parents.Any()) return null;
             return parents.First().RelatedWorkItemId;
         }
 

@@ -9,7 +9,7 @@ namespace TeamCityBuildChanges.IssueDetailResolvers
 {
     public class TFSIssueResolver : IExternalIssueResolver
     {
-        TfsApi _tfsApi;
+        readonly TfsApi _tfsApi;
 
         public TFSIssueResolver(TfsApi tfsApi)
         {
@@ -18,14 +18,9 @@ namespace TeamCityBuildChanges.IssueDetailResolvers
 
         public IEnumerable<ExternalIssueDetails> GetDetails(IEnumerable<Issue> issues)
         {
-            List<ExternalIssueDetails> externalIssueDetails = new List<ExternalIssueDetails>();
+            var externalIssueDetails = new List<ExternalIssueDetails>();
 
-            foreach (var issue in issues)
-            {
-                if (!IsTfsUrl(issue.Url)) continue;
-
-                externalIssueDetails.Add(GetDetails(issue));
-            }
+            externalIssueDetails.AddRange(issues.Where(i => IsTfsUrl(i.Url)).Select(GetDetails));
 
             return externalIssueDetails;
         }
@@ -33,7 +28,7 @@ namespace TeamCityBuildChanges.IssueDetailResolvers
         private ExternalIssueDetails GetDetails(Issue issue)
         {            
             var tfsWi = _tfsApi.GetWorkItem(ParseTfsWorkItemId(issue.Id));
-            ExternalIssueDetails extIssue = GetDetails(tfsWi);
+            var extIssue = GetDetails(tfsWi);
 
             while (tfsWi.ParentId.HasValue)
             {
@@ -50,7 +45,7 @@ namespace TeamCityBuildChanges.IssueDetailResolvers
 
         private ExternalIssueDetails GetDetails(TfsWorkItem wi)
         {
-            ExternalIssueDetails eid = new ExternalIssueDetails
+            var eid = new ExternalIssueDetails
             {
                 Id = wi.Id.ToString(),
                 Created = wi.Created.ToString("dd-MM-yyyy HH:mm:ss"),
@@ -61,14 +56,14 @@ namespace TeamCityBuildChanges.IssueDetailResolvers
             return eid;
         }
 
-        private int ParseTfsWorkItemId(string issueId)
+        private static int ParseTfsWorkItemId(string issueId)
         {
             int workItemId;
             if (!Int32.TryParse(issueId, out workItemId)) throw new FormatException(String.Format("Issue Id '{0}' is not an integer!", issueId));
             return workItemId;
         }
 
-        private bool IsTfsUrl(string url)
+        private static bool IsTfsUrl(string url)
         {
             return url.Contains("/tfs");
         }
