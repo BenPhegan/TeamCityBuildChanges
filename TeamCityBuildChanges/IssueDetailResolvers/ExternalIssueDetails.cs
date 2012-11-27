@@ -9,14 +9,20 @@ namespace TeamCityBuildChanges.IssueDetailResolvers
         public string Id { get; set; }
         public string Status { get; set; }
         public string Created { get; set; }
+        public string Summary { get; set; }
+        public string Description { get; set; }
+        public string Url { get; set; }
         public List<string> Comments { get; set; }
         public List<ExternalIssueDetails> SubIssues { get; set; }
 
         protected bool Equals(ExternalIssueDetails other)
         {
             return string.Equals(Id, other.Id) 
-                && string.Equals(Status, other.Status) 
-                && string.Equals(Created, other.Created) 
+                && string.Equals(Status, other.Status)
+                && string.Equals(Created, other.Created)
+                && string.Equals(Summary, other.Summary)
+                && string.Equals(Description, other.Description)
+                && string.Equals(Url, other.Url) 
                 && Equals(Comments, other.Comments) 
                 && Equals(SubIssues, other.SubIssues);
         }
@@ -27,7 +33,10 @@ namespace TeamCityBuildChanges.IssueDetailResolvers
             {
                 int hashCode = (Id != null ? Id.GetHashCode() : 0);
                 hashCode = (hashCode*397) ^ (Status != null ? Status.GetHashCode() : 0);
-                hashCode = (hashCode*397) ^ (Created != null ? Created.GetHashCode() : 0);
+                hashCode = (hashCode * 397) ^ (Created != null ? Created.GetHashCode() : 0);
+                hashCode = (hashCode * 397) ^ (Summary != null ? Summary.GetHashCode() : 0);
+                hashCode = (hashCode * 397) ^ (Description != null ? Description.GetHashCode() : 0);
+                hashCode = (hashCode * 397) ^ (Url != null ? Url.GetHashCode() : 0);
                 hashCode = (hashCode*397) ^ (Comments != null ? Comments.GetHashCode() : 0);
                 hashCode = (hashCode*397) ^ (SubIssues != null ? SubIssues.GetHashCode() : 0);
                 return hashCode;

@@ -55,8 +55,8 @@ a:visited{
     {
         <table>
             <tr>
-                <td>VCS Version</td>
-                <td>Commit Comment</td>
+                <th>VCS Version</th>
+                <th>Commit Comment</th>
             </tr>
             @foreach (var change in Model.ChangeDetails)
             {
@@ -68,19 +68,22 @@ a:visited{
         </table>
     }
 </div>
+<br/>
  <div>
     @if (Model.IssueDetails.Any())
     {
         <table>
             <tr>
-                <td>Issue ID</td>
-                <td>Status</td>
-                <td>Created</td>
+                <th>Issue ID</th>
+                <th>Summary</th>
+                <th>Status</th>
+                <th>Created</th>
             </tr>
             @foreach (var issue in Model.IssueDetails)
             {
                 <tr>
-                    <td>@issue.Id</td>
+                    <td><a href="@issue.Url">@issue.Id</a></td>
+                    <td>@issue.Summary</td>
                     <td>@issue.Status</td>
                     <td>@issue.Created</td>
                 </tr>

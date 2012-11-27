@@ -29,11 +29,13 @@ namespace TeamCityBuildChanges.IssueDetailResolvers
         {            
             var tfsWi = _tfsApi.GetWorkItem(ParseTfsWorkItemId(issue.Id));
             var extIssue = GetDetails(tfsWi);
+            extIssue.Url = issue.Url;
 
             while (tfsWi.ParentId.HasValue)
             {
                 var parentWi = _tfsApi.GetWorkItem(tfsWi.ParentId.Value);
                 var parentExtIssue = GetDetails(parentWi);
+                parentExtIssue.Url = issue.Url;
                 parentExtIssue.SubIssues = new List<ExternalIssueDetails> { extIssue };
 
                 extIssue = parentExtIssue;
@@ -50,7 +52,9 @@ namespace TeamCityBuildChanges.IssueDetailResolvers
                 Id = wi.Id.ToString(),
                 Created = wi.Created.ToString("dd-MM-yyyy HH:mm:ss"),
                 Comments = wi.HistoryComments,
-                Status = wi.State
+                Status = wi.State,
+                Summary = wi.Title,
+                Description = wi.Description,
             };
 
             return eid;

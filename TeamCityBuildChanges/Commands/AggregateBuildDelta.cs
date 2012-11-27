@@ -79,7 +79,11 @@ namespace TeamCityBuildChanges.Commands
             OutputChanges(CreateOutputRenderers(),new List<Action<string>>()
                 {
                     Console.Write,
-                    a => File.WriteAllText(OutputFileName,a)
+                    a =>
+                        {
+                            if (!string.IsNullOrEmpty(OutputFileName))
+                                File.WriteAllText(OutputFileName, a);
+                        } 
                 });
             return 0;
         }

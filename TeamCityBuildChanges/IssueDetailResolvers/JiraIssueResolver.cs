@@ -28,6 +28,9 @@ namespace TeamCityBuildChanges.IssueDetailResolvers
                             Id = jiraDetails.Key,
                             Status = jiraDetails.Fields.Status.Name,
                             Created = jiraDetails.Fields.Created,
+                            Summary = jiraDetails.Fields.Summary,
+                            Description = jiraDetails.Fields.Description,
+                            Url = jiraDetails.Self
                         });
                 }
             }
