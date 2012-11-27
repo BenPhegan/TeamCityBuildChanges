@@ -26,7 +26,7 @@ namespace TeamCityBuildChanges.ExternalApi.TFS
             _connectionUri = connectionUri;
         }
 
-        internal TfsWorkItem GetWorkItem(int workItemId)
+        public TfsWorkItem GetWorkItem(int workItemId)
         {
             if (_connection == null) Connect();
 
@@ -41,7 +41,7 @@ namespace TeamCityBuildChanges.ExternalApi.TFS
                 Type = workItem.Type.Name,
                 State = workItem.State,
                 Created = workItem.CreatedDate,
-                Details = workItem.Description,
+                Description = workItem.Description,
                 ParentId = GetParentId(workItem),
                 ChildrenIds = GetChildrenIds(workItem),
                 HistoryComments = workItem.Revisions.Cast<Revision>().Select(r => r.Fields[CoreField.History].Value.ToString()).ToList()
