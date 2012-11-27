@@ -5,6 +5,11 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TeamCityBuildChanges", "Tea
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TeamCityBuildChanges.Tests", "TeamCityBuildChanges.Tests\TeamCityBuildChanges.Tests.csproj", "{4B062C90-9F66-467A-9E99-EA55E0447867}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ThirdParty", "ThirdParty", "{5FA45546-E2E6-4E1C-9A64-E7305A52DEC2}"
+	ProjectSection(SolutionItems) = preProject
+		ThirdParty\Microsoft.TeamFoundation.Client.dll = ThirdParty\Microsoft.TeamFoundation.Client.dll
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
