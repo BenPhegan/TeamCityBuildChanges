@@ -1,4 +1,6 @@
 @model TeamCityBuildChanges.Output.ChangeManifest 
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
+   "http://www.w3.org/TR/html4/strict.dtd">
 <style>
     table{
   border: 0px solid black;
@@ -50,44 +52,71 @@ a:visited{
 }
 
 </style>
-<div>
-    @if (Model.ChangeDetails.Any())
-    {
-        <table>
-            <tr>
-                <th>VCS Version</th>
-                <th>Commit Comment</th>
-            </tr>
-            @foreach (var change in Model.ChangeDetails)
-            {
+
+<html>
+    <head>
+        <title>TeamCity Build Change Manifest</title>
+    </head>
+    <body>
+        <div>
+            <table>
                 <tr>
-                    <td>@change.Id</td>
-                    <td>@change.Comment</td>
+                    <th>Build Configuration</th>
+                    <th>Reference Build Configuration</th>
+                    <th>From Version</th>
+                    <th>To Version</th>
+                    <th>Generation Date</th>
                 </tr>
-            }
-        </table>
-    }
-</div>
-<br/>
- <div>
-    @if (Model.IssueDetails.Any())
-    {
-        <table>
-            <tr>
-                <th>Issue ID</th>
-                <th>Summary</th>
-                <th>Status</th>
-                <th>Created</th>
-            </tr>
-            @foreach (var issue in Model.IssueDetails)
-            {
                 <tr>
-                    <td><a href="@issue.Url">@issue.Id</a></td>
-                    <td>@issue.Summary</td>
-                    <td>@issue.Status</td>
-                    <td>@issue.Created</td>
+                    <td>@Model.BuildConfiguration.Name</td>
+                    <td>@Model.ReferenceBuildConfiguration.Name</td>
+                    <td>@Model.FromVersion</td>
+                    <td>@Model.ToVersion</td>
+                    <td>@Model.Generated.ToString()</td>
                 </tr>
+            </table>
+        </div>
+        <br/>
+        <div>
+            @if (Model.ChangeDetails.Any())
+            {
+                <table>
+                    <tr>
+                        <th>VCS Version</th>
+                        <th>Commit Comment</th>
+                    </tr>
+                    @foreach (var change in Model.ChangeDetails)
+                    {
+                        <tr>
+                            <td>@change.Id</td>
+                            <td>@change.Comment</td>
+                        </tr>
+                    }
+                </table>
             }
-        </table>
-    }
-</div>
+        </div>
+        <br />
+        <div>
+            @if (Model.IssueDetails.Any())
+            {
+                <table>
+                    <tr>
+                        <th>Issue ID</th>
+                        <th>Summary</th>
+                        <th>Status</th>
+                        <th>Created</th>
+                    </tr>
+                    @foreach (var issue in Model.IssueDetails)
+                    {
+                        <tr>
+                            <td><a href="@issue.Url">@issue.Id</a></td>
+                            <td>@issue.Summary</td>
+                            <td>@issue.Status</td>
+                            <td>@issue.Created</td>
+                        </tr>
+                    }
+                </table>
+            }
+        </div>
+    </body>
+</html>

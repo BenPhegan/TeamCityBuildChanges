@@ -50,6 +50,8 @@ namespace TeamCityBuildChanges.Commands
             }
 
             var buildWithCommitData = _referenceBuild ?? BuildType;
+            var buildTypeDetails = api.GetBuildTypeDetailsById(BuildType);
+            var referenceBuildTypeDetails = !string.IsNullOrEmpty(_referenceBuild) ? api.GetBuildTypeDetailsById(_referenceBuild) : null;
             //TODO TFS collection data should come from the BuildType/VCS root data from TeamCity...but not for now...
             if (!string.IsNullOrEmpty(_from) && !string.IsNullOrEmpty(_to) && !string.IsNullOrEmpty(buildWithCommitData))
             {
@@ -72,8 +74,8 @@ namespace TeamCityBuildChanges.Commands
             ChangeManifest.Generated = DateTime.Now;
             ChangeManifest.FromVersion = _from;
             ChangeManifest.ToVersion = _to;
-            ChangeManifest.BuildConfiguration = BuildType;
-            ChangeManifest.ReferenceBuildConfiguration = _referenceBuild ?? string.Empty;
+            ChangeManifest.BuildConfiguration = buildTypeDetails;
+            ChangeManifest.ReferenceBuildConfiguration = referenceBuildTypeDetails ?? new BuildTypeDetails();
 
 
             OutputChanges(CreateOutputRenderers(),new List<Action<string>>()

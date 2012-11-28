@@ -9,21 +9,21 @@ namespace TeamCityBuildChanges.ExternalApi.TFS
 {
     public class TfsApi
     {
-        private readonly string _connectionUri;
+        public readonly string ConnectionUri;
 
         private TfsTeamProjectCollection _connection;
         
         private void Connect()
         {
-            if (Uri.IsWellFormedUriString(_connectionUri, UriKind.Absolute))
+            if (Uri.IsWellFormedUriString(ConnectionUri, UriKind.Absolute))
             {
-                _connection = TfsTeamProjectCollectionFactory.GetTeamProjectCollection(new Uri(_connectionUri));
+                _connection = TfsTeamProjectCollectionFactory.GetTeamProjectCollection(new Uri(ConnectionUri));
             }
         }
 
         public TfsApi(string connectionUri)
         {
-            _connectionUri = connectionUri;
+            ConnectionUri = connectionUri;
         }
 
         public TfsWorkItem GetWorkItem(int workItemId)

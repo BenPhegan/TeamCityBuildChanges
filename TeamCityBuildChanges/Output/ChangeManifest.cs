@@ -12,8 +12,8 @@ namespace TeamCityBuildChanges.Output
         public DateTime Generated { get; set; }
         public string FromVersion { get; set; }
         public string ToVersion { get; set; }
-        public string ReferenceBuildConfiguration { get; set; }
-        public string BuildConfiguration { get; set; }
+        public BuildTypeDetails ReferenceBuildConfiguration { get; set; }
+        public BuildTypeDetails BuildConfiguration { get; set; }
 
         public ChangeManifest()
         {

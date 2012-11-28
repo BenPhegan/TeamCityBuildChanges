@@ -29,13 +29,13 @@ namespace TeamCityBuildChanges.IssueDetailResolvers
         {            
             var tfsWi = _tfsApi.GetWorkItem(ParseTfsWorkItemId(issue.Id));
             var extIssue = GetDetails(tfsWi);
-            extIssue.Url = issue.Url;
+            extIssue.Url = _tfsApi.ConnectionUri + "/web/wi.aspx?id=" + extIssue.Id;
 
             while (tfsWi.ParentId.HasValue)
             {
                 var parentWi = _tfsApi.GetWorkItem(tfsWi.ParentId.Value);
                 var parentExtIssue = GetDetails(parentWi);
-                parentExtIssue.Url = issue.Url;
+                parentExtIssue.Url = _tfsApi.ConnectionUri + "/web/wi.aspx?id=" + parentExtIssue.Id; ;
                 parentExtIssue.SubIssues = new List<ExternalIssueDetails> { extIssue };
 
                 extIssue = parentExtIssue;
