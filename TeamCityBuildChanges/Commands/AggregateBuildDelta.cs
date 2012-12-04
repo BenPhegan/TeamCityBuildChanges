@@ -30,53 +30,8 @@ namespace TeamCityBuildChanges.Commands
         {
             var api = new TeamCityApi(ServerName);
 
-            ResolveBuildTypeId(api);
-
-            if (string.IsNullOrEmpty(_from))
-            {
-                var latestSuccesfull = api.GetLatestSuccesfulBuildByBuildType(BuildType);
-                if (latestSuccesfull != null)
-                    _from = latestSuccesfull.Number;
-                else
-                    throw new ApplicationException(string.Format("Could not find latest build for build type {0}", BuildType));
-            }
-            if (string.IsNullOrEmpty(_to))
-            {
-                var runningBuild = api.GetRunningBuildByBuildType(BuildType).FirstOrDefault();
-                if (runningBuild != null) 
-                    _to = runningBuild.Number;
-                else
-                    throw new ApplicationException(String.Format("Could not resolve a build number for the running build."));
-            }
-
-            var buildWithCommitData = _referenceBuild ?? BuildType;
-            var buildTypeDetails = api.GetBuildTypeDetailsById(BuildType);
-            var referenceBuildTypeDetails = !string.IsNullOrEmpty(_referenceBuild) ? api.GetBuildTypeDetailsById(_referenceBuild) : null;
-            //TODO TFS collection data should come from the BuildType/VCS root data from TeamCity...but not for now...
-            if (!string.IsNullOrEmpty(_from) && !string.IsNullOrEmpty(_to) && !string.IsNullOrEmpty(buildWithCommitData))
-            {
-                var builds = api.GetBuildsByBuildType(buildWithCommitData);
-                if (builds != null)
-                {
-                    var buildList = builds as List<Build> ?? builds.ToList();
-                    ChangeDetails = api.GetChangeDetailsByBuildTypeAndBuildNumber(buildWithCommitData, _from, _to, buildList).ToList();
-                    IssueDetails = api.GetIssuesByBuildTypeAndBuildRange(buildWithCommitData, _from, _to, buildList).ToList();
-                }
-            }
-
-            var resolvers = CreateExternalIssueResolvers();
-
-
-            var issueDetailResolver = new IssueDetailResolver(resolvers);
-            var issueDetails = issueDetailResolver.GetExternalIssueDetails(IssueDetails);
-            ChangeManifest.ChangeDetails.AddRange(ChangeDetails);
-            ChangeManifest.IssueDetails.AddRange(issueDetails);
-            ChangeManifest.Generated = DateTime.Now;
-            ChangeManifest.FromVersion = _from;
-            ChangeManifest.ToVersion = _to;
-            ChangeManifest.BuildConfiguration = buildTypeDetails;
-            ChangeManifest.ReferenceBuildConfiguration = referenceBuildTypeDetails ?? new BuildTypeDetails();
-
+            var resolver = new AggregateBuildDeltaResolver(api, CreateExternalIssueResolvers());
+            ChangeManifest = resolver.CreateChangeManifest(BuildName, BuildType, _referenceBuild, _from, _to, ProjectName);
 
             OutputChanges(CreateOutputRenderers(),new List<Action<string>>()
                 {
@@ -88,18 +43,6 @@ namespace TeamCityBuildChanges.Commands
                         } 
                 });
             return 0;
-        }
-
-        private void ResolveBuildTypeId(TeamCityApi api)
-        {
-            if (!String.IsNullOrEmpty(BuildType)) return;
-            if (string.IsNullOrEmpty(ProjectName) || string.IsNullOrEmpty(BuildName))
-            {
-                throw new ApplicationException(String.Format("Could not resolve Project: {0} and BuildName:{1} to a build type", ProjectName, BuildName));
-            }
-            var resolvedBuildType = api.GetBuildTypeByProjectAndName(ProjectName, BuildName).FirstOrDefault();
-            if (resolvedBuildType != null) 
-                BuildType = resolvedBuildType.Id;
         }
     }
 }
