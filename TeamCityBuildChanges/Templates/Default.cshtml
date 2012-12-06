@@ -102,6 +102,7 @@ a:visited{
                 <table>
                     <tr>
                         <th>Issue ID</th>
+                        <th>Type</th>
                         <th>Summary</th>
                         <th>Status</th>
                         <th>Created</th>
@@ -110,10 +111,31 @@ a:visited{
                     {
                         <tr>
                             <td><a href="@issue.Url">@issue.Id</a></td>
+                            <td>@issue.Type</td>
                             <td>@issue.Summary</td>
                             <td>@issue.Status</td>
                             <td>@issue.Created</td>
                         </tr>
+                        foreach (var child in issue.SubIssues)
+                        {
+                            <tr style="font-style: italic">
+                                <td><a href="@child.Url">@child.Id</a></td>
+                                <td>@child.Type</td>
+                                <td>@child.Summary</td>
+                                <td>@child.Status</td>
+                                <td>@child.Created</td>
+                            </tr>
+                            foreach (var subIssue in child.SubIssues)
+                            {
+                                <tr style="font-style:oblique">
+                                    <td><a href="@subIssue.Url">@subIssue.Id</a></td>
+                                    <td>@subIssue.Type</td>
+                                    <td>@subIssue.Summary</td>
+                                    <td>@subIssue.Status</td>
+                                    <td>@subIssue.Created</td>
+                                </tr>
+                            }
+                        }
                     }
                 </table>
             }

@@ -51,6 +51,7 @@ namespace TeamCityBuildChanges.IssueDetailResolvers
             {
                 Id = wi.Id.ToString(),
                 Created = wi.Created.ToString("dd-MM-yyyy HH:mm:ss"),
+                Type = wi.Type,
                 Comments = wi.HistoryComments,
                 Status = wi.State,
                 Summary = wi.Title,

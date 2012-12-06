@@ -8,6 +8,7 @@ namespace TeamCityBuildChanges.IssueDetailResolvers
 
         public string Id { get; set; }
         public string Status { get; set; }
+        public string Type { get; set; }
         public string Created { get; set; }
         public string Summary { get; set; }
         public string Description { get; set; }
@@ -17,8 +18,9 @@ namespace TeamCityBuildChanges.IssueDetailResolvers
 
         protected bool Equals(ExternalIssueDetails other)
         {
-            return string.Equals(Id, other.Id) 
+            return string.Equals(Id, other.Id)
                 && string.Equals(Status, other.Status)
+                && string.Equals(Type, other.Type)
                 && string.Equals(Created, other.Created)
                 && string.Equals(Summary, other.Summary)
                 && string.Equals(Description, other.Description)
@@ -34,6 +36,7 @@ namespace TeamCityBuildChanges.IssueDetailResolvers
                 int hashCode = (Id != null ? Id.GetHashCode() : 0);
                 hashCode = (hashCode*397) ^ (Status != null ? Status.GetHashCode() : 0);
                 hashCode = (hashCode * 397) ^ (Created != null ? Created.GetHashCode() : 0);
+                hashCode = (hashCode * 397) ^ (Type != null ? Type.GetHashCode() : 0);
                 hashCode = (hashCode * 397) ^ (Summary != null ? Summary.GetHashCode() : 0);
                 hashCode = (hashCode * 397) ^ (Description != null ? Description.GetHashCode() : 0);
                 hashCode = (hashCode * 397) ^ (Url != null ? Url.GetHashCode() : 0);

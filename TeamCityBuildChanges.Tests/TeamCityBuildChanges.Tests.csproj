@@ -43,9 +43,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ChangeManifestTests.cs" />
     <Compile Include="HtmlOutputTests.cs" />
     <Compile Include="TeamCityApiTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="TestHelpers.cs" />
     <Compile Include="TfsApiIntegrationTests.cs" />
   </ItemGroup>
   <ItemGroup>
