@@ -34,6 +34,9 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
+  <PropertyGroup>
+    <RunPostBuildEvent>OnBuildSuccess</RunPostBuildEvent>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="ManyConsole">
       <HintPath>..\packages\ManyConsole.0.4.2.7\lib\ManyConsole.dll</HintPath>
@@ -50,6 +53,19 @@
     <Reference Include="Microsoft.VisualStudio.QualityTools.UnitTestFramework, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
     <Reference Include="NDesk.Options">
       <HintPath>..\packages\NDesk.Options.0.2.1\lib\NDesk.Options.dll</HintPath>
+    </Reference>
+    <Reference Include="QuickGraph">
+      <HintPath>..\packages\QuickGraph.3.6.61119.7\lib\net4\QuickGraph.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="QuickGraph.Data">
+      <HintPath>..\packages\QuickGraph.3.6.61119.7\lib\net4\QuickGraph.Data.dll</HintPath>
+    </Reference>
+    <Reference Include="QuickGraph.Graphviz">
+      <HintPath>..\packages\QuickGraph.3.6.61119.7\lib\net4\QuickGraph.Graphviz.dll</HintPath>
+    </Reference>
+    <Reference Include="QuickGraph.Serialization">
+      <HintPath>..\packages\QuickGraph.3.6.61119.7\lib\net4\QuickGraph.Serialization.dll</HintPath>
     </Reference>
     <Reference Include="RazorEngine">
       <HintPath>..\packages\RazorEngine\lib\net40\RazorEngine.dll</HintPath>
@@ -84,8 +100,12 @@
     <Compile Include="IssueDetailResolvers\JiraIssueResolver.cs" />
     <Compile Include="Commands\TeamCityCommandBase.cs" />
     <Compile Include="ExternalApi\Jira\JiraApi.cs" />
+    <Compile Include="Output\ExternalIssueDetailsComparer.cs" />
+    <Compile Include="Output\ExternalIssueDetailsEqualityComparer.cs" />
+    <Compile Include="Output\QuickgraphExtensions.cs" />
     <Compile Include="Output\RazorOutputRenderer.cs" />
     <Compile Include="Output\IOutputRenderer.cs" />
+    <Compile Include="Output\SubIssueEdge.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Commands\SingleBuildDelta.cs" />
@@ -106,7 +126,7 @@
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>if not exist ..\Deploy.$(Configuration) mkdir  ..\Deploy.$(Configuration)
-$(SolutionDir)tools\ilmerge\ilmerge.exe /v4 /t:exe /out:..\Deploy.$(Configuration)\$(TargetFileName) $(TargetPath) $(TargetDir)ManyConsole.dll $(TargetDir)NDesk.Options.dll  $(TargetDir)RestSharp.dll $(TargetDir)RazorEngine.dll</PostBuildEvent>
+$(SolutionDir)tools\ilmerge\ilmerge.exe /v4 /t:exe /out:..\Deploy.$(Configuration)\$(TargetFileName) $(TargetPath) $(TargetDir)ManyConsole.dll $(TargetDir)NDesk.Options.dll  $(TargetDir)RestSharp.dll $(TargetDir)RazorEngine.dll $(TargetDir)QuickGraph.dll</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
