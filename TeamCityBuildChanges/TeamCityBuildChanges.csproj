@@ -126,7 +126,7 @@
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>if not exist ..\Deploy.$(Configuration) mkdir  ..\Deploy.$(Configuration)
-$(SolutionDir)tools\ilmerge\ilmerge.exe /v4 /t:exe /out:..\Deploy.$(Configuration)\$(TargetFileName) $(TargetPath) $(TargetDir)ManyConsole.dll $(TargetDir)NDesk.Options.dll  $(TargetDir)RestSharp.dll $(TargetDir)RazorEngine.dll $(TargetDir)QuickGraph.dll</PostBuildEvent>
+$(SolutionDir)tools\ilmerge\ilmerge.exe /v4 /t:exe /out:..\Deploy.$(Configuration)\$(TargetFileName) $(TargetPath) $(TargetDir)ManyConsole.dll $(TargetDir)NDesk.Options.dll  $(TargetDir)RestSharp.dll $(TargetDir)RazorEngine.dll $(TargetDir)QuickGraph.dll $(TargetDir)QuickGraph.Data.dll $(TargetDir)QuickGraph.Graphviz.dll $(TargetDir)QuickGraph.Serialization.dll</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
