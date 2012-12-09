@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using TeamCityBuildChanges.Output;
 
 namespace TeamCityBuildChanges.IssueDetailResolvers
 {
@@ -13,8 +15,14 @@ namespace TeamCityBuildChanges.IssueDetailResolvers
         public string Summary { get; set; }
         public string Description { get; set; }
         public string Url { get; set; }
+        public int Depth { get; set; }
         public List<string> Comments { get; set; }
         public List<ExternalIssueDetails> SubIssues { get; set; }
+
+        public bool ContainsSubIssue(ExternalIssueDetails issue)
+        {
+            return SubIssues.Contains(issue, new ExternalIssueDetailsEqualityComparer());
+        }
 
         protected bool Equals(ExternalIssueDetails other)
         {
@@ -24,9 +32,9 @@ namespace TeamCityBuildChanges.IssueDetailResolvers
                 && string.Equals(Created, other.Created)
                 && string.Equals(Summary, other.Summary)
                 && string.Equals(Description, other.Description)
-                && string.Equals(Url, other.Url) 
-                && Equals(Comments, other.Comments) 
-                && Equals(SubIssues, other.SubIssues);
+                && string.Equals(Url, other.Url);
+                //&& Equals(Comments, other.Comments) 
+                //&& Equals(SubIssues, other.SubIssues);
         }
 
         public override int GetHashCode()
@@ -40,8 +48,9 @@ namespace TeamCityBuildChanges.IssueDetailResolvers
                 hashCode = (hashCode * 397) ^ (Summary != null ? Summary.GetHashCode() : 0);
                 hashCode = (hashCode * 397) ^ (Description != null ? Description.GetHashCode() : 0);
                 hashCode = (hashCode * 397) ^ (Url != null ? Url.GetHashCode() : 0);
-                hashCode = (hashCode*397) ^ (Comments != null ? Comments.GetHashCode() : 0);
-                hashCode = (hashCode*397) ^ (SubIssues != null ? SubIssues.GetHashCode() : 0);
+                //hashCode = (hashCode * 397) ^ Depth.GetHashCode();
+                //hashCode = (hashCode*397) ^ (Comments != null ? Comments.GetHashCode() : 0);
+                //hashCode = (hashCode*397) ^ (SubIssues != null ? SubIssues.GetHashCode() : 0);
                 return hashCode;
             }
         }

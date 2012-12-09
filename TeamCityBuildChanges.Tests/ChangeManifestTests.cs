@@ -9,14 +9,29 @@ namespace TeamCityBuildChanges.Tests
     [TestFixture]
     public class ChangeManifestTests
     {
+        [Test]
         public void CheckFlatteningOfIssues()
         {
             var manifest = TestHelpers.CreateChangeManifest();
-            Assert.AreEqual(5, manifest.FlattenedIssueDetails.Count);
-            Assert.AreEqual(1, manifest.FlattenedIssueDetails[0].SubIssues.Count);
-            Assert.AreEqual(1, manifest.FlattenedIssueDetails[1].SubIssues.Count);
-            Assert.AreEqual(manifest.FlattenedIssueDetails[0].SubIssues[0], manifest.FlattenedIssueDetails[1].SubIssues[0]);
-            Assert.AreEqual(null, manifest.FlattenedIssueDetails[2].SubIssues);
+            var list = manifest.FlattenedIssueDetails;
+            
+
+            Assert.AreEqual(5, list.Count);
+            //Assert.AreEqual(1, list[0].SubIssues.Count);
+            //Assert.AreEqual(1, list[1].SubIssues.Count);
+            //Assert.AreEqual(list[0].SubIssues[0], list[1].SubIssues[0]);
+            //Assert.AreEqual(null, list[2].SubIssues);
+        }
+
+        [Test]
+        public void CheckConsolidated()
+        {
+            var manifest = TestHelpers.CreateChangeManifest();
+            var list = manifest.ConsolidatedIssueDetails;
+            
+            Assert.That(list.Count, Is.EqualTo(2));
+            Assert.That(list[0].SubIssues.Count, Is.EqualTo(2));
+            Assert.That(list[1].SubIssues.Count, Is.EqualTo(1));
         }
     }
 }
