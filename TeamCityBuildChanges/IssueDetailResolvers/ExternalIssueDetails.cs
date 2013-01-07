@@ -7,6 +7,11 @@ namespace TeamCityBuildChanges.IssueDetailResolvers
 {
     public class ExternalIssueDetails
     {
+        public ExternalIssueDetails()
+        {
+            Comments = new List<string>();
+            SubIssues = new List<ExternalIssueDetails>();
+        }
 
         public string Id { get; set; }
         public string Status { get; set; }
