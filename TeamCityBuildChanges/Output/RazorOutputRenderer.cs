@@ -25,5 +25,4 @@ namespace TeamCityBuildChanges.Output
             return result;
         }
     }
-
 }
