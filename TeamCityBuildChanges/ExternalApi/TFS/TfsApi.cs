@@ -29,8 +29,8 @@ namespace TeamCityBuildChanges.ExternalApi.TFS
 
         public IEnumerable<TfsWorkItem> GetWorkItemsByCommit(int commit)
         {
-
             if (_connection == null) Connect();
+
             var versionControlServer = _connection.GetService<VersionControlServer>();
             var changeSet = versionControlServer.GetChangeset(commit);
             var workItems = changeSet.WorkItems.ToList();
