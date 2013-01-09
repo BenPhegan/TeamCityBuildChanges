@@ -1,10 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using ManyConsole;
-using NDesk.Options;
-using TeamCityBuildChanges.ExternalApi;
 using TeamCityBuildChanges.ExternalApi.Jira;
 
 namespace TeamCityBuildChanges.Commands

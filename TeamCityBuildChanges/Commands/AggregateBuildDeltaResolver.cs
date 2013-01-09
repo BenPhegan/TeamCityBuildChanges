@@ -18,7 +18,7 @@ namespace TeamCityBuildChanges.Commands
             _externalIssueResolvers = externalIssueResolvers;
         }
 
-        public ChangeManifest CreateChangeManifest(string buildName, string buildType, string referenceBuild = null, string from = null, string to = null, string projectName = null)
+        public ChangeManifest CreateChangeManifest(string buildName, string buildType, string referenceBuild = null, string from = null, string to = null, string projectName = null, bool useTeamCityForIssueResolution = true)
         {
             var changeManifest = new ChangeManifest();
             var changeDetails = new List<ChangeDetail>();
@@ -49,19 +49,25 @@ namespace TeamCityBuildChanges.Commands
                 {
                     var buildList = builds as List<Build> ?? builds.ToList();
                     changeDetails = _api.GetChangeDetailsByBuildTypeAndBuildNumber(buildWithCommitData, from, to, buildList).ToList();
-                    issues = _api.GetIssuesByBuildTypeAndBuildRange(buildWithCommitData, from, to, buildList).ToList();
+                    var issueDetailResolver = new IssueDetailResolver(_externalIssueResolvers);
+                    
+                    //Rather than use TeamCity to resolve the issue to commit details (via TeamCity plugins) use the issue resolvers directly...
+                    if (useTeamCityForIssueResolution)
+                        issues = _api.GetIssuesByBuildTypeAndBuildRange(buildWithCommitData, from, to, buildList).ToList();
+                    else
+                        issues = issueDetailResolver.GetAssociatedIssues(changeDetails).ToList();
+                    
+                    var issueDetails = issueDetailResolver.GetExternalIssueDetails(issues);
+                    changeManifest.ChangeDetails.AddRange(changeDetails);
+                    changeManifest.IssueDetails.AddRange(issueDetails);
+                    changeManifest.Generated = DateTime.Now;
+                    changeManifest.FromVersion = from;
+                    changeManifest.ToVersion = to;
+                    changeManifest.BuildConfiguration = buildTypeDetails;
+                    changeManifest.ReferenceBuildConfiguration = referenceBuildTypeDetails ?? new BuildTypeDetails();
                 }
             }
 
-            var issueDetailResolver = new IssueDetailResolver(_externalIssueResolvers);
-            var issueDetails = issueDetailResolver.GetExternalIssueDetails(issues);
-            changeManifest.ChangeDetails.AddRange(changeDetails);
-            changeManifest.IssueDetails.AddRange(issueDetails);
-            changeManifest.Generated = DateTime.Now;
-            changeManifest.FromVersion = from;
-            changeManifest.ToVersion = to;
-            changeManifest.BuildConfiguration = buildTypeDetails;
-            changeManifest.ReferenceBuildConfiguration = referenceBuildTypeDetails ?? new BuildTypeDetails();
 
             return changeManifest;
         }

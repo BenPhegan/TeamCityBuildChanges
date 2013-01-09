@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Microsoft.TeamFoundation.Client;
+using Microsoft.TeamFoundation.VersionControl.Client;
 using Microsoft.TeamFoundation.WorkItemTracking.Client;
 
 namespace TeamCityBuildChanges.ExternalApi.TFS
@@ -12,7 +13,7 @@ namespace TeamCityBuildChanges.ExternalApi.TFS
         public readonly string ConnectionUri;
 
         private TfsTeamProjectCollection _connection;
-        
+
         private void Connect()
         {
             if (Uri.IsWellFormedUriString(ConnectionUri, UriKind.Absolute))
@@ -24,6 +25,27 @@ namespace TeamCityBuildChanges.ExternalApi.TFS
         public TfsApi(string connectionUri)
         {
             ConnectionUri = connectionUri;
+        }
+
+        public IEnumerable<TfsWorkItem> GetWorkItemsByCommit(int commit)
+        {
+
+            if (_connection == null) Connect();
+            var versionControlServer = _connection.GetService<VersionControlServer>();
+            var changeSet = versionControlServer.GetChangeset(commit);
+            var workItems = changeSet.WorkItems.ToList();
+            return workItems.Select(workItem => new TfsWorkItem
+                {
+                    Id = workItem.Id,
+                    Title = workItem.Title,
+                    Type = workItem.Type.Name,
+                    State = workItem.State,
+                    Created = workItem.CreatedDate,
+                    Description = workItem.Description,
+                    ParentId = GetParentId(workItem),
+                    ChildrenIds = GetChildrenIds(workItem),
+                    HistoryComments = workItem.Revisions.Cast<Revision>().Select(r => r.Fields[CoreField.History].Value.ToString()).ToList()
+                }).ToList();
         }
 
         public TfsWorkItem GetWorkItem(int workItemId)
@@ -69,7 +91,7 @@ namespace TeamCityBuildChanges.ExternalApi.TFS
                 .Select(link => link as RelatedLink)
                 .ToList();
         }
-                
+
         private bool IsChildLink(RelatedLink link)
         {
             return link.LinkTypeEnd.Name == "Child";

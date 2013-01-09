@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 using TeamCityBuildChanges.ExternalApi.Jira;
 using TeamCityBuildChanges.ExternalApi.TeamCity;
 
@@ -12,8 +13,6 @@ namespace TeamCityBuildChanges.IssueDetailResolvers
         {
             _api = api;
         }
-
-        #region IExternalIssueResolver Members
 
         public IEnumerable<ExternalIssueDetails> GetDetails(IEnumerable<Issue> issues)
         {
@@ -38,7 +37,19 @@ namespace TeamCityBuildChanges.IssueDetailResolvers
             return results;
         }
 
-        #endregion
-
+        public IEnumerable<Issue> GetIssues(IEnumerable<ChangeDetail> changeDetails)
+        {
+            var issues = new List<Issue>();
+            foreach (var change in changeDetails)
+            {
+                var regex = new Regex("/[A-Z]*-[0-9]*");
+                var issue = new Issue()
+                    {
+                        Id = regex.Match(change.Comment).Groups[0].Captures[0].ToString()
+                    };
+                //parse the change with a regex and add the result to a list
+            }
+            return issues;
+        }
     }
 }

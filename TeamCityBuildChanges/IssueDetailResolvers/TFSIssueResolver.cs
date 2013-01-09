@@ -25,6 +25,16 @@ namespace TeamCityBuildChanges.IssueDetailResolvers
             return externalIssueDetails;
         }
 
+        public IEnumerable<Issue> GetIssues(IEnumerable<ChangeDetail> changeDetails)
+        {
+            var issues = new List<Issue>();
+            foreach (var workItems in changeDetails.Select(changeDetail => _tfsApi.GetWorkItemsByCommit(Convert.ToInt32(changeDetail.Version))))
+            {
+                issues.AddRange(workItems.Select(GetIssueFromTfsWorkItem));
+            }
+            return issues;
+        }
+
         private ExternalIssueDetails GetDetails(Issue issue)
         {            
             var tfsWi = _tfsApi.GetWorkItem(ParseTfsWorkItemId(issue.Id));
@@ -35,7 +45,7 @@ namespace TeamCityBuildChanges.IssueDetailResolvers
             {
                 var parentWi = _tfsApi.GetWorkItem(tfsWi.ParentId.Value);
                 var parentExtIssue = GetDetails(parentWi);
-                parentExtIssue.Url = _tfsApi.ConnectionUri + "/web/wi.aspx?id=" + parentExtIssue.Id; ;
+                parentExtIssue.Url = _tfsApi.ConnectionUri + "/web/wi.aspx?id=" + parentExtIssue.Id; 
                 parentExtIssue.SubIssues = new List<ExternalIssueDetails> { extIssue };
 
                 extIssue = parentExtIssue;
@@ -59,6 +69,15 @@ namespace TeamCityBuildChanges.IssueDetailResolvers
             };
 
             return eid;
+        }
+
+        private Issue GetIssueFromTfsWorkItem(TfsWorkItem wi)
+        {
+            return new Issue
+            {
+                Id = wi.Id.ToString(),
+                Url = _tfsApi.ConnectionUri + "/web/wi.aspx?id=" + wi.Id
+            };
         }
 
         private static int ParseTfsWorkItemId(string issueId)

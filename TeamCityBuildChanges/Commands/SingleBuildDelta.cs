@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using TeamCityBuildChanges.ExternalApi;
 using TeamCityBuildChanges.ExternalApi.TeamCity;
 
 namespace TeamCityBuildChanges.Commands
