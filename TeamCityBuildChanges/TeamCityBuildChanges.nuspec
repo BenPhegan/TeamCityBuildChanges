@@ -1,6 +1,11 @@
-﻿<?xml version='1.0' encoding='utf-8'?>
-<SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)">
-  <Profiles>
-    <Profile Name="(Default)" />
-  </Profiles>
-</SettingsFile>
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
+	<metadata>
+		<id>TeamCityBuildChanges</id>
+		<version>$version$</version>
+		<authors>Ben Phegan</authors>
+		<description>Provides a command line utility to query changes associated with TeamCity builds. Useful to create dynamic build/release notes as part of a TeamCity build.</description>
+		<language>en-US</language>
+		<projectUrl>https://github.com/BenPhegan/TeamCityBuildChanges</projectUrl>
+	</metadata>
+</package>
