@@ -18,7 +18,7 @@ namespace TeamCityBuildChanges.Commands
             _externalIssueResolvers = externalIssueResolvers;
         }
 
-        public ChangeManifest CreateChangeManifest(string buildName, string buildType, string referenceBuild = null, string from = null, string to = null, string projectName = null, bool useTeamCityForIssueResolution = true)
+        public ChangeManifest CreateChangeManifest(string buildName, string buildType, string referenceBuild = null, string from = null, string to = null, string projectName = null, bool useBuildSystemIssueResolution = true)
         {
             var changeManifest = new ChangeManifest();
             var changeDetails = new List<ChangeDetail>();
@@ -52,7 +52,7 @@ namespace TeamCityBuildChanges.Commands
                     var issueDetailResolver = new IssueDetailResolver(_externalIssueResolvers);
                     
                     //Rather than use TeamCity to resolve the issue to commit details (via TeamCity plugins) use the issue resolvers directly...
-                    if (useTeamCityForIssueResolution)
+                    if (useBuildSystemIssueResolution)
                         issues = _api.GetIssuesByBuildTypeAndBuildRange(buildWithCommitData, from, to, buildList).ToList();
                     else
                         issues = issueDetailResolver.GetAssociatedIssues(changeDetails).ToList();
