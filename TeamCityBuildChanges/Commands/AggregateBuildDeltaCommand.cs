@@ -5,7 +5,7 @@ using TeamCityBuildChanges.ExternalApi.TeamCity;
 
 namespace TeamCityBuildChanges.Commands
 {
-    internal class AggregateBuildDelta : TeamCityCommandBase
+    internal class AggregateBuildDeltaCommand : TeamCityCommandBase
     {
         private string _from;
         private string _referenceBuild;
@@ -13,7 +13,7 @@ namespace TeamCityBuildChanges.Commands
         private string _zeroChangesComment;
         private bool _useBuildSystemIssueResolution = true;
 
-        public AggregateBuildDelta()
+        public AggregateBuildDeltaCommand()
         {
             IsCommand("aggregatebuilddelta", "Provides a set of changes between two specific versions of a build type.");
             Options.Add("rb=|referencebuild=", "Reference build to query resolved version deltas from", s => _referenceBuild = s);

@@ -89,14 +89,17 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Commands\AggregateBuildDelta.cs" />
+    <Compile Include="Commands\AggregateBuildDeltaCommand.cs" />
     <Compile Include="Commands\AggregateBuildDeltaResolver.cs" />
+    <Compile Include="Commands\BuildPackageMappingCacheCommand.cs" />
     <Compile Include="ExternalApi\TFS\TfsApi.cs" />
     <Compile Include="ExternalApi\TFS\TfsWorkItem.cs" />
     <Compile Include="IssueDetailResolvers\TFSIssueResolver.cs" />
+    <Compile Include="NuGetPackage\PackageBuildMapping.cs" />
+    <Compile Include="NuGetPackage\PackageBuildMappingCache.cs" />
     <Compile Include="Output\ChangeDetailOutputFormatter.cs" />
     <Compile Include="Output\ChangeManifest.cs" />
-    <Compile Include="Commands\Encode.cs" />
+    <Compile Include="Commands\EncodeCommand.cs" />
     <Compile Include="IssueDetailResolvers\ExternalIssueDetails.cs" />
     <Compile Include="IssueDetailResolvers\IExternalIssueResolver.cs" />
     <Compile Include="IssueDetailResolvers\IssueDetailResolver.cs" />
@@ -111,7 +114,7 @@
     <Compile Include="Output\SubIssueEdge.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Commands\SingleBuildDelta.cs" />
+    <Compile Include="Commands\SingleBuildDeltaCommand.cs" />
     <Compile Include="ExternalApi\TeamCity\TeamCityApi.cs" />
     <None Include="app.config" />
     <None Include="Templates\Text.cshtml">
@@ -124,8 +127,8 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Include="TeamCityBuildChanges.nuspec">
-		      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</None>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
@@ -137,7 +140,7 @@
 $(SolutionDir)tools\ilmerge\ilmerge.exe /v4 /t:exe /out:..\Deploy.$(Configuration)\$(TargetFileName) $(TargetPath) $(TargetDir)ManyConsole.dll $(TargetDir)NDesk.Options.dll  $(TargetDir)RestSharp.dll $(TargetDir)RazorEngine.dll $(TargetDir)QuickGraph.dll $(TargetDir)QuickGraph.Data.dll $(TargetDir)QuickGraph.Graphviz.dll $(TargetDir)QuickGraph.Serialization.dll
 
 copy $(TargetDir)TeamCityBuildChanges.nuspec ..\Deploy.$(Configuration)\TeamCityBuildChanges.nuspec /y</PostBuildEvent>
-</PropertyGroup>
+  </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

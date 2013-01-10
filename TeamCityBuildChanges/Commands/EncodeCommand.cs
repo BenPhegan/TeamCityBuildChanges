@@ -4,13 +4,14 @@ using TeamCityBuildChanges.ExternalApi.Jira;
 
 namespace TeamCityBuildChanges.Commands
 {
-    public class Encode : ConsoleCommand
+    public class EncodeCommand : ConsoleCommand
     {
         private string _username;
         private string _password;
 
-        public Encode()
+        public EncodeCommand()
         {
+            IsCommand("encode", "Encodes username and password to a token for use in Jira authentication.");
             HasRequiredOption("u|username=", "Username to use for encoding.", s => _username = s);
             HasRequiredOption("p|password=", "Password to use for encoding.", s => _password = s);
 

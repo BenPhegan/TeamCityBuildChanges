@@ -6,12 +6,12 @@ using TeamCityBuildChanges.ExternalApi.TeamCity;
 
 namespace TeamCityBuildChanges.Commands
 {
-    class SingleBuildDelta : TeamCityCommandBase
+    class SingleBuildDeltaCommand : TeamCityCommandBase
     {
         private bool _currentOnly;
         private string _buildId;
 
-        public SingleBuildDelta()
+        public SingleBuildDeltaCommand()
         {
             IsCommand("singlebuilddelta", "Provides release notes from TeamCity being the set of comments associated with commits that triggered a build.  Acts on a single build delta.");
             Options.Add("current|c", "Check currently running build only", c => _currentOnly = true);
