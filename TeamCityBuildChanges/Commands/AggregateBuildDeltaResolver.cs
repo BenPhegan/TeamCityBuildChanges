@@ -56,8 +56,14 @@ namespace TeamCityBuildChanges.Commands
                         issues = _api.GetIssuesByBuildTypeAndBuildRange(buildWithCommitData, from, to, buildList).ToList();
                     else
                         issues = issueDetailResolver.GetAssociatedIssues(changeDetails).ToList();
-                    
+
+                    var initialPackages = _api.GetNuGetDependenciesByBuildTypeAndBuildId(buildType, from);
+                    var finalPackages = _api.GetNuGetDependenciesByBuildTypeAndBuildId(buildType, to);
+                    var packagesChanges = GetPackageChanges(initialPackages, finalPackages);
+
                     var issueDetails = issueDetailResolver.GetExternalIssueDetails(issues);
+
+                    changeManifest.NuGetPackageChanges = packagesChanges;
                     changeManifest.ChangeDetails.AddRange(changeDetails);
                     changeManifest.IssueDetails.AddRange(issueDetails);
                     changeManifest.Generated = DateTime.Now;
@@ -70,6 +76,59 @@ namespace TeamCityBuildChanges.Commands
 
 
             return changeManifest;
+        }
+
+        private static List<NuGetPackageChange> GetPackageChanges(List<TeamCityApi.PackageDetails> initialPackages, List<TeamCityApi.PackageDetails> finalPackages)
+        {
+            var returnList = new List<NuGetPackageChange>();
+            foreach (var package in initialPackages)
+            {
+                var exactMatch = finalPackages.Where(a => a.Id == package.Id && a.Version == package.Version);
+
+                //Matching
+                returnList.AddRange(exactMatch.Select(detailse => new NuGetPackageChange
+                    {
+                        PackageId = detailse.Id, 
+                        NewVersion = detailse.Version, 
+                        OldVersion = detailse.Version, 
+                        Type = NuGetPackageChangeType.Unchanged
+                    }));
+
+                //Missing
+                if (finalPackages.All(a => a.Id != package.Id))
+                    returnList.Add(new NuGetPackageChange()
+                        {
+                            PackageId = package.Id,
+                            OldVersion = package.Version,
+                            NewVersion = string.Empty,
+                            Type = NuGetPackageChangeType.Removed
+                        });
+
+                //Modified
+                var updatedVersions = finalPackages.Where(a => a.Id == package.Id && a.Version != package.Version);
+                returnList.AddRange(updatedVersions.Select(newPackage => new NuGetPackageChange
+                    {
+                        PackageId = package.Id, 
+                        OldVersion = package.Version,
+                        NewVersion = newPackage.Version,
+                        Type = NuGetPackageChangeType.Modified
+                    }));
+            }
+
+            foreach (var package in finalPackages)
+            {
+                //new
+                if (initialPackages.All(a => a.Id != package.Id))
+                    returnList.Add(new NuGetPackageChange()
+                    {
+                        PackageId = package.Id,
+                        NewVersion = package.Version,
+                        OldVersion = string.Empty,
+                        Type = NuGetPackageChangeType.Added
+                    });
+            }
+
+            return returnList;
         }
 
         private string ResolveToVersion(string buildType)

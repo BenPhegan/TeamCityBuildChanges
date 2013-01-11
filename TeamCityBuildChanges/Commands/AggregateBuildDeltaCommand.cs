@@ -12,6 +12,7 @@ namespace TeamCityBuildChanges.Commands
         private string _to;
         private string _zeroChangesComment;
         private bool _useBuildSystemIssueResolution = true;
+        private string _teamCityAuthToken;
 
         public AggregateBuildDeltaCommand()
         {
@@ -21,12 +22,13 @@ namespace TeamCityBuildChanges.Commands
             Options.Add("t|to=", "The build to check the delta change to", x => _to = x);
             Options.Add("zerochangescomment=", "If there are no changes detected, add the provided comment rather than leave it null", x => _zeroChangesComment = x);
             Options.Add("directissueresolution|d", "Force issues to be resolved directly instead of via build system (if TFS -> queries commits directly against the TFS API to get Work Items / Issues, if JIRA -> query commit comments for issue IDs)", c => _useBuildSystemIssueResolution = false);
+            Options.Add("tat=", "TeamCity Auth Token", c => _teamCityAuthToken = c);
             SkipsCommandSummaryBeforeRunning();
         }
 
         public override int Run(string[] remainingArguments)
         {
-            var api = new TeamCityApi(ServerName);
+            var api = string.IsNullOrEmpty(_teamCityAuthToken) ? new TeamCityApi(ServerName) : new TeamCityApi(ServerName,_teamCityAuthToken);
 
             var resolver = new AggregateBuildDeltaResolver(api, CreateExternalIssueResolvers());
             ChangeManifest = resolver.CreateChangeManifest(BuildName, BuildType, _referenceBuild, _from, _to, ProjectName, _useBuildSystemIssueResolution);

@@ -23,6 +23,7 @@ namespace TeamCityBuildChanges.Output
         public string ToVersion { get; set; }
         public BuildTypeDetails ReferenceBuildConfiguration { get; set; }
         public BuildTypeDetails BuildConfiguration { get; set; }
+        public List<NuGetPackageChange> NuGetPackageChanges { get; set; }
 
         public List<ExternalIssueDetails> ConsolidatedIssueDetails
         {

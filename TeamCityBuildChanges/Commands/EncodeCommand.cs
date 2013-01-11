@@ -18,7 +18,8 @@ namespace TeamCityBuildChanges.Commands
         }
         public override int Run(string[] remainingArguments)
         {
-            Console.WriteLine("Encoded string for use as username/password:  {0}", JiraApi.GetEncodedCredentials(_username, _password));
+            var encodedCredentials = JiraApi.GetEncodedCredentials(_username, _password);
+            Console.WriteLine("Encoded string for use as username/password:  {0}", encodedCredentials);
             return 0;
         }
     }

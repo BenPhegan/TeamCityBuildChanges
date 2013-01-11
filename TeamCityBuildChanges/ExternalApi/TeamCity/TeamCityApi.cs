@@ -10,11 +10,13 @@ namespace TeamCityBuildChanges.ExternalApi.TeamCity
     {
         private readonly string _teamCityServer;
         private readonly RestClient _client;
+        private static string _authToken;
 
-        public TeamCityApi(string server)
+        public TeamCityApi(string server, string authToken = null)
         {
             _teamCityServer = server;
-            _client = new RestClient(_teamCityServer + "/guestAuth/");
+            _authToken = authToken;
+            _client = string.IsNullOrEmpty(_authToken) ? new RestClient(_teamCityServer + "/guestAuth/") : new RestClient(_teamCityServer + "/httpAuth/");
         }
 
         public List<BuildType> GetBuildTypes()
@@ -40,6 +42,7 @@ namespace TeamCityBuildChanges.ExternalApi.TeamCity
                 request.AddParameter(variable, replacement, ParameterType.UrlSegment);
             request.RequestFormat = DataFormat.Xml;
             request.AddHeader("Accept", "application/xml");
+            if (!string.IsNullOrEmpty(_authToken)) request.AddHeader("Authorization", "Basic " + _authToken);
             return request;
         }
 
@@ -49,8 +52,32 @@ namespace TeamCityBuildChanges.ExternalApi.TeamCity
             request.AddParameter("ID", buildType, ParameterType.UrlSegment);
             request.RequestFormat = DataFormat.Xml;
             request.AddHeader("Accept", "application/xml");
+            if (!string.IsNullOrEmpty(_authToken)) request.AddHeader("Authorization", "Basic " + _authToken);
             var response = _client.Execute<IvyModule>(request);
             return response.Data != null ? response.Data.Publications : new List<Artifact>();
+        }
+
+        public List<PackageDetails> GetNuGetDependenciesByBuildTypeAndBuildId(string buildType, string buildId)
+        {
+            var request = new RestRequest("repository/download/{BUILDTYPE}/{BUILDID}:id/.teamcity/nuget/nuget.xml");
+            request.AddParameter("BUILDTYPE", buildType, ParameterType.UrlSegment);
+            request.AddParameter("BUILDID", buildId, ParameterType.UrlSegment);
+            request.RequestFormat = DataFormat.Xml;
+            request.AddHeader("Accept", "application/xml");
+            if (!string.IsNullOrEmpty(_authToken)) request.AddHeader("Authorization", "Basic " + _authToken);
+            var response = _client.Execute<PackageList>(request);
+            return response.Data != null ? response.Data.Packages : new List<PackageDetails>();
+        }
+
+        public class PackageList
+        {
+            public List<PackageDetails> Packages { get; set; } 
+        }
+
+        public class PackageDetails 
+        {
+            public string Id { get; set; }
+            public string Version { get; set; }
         }
 
         public IEnumerable<ChangeDetail> GetChangeDetailsForLastBuildByBuildType(string buildType)

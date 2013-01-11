@@ -19,8 +19,8 @@ namespace TeamCityBuildChanges.ExternalApi.Jira
         public static string GetEncodedCredentials(string username, string password)
         {
             var mergedCredentials = string.Format("{0}:{1}", username, password);
-            var byteCredentials = Encoding.UTF8.GetBytes(mergedCredentials);
-            return byteCredentials.ToString();
+            var byteCredentials = Convert.ToBase64String(Encoding.ASCII.GetBytes(mergedCredentials));
+            return byteCredentials;
         }
 
         public RootObject GetJiraIssue(string key)

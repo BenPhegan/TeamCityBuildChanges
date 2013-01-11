@@ -108,6 +108,7 @@
     <Compile Include="ExternalApi\Jira\JiraApi.cs" />
     <Compile Include="Output\ExternalIssueDetailsComparer.cs" />
     <Compile Include="Output\ExternalIssueDetailsEqualityComparer.cs" />
+    <Compile Include="Output\NuGetPackageChange.cs" />
     <Compile Include="Output\QuickgraphExtensions.cs" />
     <Compile Include="Output\RazorOutputRenderer.cs" />
     <Compile Include="Output\IOutputRenderer.cs" />
