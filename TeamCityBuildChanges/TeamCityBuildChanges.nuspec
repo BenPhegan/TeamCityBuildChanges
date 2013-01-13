@@ -8,4 +8,9 @@
 		<language>en-US</language>
 		<projectUrl>https://github.com/BenPhegan/TeamCityBuildChanges</projectUrl>
 	</metadata>
+	<files>
+		<file src="TeamCityBuildChanges.exe" target="lib\net40" />
+		<file src="TeamCityBuildChanges.pdb" target="lib\net40" />
+		<file src="Templates\*" target="lib\net40\Templates" />
+	</files>
 </package>
