@@ -1,7 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
 using System.Linq;
+using System.Net;
+using System.Text;
+using System.Xml.Linq;
 using RestSharp;
 
 namespace TeamCityBuildChanges.ExternalApi.TeamCity
@@ -11,12 +15,14 @@ namespace TeamCityBuildChanges.ExternalApi.TeamCity
         private readonly string _teamCityServer;
         private readonly RestClient _client;
         private static string _authToken;
+        private readonly string _serverUrl;
 
         public TeamCityApi(string server, string authToken = null)
         {
             _teamCityServer = server;
             _authToken = authToken;
-            _client = string.IsNullOrEmpty(_authToken) ? new RestClient(_teamCityServer + "/guestAuth/") : new RestClient(_teamCityServer + "/httpAuth/");
+            _serverUrl = string.IsNullOrEmpty(_authToken) ? _teamCityServer + "/guestAuth/": _teamCityServer + "/httpAuth/";
+            _client = new RestClient(_serverUrl);
         }
 
         public List<BuildType> GetBuildTypes()
@@ -59,17 +65,36 @@ namespace TeamCityBuildChanges.ExternalApi.TeamCity
 
         public List<PackageDetails> GetNuGetDependenciesByBuildTypeAndBuildId(string buildType, string buildId)
         {
-            var request = new RestRequest("repository/download/{BUILDTYPE}/{BUILDID}:id/.teamcity/nuget/nuget.xml");
-            request.AddParameter("BUILDTYPE", buildType, ParameterType.UrlSegment);
-            request.AddParameter("BUILDID", buildId, ParameterType.UrlSegment);
-            request.RequestFormat = DataFormat.Xml;
-            request.AddHeader("Accept", "application/xml");
-            if (!string.IsNullOrEmpty(_authToken)) request.AddHeader("Authorization", "Basic " + _authToken);
-            var response = _client.Execute<PackageList>(request);
-            return response.Data != null ? response.Data.Packages : new List<PackageDetails>();
+            var restUrl = new StringBuilder();
+            restUrl.AppendFormat("{0}repository/download/{1}/{2}:id/.teamcity/nuget/nuget.xml", _serverUrl, buildType, buildId);
+
+            var restRequest = (HttpWebRequest)WebRequest.Create(restUrl.ToString());
+            if (!string.IsNullOrEmpty(_authToken)) restRequest.Headers.Add(HttpRequestHeader.Authorization, "Basic " + _authToken);
+            try
+            {
+                var restResponse = (HttpWebResponse)restRequest.GetResponse();
+                string response;
+                using (var reader = new StreamReader(restResponse.GetResponseStream()))
+                {
+                    response = reader.ReadToEnd();
+                }
+                var xDoc = XDocument.Parse(response.Normalize());
+                var packageList = xDoc.Root.Element("packages").Elements("package").Select(p => new PackageDetails
+                    {
+                        Id = p.Attribute("id").Value, 
+                        Version = p.Attribute("version").Value
+                    }).ToList();
+
+                return packageList;
+            }
+            catch (WebException exception)
+            {
+                //Evil?
+                return new List<PackageDetails>();
+            }
         }
 
-        public class PackageList
+        public class NuGetDependencies
         {
             public List<PackageDetails> Packages { get; set; } 
         }

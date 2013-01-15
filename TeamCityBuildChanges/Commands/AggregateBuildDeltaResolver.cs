@@ -57,8 +57,8 @@ namespace TeamCityBuildChanges.Commands
                     else
                         issues = issueDetailResolver.GetAssociatedIssues(changeDetails).ToList();
 
-                    var initialPackages = _api.GetNuGetDependenciesByBuildTypeAndBuildId(buildType, from);
-                    var finalPackages = _api.GetNuGetDependenciesByBuildTypeAndBuildId(buildType, to);
+                    var initialPackages = _api.GetNuGetDependenciesByBuildTypeAndBuildId(buildType, buildList.First(b => b.Number == from).Id);
+                    var finalPackages = _api.GetNuGetDependenciesByBuildTypeAndBuildId(buildType, buildList.First(b => b.Number == to).Id);
                     var packagesChanges = GetPackageChanges(initialPackages, finalPackages);
 
                     var issueDetails = issueDetailResolver.GetExternalIssueDetails(issues);
