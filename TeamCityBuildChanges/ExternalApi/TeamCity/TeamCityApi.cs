@@ -21,13 +21,13 @@ namespace TeamCityBuildChanges.ExternalApi.TeamCity
         {
             _teamCityServer = server;
             _authToken = authToken;
-            _serverUrl = string.IsNullOrEmpty(_authToken) ? _teamCityServer + "/guestAuth/": _teamCityServer + "/httpAuth/";
+            _serverUrl = string.IsNullOrEmpty(_authToken) ? _teamCityServer + "/guestAuth/" : _teamCityServer + "/httpAuth/";
             _client = new RestClient(_serverUrl);
         }
 
         public List<BuildType> GetBuildTypes()
         {
-            var request = new RestRequest("app/rest/buildTypes", Method.GET) {RequestFormat = DataFormat.Xml};
+            var request = new RestRequest("app/rest/buildTypes", Method.GET) { RequestFormat = DataFormat.Xml };
             request.AddHeader("Accept", "application/xml");
 
             var buildConfigs = _client.Execute<List<BuildType>>(request);
@@ -81,7 +81,7 @@ namespace TeamCityBuildChanges.ExternalApi.TeamCity
                 var xDoc = XDocument.Parse(response.Normalize());
                 var packageList = xDoc.Root.Element("packages").Elements("package").Select(p => new PackageDetails
                     {
-                        Id = p.Attribute("id").Value, 
+                        Id = p.Attribute("id").Value,
                         Version = p.Attribute("version").Value
                     }).ToList();
 
@@ -96,10 +96,10 @@ namespace TeamCityBuildChanges.ExternalApi.TeamCity
 
         public class NuGetDependencies
         {
-            public List<PackageDetails> Packages { get; set; } 
+            public List<PackageDetails> Packages { get; set; }
         }
 
-        public class PackageDetails 
+        public class PackageDetails
         {
             public string Id { get; set; }
             public string Version { get; set; }
@@ -174,16 +174,19 @@ namespace TeamCityBuildChanges.ExternalApi.TeamCity
             return buildDetails.RelatedIssues.Select(i => i.Issue).Distinct().ToList();
         }
 
-        private IEnumerable<T> GetByBuildTypeAndBuildRange<T>(string buildType, string from, string to, Func<Build, string, bool> comparitor, IEnumerable<Build> buildList, Func<Build,IEnumerable<T>> retriever)
+        private IEnumerable<T> GetByBuildTypeAndBuildRange<T>(string buildType, string from, string to, Func<Build, string, bool> comparitor, IEnumerable<Build> buildList, Func<Build, IEnumerable<T>> retriever, bool excludeResultsFromLowerBound = false)
         {
             var builds = buildList ?? GetBuildsByBuildType(buildType);
             var results = new List<T>();
 
             var captureChanges = false;
-            foreach (var build in builds.OrderBy(b => b.Id).Skip(1))
+            foreach (var build in builds.OrderBy(b => b.Id))
             {
                 if (comparitor(build, from))
+                {
                     captureChanges = true;
+                    if (excludeResultsFromLowerBound) continue;
+                }
 
                 if (captureChanges)
                     results.AddRange(retriever(build));
@@ -206,9 +209,9 @@ namespace TeamCityBuildChanges.ExternalApi.TeamCity
 
         public IEnumerable<ChangeDetail> GetChangeDetailsByBuildTypeAndBuildNumber(string buildType, string from, string to, IEnumerable<Build> buildList = null)
         {
-            return GetChangeDetailsByBuildTypeAndBuildId(buildType, 
-                from, 
-                to, 
+            return GetChangeDetailsByBuildTypeAndBuildId(buildType,
+                from,
+                to,
                 BuildNumberComparitor(),
                 buildList);
         }
@@ -369,7 +372,7 @@ namespace TeamCityBuildChanges.ExternalApi.TeamCity
         public ChangeSummary ChangeSummary { get; set; }
         public List<IssueUsage> RelatedIssues { get; set; }
 
-    
+
         public static DateTimeOffset GetDateTimeOffset(string value)
         {
             //Values come in looking like this: 20121022T215947+1100
@@ -385,7 +388,7 @@ namespace TeamCityBuildChanges.ExternalApi.TeamCity
     public class IssueUsage
     {
         public Issue Issue { get; set; }
-        public List<Changes> Changes { get; set; } 
+        public List<Changes> Changes { get; set; }
     }
 
     public class Changes
@@ -456,13 +459,13 @@ namespace TeamCityBuildChanges.ExternalApi.TeamCity
     {
         public string Username { get; set; }
         public string Comment { get; set; }
-        public List<FileDetails> Files { get; set; } 
+        public List<FileDetails> Files { get; set; }
     }
 
     public class FileDetails
     {
         public string beforerevision { get; set; }
-        public string afterrevision{ get; set; }
+        public string afterrevision { get; set; }
         public string File { get; set; }
         public string relativefile { get; set; }
     }
