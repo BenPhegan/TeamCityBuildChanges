@@ -174,7 +174,7 @@ namespace TeamCityBuildChanges.ExternalApi.TeamCity
             return buildDetails.RelatedIssues.Select(i => i.Issue).Distinct().ToList();
         }
 
-        private IEnumerable<T> GetByBuildTypeAndBuildRange<T>(string buildType, string from, string to, Func<Build, string, bool> comparitor, IEnumerable<Build> buildList, Func<Build, IEnumerable<T>> retriever, bool excludeResultsFromLowerBound = false)
+        private IEnumerable<T> GetByBuildTypeAndBuildRange<T>(string buildType, string from, string to, Func<Build, string, bool> comparitor, IEnumerable<Build> buildList, Func<Build, IEnumerable<T>> retriever, bool excludeResultsFromLowerBound = true)
         {
             var builds = buildList ?? GetBuildsByBuildType(buildType);
             var results = new List<T>();
