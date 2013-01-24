@@ -10,7 +10,7 @@ using RestSharp;
 
 namespace TeamCityBuildChanges.ExternalApi.TeamCity
 {
-    public class TeamCityApi
+    public class TeamCityApi : ITeamCityApi
     {
         private readonly string _teamCityServer;
         private readonly RestClient _client;
