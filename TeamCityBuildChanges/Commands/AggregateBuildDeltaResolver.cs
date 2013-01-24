@@ -110,8 +110,15 @@ namespace TeamCityBuildChanges.Commands
                     changeManifest.GenerationLog.Add(new LogEntry(DateTime.Now,Status.Ok, string.Format("Got {0} issues for BuildType {1}.", issues.Count(),buildType)));
 
                     changeManifest.GenerationLog.Add(new LogEntry(DateTime.Now, Status.Ok, "Checking package dependencies."));
-                    var initialPackages = _api.GetNuGetDependenciesByBuildTypeAndBuildId(buildType,buildList.First(b => b.Number == @from).Id).ToList();
-                    var finalPackages = _api.GetNuGetDependenciesByBuildTypeAndBuildId(buildType,buildList.First(b => b.Number == to).Id).ToList();
+                    var buildFrom = buildList.FirstOrDefault(b => b.Number == @from);
+                    var buildTo = buildList.FirstOrDefault(b => b.Number == to);
+                    var initialPackages = new List<TeamCityApi.PackageDetails>();
+                    var finalPackages = new List<TeamCityApi.PackageDetails>();
+                    if (buildFrom != null)
+                        initialPackages = _api.GetNuGetDependenciesByBuildTypeAndBuildId(buildType,buildFrom.Id).ToList();
+                    if (buildTo != null)
+                        finalPackages = _api.GetNuGetDependenciesByBuildTypeAndBuildId(buildType, buildTo.Id).ToList();
+
                     var packageChanges = _packageChangeComparator.GetPackageChanges(initialPackages, finalPackages).ToList();
 
                     var issueDetails = issueDetailResolver.GetExternalIssueDetails(issues);
