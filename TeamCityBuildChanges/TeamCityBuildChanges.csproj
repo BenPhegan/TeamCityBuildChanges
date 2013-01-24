@@ -92,6 +92,7 @@
     <Compile Include="Commands\AggregateBuildDeltaCommand.cs" />
     <Compile Include="Commands\AggregateBuildDeltaResolver.cs" />
     <Compile Include="Commands\BuildPackageMappingCacheCommand.cs" />
+    <Compile Include="Commands\PackageChangeComparator.cs" />
     <Compile Include="ExternalApi\TFS\TfsApi.cs" />
     <Compile Include="ExternalApi\TFS\TfsWorkItem.cs" />
     <Compile Include="IssueDetailResolvers\TFSIssueResolver.cs" />
@@ -108,6 +109,7 @@
     <Compile Include="ExternalApi\Jira\JiraApi.cs" />
     <Compile Include="Output\ExternalIssueDetailsComparer.cs" />
     <Compile Include="Output\ExternalIssueDetailsEqualityComparer.cs" />
+    <Compile Include="Output\LogEntry.cs" />
     <Compile Include="Output\NuGetPackageChange.cs" />
     <Compile Include="Output\QuickgraphExtensions.cs" />
     <Compile Include="Output\RazorOutputRenderer.cs" />

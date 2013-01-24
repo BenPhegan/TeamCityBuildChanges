@@ -3,132 +3,171 @@ using System.Collections.Generic;
 using System.Linq;
 using TeamCityBuildChanges.ExternalApi.TeamCity;
 using TeamCityBuildChanges.IssueDetailResolvers;
+using TeamCityBuildChanges.NuGetPackage;
 using TeamCityBuildChanges.Output;
 
 namespace TeamCityBuildChanges.Commands
 {
+    /// <summary>
+    /// Calculates ChangeManifest objects based on TeamCity builds.
+    /// </summary>
     public class AggregateBuildDeltaResolver
     {
         private readonly TeamCityApi _api;
         private readonly IEnumerable<IExternalIssueResolver> _externalIssueResolvers;
+        private readonly PackageChangeComparator _packageChangeComparator;
+        private readonly PackageBuildMappingCache _packageBuildMappingCache;
 
-        public AggregateBuildDeltaResolver(TeamCityApi api, IEnumerable<IExternalIssueResolver> externalIssueResolvers)
+        /// <summary>
+        /// Provides the ability to generate delta change manifests between arbitrary build versions.
+        /// </summary>
+        /// <param name="api">A TeamCityApi.</param>
+        /// <param name="externalIssueResolvers">A list of IExternalIssueResolver objects.</param>
+        /// <param name="packageChangeComparator">Provides package dependency comparison capability.</param>
+        /// <param name="packageBuildMappingCache">Provides the ability to map from a Nuget package to the build that created the package.</param>
+        public AggregateBuildDeltaResolver(TeamCityApi api, IEnumerable<IExternalIssueResolver> externalIssueResolvers, PackageChangeComparator packageChangeComparator, PackageBuildMappingCache packageBuildMappingCache)
         {
             _api = api;
             _externalIssueResolvers = externalIssueResolvers;
+            _packageChangeComparator = packageChangeComparator;
+            _packageBuildMappingCache = packageBuildMappingCache;
         }
 
-        public ChangeManifest CreateChangeManifest(string buildName, string buildType, string referenceBuild = null, string from = null, string to = null, string projectName = null, bool useBuildSystemIssueResolution = true)
+        /// <summary>
+        /// Creates a change manifest based on a build name and a project.
+        /// </summary>
+        /// <param name="buildName">The build type name to use.</param>
+        /// <param name="referenceBuild">Any reference build that provides the actual build information.</param>
+        /// <param name="from">The From build number</param>
+        /// <param name="to">The To build number</param>
+        /// <param name="projectName">The project name</param>
+        /// <param name="useBuildSystemIssueResolution">Uses the issues resolved by the build system at time of build, rather than getting them directly from the version control system.</param>
+        /// <param name="recurse">Recurses down through any detected package dependency changes.</param>
+        /// <returns>The calculated ChangeManifest object.</returns>
+        public ChangeManifest CreateChangeManifestFromBuildTypeName(string buildName,string referenceBuild = null, string from = null, string to = null, string projectName = null, bool useBuildSystemIssueResolution = true, bool recurse = false)
+        {
+            return CreateChangeManifest(buildName, null, referenceBuild, from, to, projectName, useBuildSystemIssueResolution, recurse);
+        }
+
+        /// <summary>
+        /// Creates a change manifest based on a build name and a project.
+        /// </summary>
+        /// <param name="buildType">The Build Type ID to work on.</param>
+        /// <param name="referenceBuild">Any reference build that provides the actual build information.</param>
+        /// <param name="from">The From build number</param>
+        /// <param name="to">The To build number</param>
+        /// <param name="useBuildSystemIssueResolution">Uses the issues resolved by the build system at time of build, rather than getting them directly from the version control system.</param>
+        /// <param name="recurse">Recurses down through any detected package dependency changes.</param>
+        /// <returns>The calculated ChangeManifest object.</returns>
+        public ChangeManifest CreateChangeManifestFromBuildTypeId(string buildType, string referenceBuild = null, string from = null, string to = null, bool useBuildSystemIssueResolution = true, bool recurse = false)
+        {
+            return CreateChangeManifest(null, buildType, referenceBuild, from, to, null, useBuildSystemIssueResolution, recurse);
+        }
+
+        private ChangeManifest CreateChangeManifest(string buildName, string buildType, string referenceBuild = null, string from = null, string to = null, string projectName = null, bool useBuildSystemIssueResolution = true, bool recurse = false)
         {
             var changeManifest = new ChangeManifest();
-            var changeDetails = new List<ChangeDetail>();
-            var issues = new List<Issue>();
+            if (recurse && _packageBuildMappingCache == null)
+            {
+                changeManifest.GenerationLog.Add(new LogEntry(DateTime.Now,Status.Warning,"Recurse option provided with no PackageBuildMappingCache, we will not be honoring the Recurse option."));
+                changeManifest.GenerationStatus = Status.Warning;
+            }
 
             buildType = buildType ?? ResolveBuildTypeId(projectName, buildName);
 
             if (String.IsNullOrEmpty(from))
             {
+                changeManifest.GenerationLog.Add(new LogEntry(DateTime.Now, Status.Warning, "Resolving FROM version based on the provided BuildType (FROM was not provided)."));
                 from = ResolveFromVersion(buildType);
             }
 
             if (String.IsNullOrEmpty(to))
             {
+                changeManifest.GenerationLog.Add(new LogEntry(DateTime.Now, Status.Warning, "Resolving TO version based on the provided BuildType (TO was not provided)."));
                 to = ResolveToVersion(buildType);
             }
 
             var buildWithCommitData = referenceBuild ?? buildType;
             var buildTypeDetails = _api.GetBuildTypeDetailsById(buildType);
-            var referenceBuildTypeDetails = !String.IsNullOrEmpty(referenceBuild)
-                                                ? _api.GetBuildTypeDetailsById(referenceBuild)
-                                                : null;
-            //TODO TFS collection data should come from the BuildType/VCS root data from TeamCity...but not for now...
+            var referenceBuildTypeDetails = !String.IsNullOrEmpty(referenceBuild) ? _api.GetBuildTypeDetailsById(referenceBuild) : null;
+
             if (!String.IsNullOrEmpty(from) && !String.IsNullOrEmpty(to) && !String.IsNullOrEmpty(buildWithCommitData))
             {
+                changeManifest.GenerationLog.Add(new LogEntry(DateTime.Now, Status.Ok, "Getting builds based on BuildType"));
                 var builds = _api.GetBuildsByBuildType(buildWithCommitData);
                 if (builds != null)
                 {
                     var buildList = builds as List<Build> ?? builds.ToList();
-                    changeDetails = _api.GetChangeDetailsByBuildTypeAndBuildNumber(buildWithCommitData, from, to, buildList).ToList();
+                    changeManifest.GenerationLog.Add(new LogEntry(DateTime.Now,Status.Ok, string.Format("Got {0} builds for BuildType {1}.",buildList.Count(), buildType)));
+                    var changeDetails =_api.GetChangeDetailsByBuildTypeAndBuildNumber(buildWithCommitData, @from, to, buildList).ToList();
                     var issueDetailResolver = new IssueDetailResolver(_externalIssueResolvers);
-                    
-                    //Rather than use TeamCity to resolve the issue to commit details (via TeamCity plugins) use the issue resolvers directly...
-                    if (useBuildSystemIssueResolution)
-                        issues = _api.GetIssuesByBuildTypeAndBuildRange(buildWithCommitData, from, to, buildList).ToList();
-                    else
-                        issues = issueDetailResolver.GetAssociatedIssues(changeDetails).ToList();
 
-                    var initialPackages = _api.GetNuGetDependenciesByBuildTypeAndBuildId(buildType, buildList.First(b => b.Number == from).Id);
-                    var finalPackages = _api.GetNuGetDependenciesByBuildTypeAndBuildId(buildType, buildList.First(b => b.Number == to).Id);
-                    var packagesChanges = GetPackageChanges(initialPackages, finalPackages);
+                    //Rather than use TeamCity to resolve the issue to commit details (via TeamCity plugins) use the issue resolvers directly...
+                    var issues = useBuildSystemIssueResolution
+                                     ? _api.GetIssuesByBuildTypeAndBuildRange(buildWithCommitData, @from, to, buildList).ToList()
+                                     : issueDetailResolver.GetAssociatedIssues(changeDetails).ToList();
+
+                    changeManifest.GenerationLog.Add(new LogEntry(DateTime.Now,Status.Ok, string.Format("Got {0} issues for BuildType {1}.", issues.Count(),buildType)));
+
+                    changeManifest.GenerationLog.Add(new LogEntry(DateTime.Now, Status.Ok, "Checking package dependencies."));
+                    var initialPackages = _api.GetNuGetDependenciesByBuildTypeAndBuildId(buildType,buildList.First(b => b.Number == @from).Id).ToList();
+                    var finalPackages = _api.GetNuGetDependenciesByBuildTypeAndBuildId(buildType,buildList.First(b => b.Number == to).Id).ToList();
+                    var packageChanges = _packageChangeComparator.GetPackageChanges(initialPackages, finalPackages).ToList();
 
                     var issueDetails = issueDetailResolver.GetExternalIssueDetails(issues);
 
-                    changeManifest.NuGetPackageChanges = packagesChanges;
+                    changeManifest.NuGetPackageChanges = packageChanges;
                     changeManifest.ChangeDetails.AddRange(changeDetails);
                     changeManifest.IssueDetails.AddRange(issueDetails);
                     changeManifest.Generated = DateTime.Now;
-                    changeManifest.FromVersion = from;
+                    changeManifest.FromVersion = @from;
                     changeManifest.ToVersion = to;
                     changeManifest.BuildConfiguration = buildTypeDetails;
                     changeManifest.ReferenceBuildConfiguration = referenceBuildTypeDetails ?? new BuildTypeDetails();
                 }
+                else
+                {
+                    changeManifest.GenerationLog.Add(new LogEntry(DateTime.Now, Status.Warning, string.Format("No builds returned for BuildType {0}.", buildType)));
+                }
             }
+            //Now we need to see if we need to recurse, and whether we have been given a cache file....
+            if (changeManifest.NuGetPackageChanges.Any() && recurse && _packageBuildMappingCache != null)
+            {
+                foreach (var dependency in changeManifest.NuGetPackageChanges.Where(c => c.Type == NuGetPackageChangeType.Modified))
+                {
+                    var mappings = _packageBuildMappingCache.PackageBuildMappings.Where(m => m.PackageId.Equals(dependency.PackageId, StringComparison.CurrentCultureIgnoreCase)).ToList();
+                    PackageBuildMapping build = null;
+                    if (mappings.Count == 1)
+                    {
+                        //We only got one back, this is good...
+                        build = mappings.First();
+                        changeManifest.GenerationLog.Add(new LogEntry(DateTime.Now, Status.Ok, string.Format("Found singular packages to build mapping {0}.", build.BuildConfigurationName)));
+                    }
+                    else if (mappings.Any())
+                    {
+                        //Ok, so multiple builds are outputting this package, so we need to try and constrain on project...
+                        build = mappings.FirstOrDefault(m => m.Project.Equals(buildTypeDetails.Project.Name, StringComparison.OrdinalIgnoreCase));
+                        if (build != null) changeManifest.GenerationLog.Add(new LogEntry(DateTime.Now, Status.Warning, string.Format("Found duplicate mappings, using package to build mapping {0}.", build.BuildConfigurationName)));
+                    }
 
+                    if (build != null)
+                    {
+                        var instanceTeamCityApi = _api.TeamCityServer.Equals(build.ServerUrl, StringComparison.OrdinalIgnoreCase)
+                                                              ? _api
+                                                              : new TeamCityApi(build.ServerUrl);
+ 
+                        var resolver = new AggregateBuildDeltaResolver(instanceTeamCityApi, _externalIssueResolvers,_packageChangeComparator,_packageBuildMappingCache);
+                        var dependencyManifest = resolver.CreateChangeManifest(null, build.BuildConfigurationId, null,dependency.OldVersion,dependency.NewVersion, null, true, true);
+                        dependency.ChangeManifest = dependencyManifest;
+                    }
+                    else
+                    {
+                        changeManifest.GenerationLog.Add(new LogEntry(DateTime.Now, Status.Warning, string.Format("Did not find a mapping for package: {0}.", dependency.PackageId)));
+                    }
+                }
+            }
 
             return changeManifest;
-        }
-
-        private static List<NuGetPackageChange> GetPackageChanges(List<TeamCityApi.PackageDetails> initialPackages, List<TeamCityApi.PackageDetails> finalPackages)
-        {
-            var returnList = new List<NuGetPackageChange>();
-            foreach (var package in initialPackages)
-            {
-                var exactMatch = finalPackages.Where(a => a.Id == package.Id && a.Version == package.Version);
-
-                //Matching
-                returnList.AddRange(exactMatch.Select(detailse => new NuGetPackageChange
-                    {
-                        PackageId = detailse.Id, 
-                        NewVersion = detailse.Version, 
-                        OldVersion = detailse.Version, 
-                        Type = NuGetPackageChangeType.Unchanged
-                    }));
-
-                //Missing
-                if (finalPackages.All(a => a.Id != package.Id))
-                    returnList.Add(new NuGetPackageChange()
-                        {
-                            PackageId = package.Id,
-                            OldVersion = package.Version,
-                            NewVersion = string.Empty,
-                            Type = NuGetPackageChangeType.Removed
-                        });
-
-                //Modified
-                var updatedVersions = finalPackages.Where(a => a.Id == package.Id && a.Version != package.Version);
-                returnList.AddRange(updatedVersions.Select(newPackage => new NuGetPackageChange
-                    {
-                        PackageId = package.Id, 
-                        OldVersion = package.Version,
-                        NewVersion = newPackage.Version,
-                        Type = NuGetPackageChangeType.Modified
-                    }));
-            }
-
-            foreach (var package in finalPackages)
-            {
-                //new
-                if (initialPackages.All(a => a.Id != package.Id))
-                    returnList.Add(new NuGetPackageChange()
-                    {
-                        PackageId = package.Id,
-                        NewVersion = package.Version,
-                        OldVersion = string.Empty,
-                        Type = NuGetPackageChangeType.Added
-                    });
-            }
-
-            return returnList;
         }
 
         private string ResolveToVersion(string buildType)

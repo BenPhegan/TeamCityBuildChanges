@@ -21,8 +21,13 @@ namespace TeamCityBuildChanges.ExternalApi.TeamCity
         {
             _teamCityServer = server;
             _authToken = authToken;
-            _serverUrl = string.IsNullOrEmpty(_authToken) ? _teamCityServer + "/guestAuth/": _teamCityServer + "/httpAuth/";
+            _serverUrl = string.IsNullOrEmpty(_authToken) ? TeamCityServer + "/guestAuth/": TeamCityServer + "/httpAuth/";
             _client = new RestClient(_serverUrl);
+        }
+
+        public string TeamCityServer
+        {
+            get { return _teamCityServer; }
         }
 
         public List<BuildType> GetBuildTypes()

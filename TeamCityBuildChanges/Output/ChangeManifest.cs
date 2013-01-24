@@ -8,12 +8,17 @@ using TeamCityBuildChanges.IssueDetailResolvers;
 
 namespace TeamCityBuildChanges.Output
 {
+    /// <summary>
+    /// Provide a ChangeManifest that is used as a Model object to represent Build changes.
+    /// </summary>
     public class ChangeManifest
     {
         public ChangeManifest()
         {
             ChangeDetails = new List<ChangeDetail>();
             IssueDetails = new List<ExternalIssueDetails>();
+            GenerationLog = new List<LogEntry>();
+            GenerationStatus = Status.FTMFW;
         }
 
         public List<ChangeDetail> ChangeDetails { get; set; }
@@ -24,6 +29,8 @@ namespace TeamCityBuildChanges.Output
         public BuildTypeDetails ReferenceBuildConfiguration { get; set; }
         public BuildTypeDetails BuildConfiguration { get; set; }
         public List<NuGetPackageChange> NuGetPackageChanges { get; set; }
+        public List<LogEntry> GenerationLog { get; set; }
+        public Status GenerationStatus { get; set; }
 
         public List<ExternalIssueDetails> ConsolidatedIssueDetails
         {
@@ -85,5 +92,14 @@ namespace TeamCityBuildChanges.Output
                 return hashCode;
             }
         }
+    }
+
+    public enum Status
+    {
+        Ok,
+        FTW,
+        FTMFW,
+        Error,
+        Warning
     }
 }
