@@ -39,7 +39,7 @@ namespace TeamCityBuildChanges.Commands
 
             var resolver = new AggregateBuildDeltaResolver(api, CreateExternalIssueResolvers(), new PackageChangeComparator(),buildPackageCache);
             ChangeManifest = string.IsNullOrEmpty(BuildType) 
-                ? resolver.CreateChangeManifestFromBuildTypeName(BuildName, _referenceBuild, _from, _to, ProjectName, _useBuildSystemIssueResolution,_recurse) 
+                ? resolver.CreateChangeManifestFromBuildTypeName(ProjectName, BuildName,_referenceBuild, _from, _to, _useBuildSystemIssueResolution, _recurse) 
                 : resolver.CreateChangeManifestFromBuildTypeId(BuildType, _referenceBuild, _from, _to, _useBuildSystemIssueResolution, _recurse);
 
             OutputChanges(CreateOutputRenderers(), new List<Action<string>> {Console.Write, a =>

@@ -36,15 +36,15 @@ namespace TeamCityBuildChanges.Commands
         /// <summary>
         /// Creates a change manifest based on a build name and a project.
         /// </summary>
+        /// <param name="projectName">The project name</param>
         /// <param name="buildName">The build type name to use.</param>
         /// <param name="referenceBuild">Any reference build that provides the actual build information.</param>
         /// <param name="from">The From build number</param>
         /// <param name="to">The To build number</param>
-        /// <param name="projectName">The project name</param>
         /// <param name="useBuildSystemIssueResolution">Uses the issues resolved by the build system at time of build, rather than getting them directly from the version control system.</param>
         /// <param name="recurse">Recurses down through any detected package dependency changes.</param>
         /// <returns>The calculated ChangeManifest object.</returns>
-        public ChangeManifest CreateChangeManifestFromBuildTypeName(string buildName,string referenceBuild = null, string from = null, string to = null, string projectName = null, bool useBuildSystemIssueResolution = true, bool recurse = false)
+        public ChangeManifest CreateChangeManifestFromBuildTypeName(string projectName, string buildName, string referenceBuild = null, string @from = null, string to = null, bool useBuildSystemIssueResolution = true, bool recurse = false)
         {
             return CreateChangeManifest(buildName, null, referenceBuild, from, to, projectName, useBuildSystemIssueResolution, recurse);
         }
