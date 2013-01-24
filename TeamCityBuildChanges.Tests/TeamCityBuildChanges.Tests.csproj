@@ -54,6 +54,7 @@
   <ItemGroup>
     <Compile Include="ChangeManifestTests.cs" />
     <Compile Include="Commands\AggregateBuildDeltaResolverTests.cs" />
+    <Compile Include="Commands\PackageChangeComparatorTests.cs" />
     <Compile Include="HtmlOutputTests.cs" />
     <Compile Include="TeamCityApiTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

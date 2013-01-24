@@ -15,7 +15,7 @@ namespace TeamCityBuildChanges.Commands
     {
         private readonly ITeamCityApi _api;
         private readonly IEnumerable<IExternalIssueResolver> _externalIssueResolvers;
-        private readonly PackageChangeComparator _packageChangeComparator;
+        private readonly IPackageChangeComparator _packageChangeComparator;
         private readonly PackageBuildMappingCache _packageBuildMappingCache;
 
         /// <summary>
@@ -25,7 +25,7 @@ namespace TeamCityBuildChanges.Commands
         /// <param name="externalIssueResolvers">A list of IExternalIssueResolver objects.</param>
         /// <param name="packageChangeComparator">Provides package dependency comparison capability.</param>
         /// <param name="packageBuildMappingCache">Provides the ability to map from a Nuget package to the build that created the package.</param>
-        public AggregateBuildDeltaResolver(ITeamCityApi api, IEnumerable<IExternalIssueResolver> externalIssueResolvers, PackageChangeComparator packageChangeComparator, PackageBuildMappingCache packageBuildMappingCache)
+        public AggregateBuildDeltaResolver(ITeamCityApi api, IEnumerable<IExternalIssueResolver> externalIssueResolvers, IPackageChangeComparator packageChangeComparator, PackageBuildMappingCache packageBuildMappingCache)
         {
             _api = api;
             _externalIssueResolvers = externalIssueResolvers;

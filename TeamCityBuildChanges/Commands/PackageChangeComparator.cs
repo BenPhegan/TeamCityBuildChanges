@@ -8,7 +8,7 @@ namespace TeamCityBuildChanges.Commands
     /// <summary>
     /// Provides a list of NuGetPackageChange objects representing the difference in a set of build dependencies.
     /// </summary>
-    public class PackageChangeComparator
+    public class PackageChangeComparator : IPackageChangeComparator
     {
         public List<NuGetPackageChange> GetPackageChanges(List<TeamCityApi.PackageDetails> initialPackages, List<TeamCityApi.PackageDetails> finalPackages)
         {
