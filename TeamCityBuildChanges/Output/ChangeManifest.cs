@@ -17,6 +17,7 @@ namespace TeamCityBuildChanges.Output
         {
             ChangeDetails = new List<ChangeDetail>();
             IssueDetails = new List<ExternalIssueDetails>();
+            NuGetPackageChanges = new List<NuGetPackageChange>();
             GenerationLog = new List<LogEntry>();
             GenerationStatus = Status.FTMFW;
         }
