@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using ManyConsole;
-using TeamCityBuildChanges.ExternalApi.Jira;
 using TeamCityBuildChanges.Output;
 using TeamCityBuildChanges.Testing;
 
@@ -10,8 +9,6 @@ namespace TeamCityBuildChanges.Commands
 {
     public class TestTemplate : ConsoleCommand
     {
-        private string _username;
-        private string _password;
         private string _templateFile;
         private string _outputFilename;
 

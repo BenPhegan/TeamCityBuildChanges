@@ -131,6 +131,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Commands\SingleBuildDeltaCommand.cs" />
     <Compile Include="ExternalApi\TeamCity\TeamCityApi.cs" />
+    <Compile Include="Testing\BuildTemplate.cs" />
     <Compile Include="Testing\TestHelpers.cs" />
     <None Include="app.config" />
     <None Include="Templates\Text.cshtml">
