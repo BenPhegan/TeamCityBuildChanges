@@ -31,22 +31,28 @@ namespace TeamCityBuildChanges.Commands
             var result = resolver.CreateChangeManifestFromBuildTypeId("bt1", null, "1.2", "1.6");
             var renderer = new RazorOutputRenderer(_templateFile);
 
-            if (!File.Exists(_outputFilename)) TryToRender(renderer, result);
+            if (!File.Exists(_outputFilename ?? "Output.html")) TryToRender(renderer, result, "Rendering on first run...");
 
-            var watcher = new FileSystemWatcher {Path = Path.GetDirectoryName(_templateFile), Filter = Path.GetFileName(_templateFile), EnableRaisingEvents = true};
+            var watcher = new FileSystemWatcher
+                {
+                    Path = Path.GetDirectoryName(Path.GetFullPath(_templateFile)), 
+                    Filter = Path.GetFileName(_templateFile), 
+                    EnableRaisingEvents = true,
+                    NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.Size | NotifyFilters.CreationTime
+                };
 
-            watcher.Changed += (o, e) => TryToRender(renderer, result);
-            while (!Console.KeyAvailable)
-            {
-            }
+            watcher.Changed += (o, e) => TryToRender(renderer, result, "Detected the file has changed, running renderer...");
+            watcher.Created += (o, e) => TryToRender(renderer, result, "Detected the file has changed, running renderer...");
+
+            Console.Read();
             return 0;
         }
 
-        private void TryToRender(RazorOutputRenderer renderer, ChangeManifest result)
+        private void TryToRender(IOutputRenderer renderer, ChangeManifest result, string message)
         {
             try
             {
-                Console.WriteLine("Detected the file has changed, running renderer...");
+                Console.WriteLine(message);
                 var results = renderer.Render(result);
                 if (!string.IsNullOrEmpty(results))
                     File.WriteAllText(_outputFilename ?? "Output.html", results);
