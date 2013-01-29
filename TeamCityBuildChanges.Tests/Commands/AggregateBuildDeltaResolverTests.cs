@@ -14,12 +14,25 @@ namespace TeamCityBuildChanges.Tests.Commands
     [TestFixture]
     public class AggregateBuildDeltaResolverTests
     {
-        private readonly TestHelpers _testHelpers = new TestHelpers();
-
         [Test]
         public void TestingFullSetup()
         {
-            var resolver = TestHelpers.CreateMockedAggregateBuildDeltaResolver(new List<Tuple<string, string, int>>{Tuple.Create("bt1","Build1",15)});
+            var template = new BuildTemplate
+                {
+                    BuildId = "bt1",
+                    BuildName = "Build1",
+                    BuildCount = 15,
+                    BuildNumberPattern = "1.{0}",
+                    StartBuildNumber = 2,
+                    FinishBuildNumber = 4,
+                    StartBuildPackages = new Dictionary<string, string> { { "Package1", "1.0" }, { "Package2", "1.0" } },
+                    FinishBuildPackages = new Dictionary<string, string> { { "Package1", "1.1" }, { "Package2", "1.0" } },
+                    IssueCount = 5,
+                    NestedIssueDepth = 1,
+                    NestedIssueChance = 80
+                };
+
+            var resolver = TestHelpers.CreateMockedAggregateBuildDeltaResolver(new[]{template});
             var result = resolver.CreateChangeManifestFromBuildTypeId("bt1", null, "1.2", "1.4");
 
             //Assert
