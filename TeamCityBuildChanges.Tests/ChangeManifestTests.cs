@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using NUnit.Framework;
+using TeamCityBuildChanges.Testing;
 
 namespace TeamCityBuildChanges.Tests
 {
@@ -12,7 +13,7 @@ namespace TeamCityBuildChanges.Tests
         [Test]
         public void CheckFlatteningOfIssues()
         {
-            var manifest = TestHelpers.CreateChangeManifest();
+            var manifest = TestHelpers.CreateSimpleChangeManifest();
             var list = manifest.FlattenedIssueDetails;
             
 
@@ -26,7 +27,7 @@ namespace TeamCityBuildChanges.Tests
         [Test]
         public void CheckConsolidated()
         {
-            var manifest = TestHelpers.CreateChangeManifest();
+            var manifest = TestHelpers.CreateSimpleChangeManifest();
             var list = manifest.ConsolidatedIssueDetails;
             
             Assert.That(list.Count, Is.EqualTo(2));

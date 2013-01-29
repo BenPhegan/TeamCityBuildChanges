@@ -6,6 +6,7 @@ using NUnit.Framework;
 using TeamCityBuildChanges.ExternalApi.TeamCity;
 using TeamCityBuildChanges.IssueDetailResolvers;
 using TeamCityBuildChanges.Output;
+using TeamCityBuildChanges.Testing;
 
 namespace TeamCityBuildChanges.Tests
 {
@@ -15,7 +16,7 @@ namespace TeamCityBuildChanges.Tests
         [Test]
         public void Test()
         {
-            var result = new RazorOutputRenderer(@".\templates\text.cshtml").Render(TestHelpers.CreateChangeManifest());
+            var result = new RazorOutputRenderer(@".\templates\text.cshtml").Render(TestHelpers.CreateSimpleChangeManifest());
             Assert.True(true);//Giddyup.
         }
 

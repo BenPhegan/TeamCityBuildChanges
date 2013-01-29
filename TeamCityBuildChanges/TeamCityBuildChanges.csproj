@@ -38,6 +38,15 @@
     <RunPostBuildEvent>OnBuildSuccess</RunPostBuildEvent>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Castle.Core">
+      <HintPath>..\packages\Castle.Core.3.1.0\lib\net40-client\Castle.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="FakeItEasy">
+      <HintPath>..\packages\FakeItEasy.1.7.4626.65\lib\NET40\FakeItEasy.dll</HintPath>
+    </Reference>
+    <Reference Include="Faker.NET4">
+      <HintPath>..\packages\Faker.Net.1.0.3\lib\net40\Faker.NET4.dll</HintPath>
+    </Reference>
     <Reference Include="ManyConsole">
       <HintPath>..\packages\ManyConsole.0.4.2.7\lib\ManyConsole.dll</HintPath>
     </Reference>
@@ -121,6 +130,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Commands\SingleBuildDeltaCommand.cs" />
     <Compile Include="ExternalApi\TeamCity\TeamCityApi.cs" />
+    <Compile Include="Testing\TestHelpers.cs" />
     <None Include="app.config" />
     <None Include="Templates\Text.cshtml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
@@ -142,7 +152,7 @@
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>if not exist ..\Deploy.$(Configuration) mkdir  ..\Deploy.$(Configuration)
-$(SolutionDir)tools\ilmerge\ilmerge.exe /v4 /t:exe /out:..\Deploy.$(Configuration)\$(TargetFileName) $(TargetPath) $(TargetDir)ManyConsole.dll $(TargetDir)NDesk.Options.dll  $(TargetDir)RestSharp.dll $(TargetDir)RazorEngine.dll $(TargetDir)QuickGraph.dll $(TargetDir)QuickGraph.Data.dll $(TargetDir)QuickGraph.Graphviz.dll $(TargetDir)QuickGraph.Serialization.dll
+$(SolutionDir)tools\ilmerge\ilmerge.exe /v4 /t:exe /out:..\Deploy.$(Configuration)\$(TargetFileName) $(TargetPath) $(TargetDir)ManyConsole.dll $(TargetDir)NDesk.Options.dll  $(TargetDir)RestSharp.dll $(TargetDir)RazorEngine.dll $(TargetDir)QuickGraph.dll $(TargetDir)QuickGraph.Data.dll $(TargetDir)Castle.Core.dll $(TargetDir)QuickGraph.Graphviz.dll $(TargetDir)QuickGraph.Serialization.dll $(TargetDir)FakeItEasy.dll $(TargetDir)Faker.Net4.dll
 xcopy $(TargetDir)Templates ..\Deploy.$(Configuration)\Templates /s /y /i
 copy $(TargetDir)TeamCityBuildChanges.nuspec ..\Deploy.$(Configuration)\TeamCityBuildChanges.nuspec /y</PostBuildEvent>
   </PropertyGroup>
