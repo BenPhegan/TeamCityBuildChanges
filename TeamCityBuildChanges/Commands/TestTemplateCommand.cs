@@ -15,12 +15,15 @@ namespace TeamCityBuildChanges.Commands
         public TestTemplate()
         {
             IsCommand("testtemplate", "When run, will watch a template file, and regenerate a HTML file against a generated Model.");
-            HasRequiredOption("t|template=", "Template to watch.", s => _templateFile = s);
             HasOption("o|output=", "Output filename.", s => _outputFilename = s);
-
+            HasAdditionalArguments(1,"Provide the path to the template file to watch.");
         }
         public override int Run(string[] remainingArguments)
         {
+            if (RemainingArgumentsCount != 1) throw new ArgumentException("Please provide the path to the template file to parse.");
+
+            _templateFile = remainingArguments[0];
+
             if (!File.Exists(_templateFile)) throw new ArgumentException("Please provide a template file that exists.");
 
             var resolver = CreateMockedAggregateBuildDeltaResolver();
@@ -28,6 +31,7 @@ namespace TeamCityBuildChanges.Commands
             var result = resolver.CreateChangeManifestFromBuildTypeId("bt1", null, "1.2", "1.6");
             var renderer = new RazorOutputRenderer(_templateFile);
 
+            Console.WriteLine("Running Render on File Change - Hit ENTER to EXIT.");
             if (!File.Exists(_outputFilename ?? "Output.html")) TryToRender(renderer, result, "Rendering on first run...");
 
             var watcher = new FileSystemWatcher
@@ -38,8 +42,7 @@ namespace TeamCityBuildChanges.Commands
                     NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.Size | NotifyFilters.CreationTime
                 };
 
-            watcher.Changed += (o, e) => TryToRender(renderer, result, "Detected the file has changed, running renderer...");
-            watcher.Created += (o, e) => TryToRender(renderer, result, "Detected the file has changed, running renderer...");
+            watcher.Changed += (o, e) => TryToRender(renderer, result, "Detected template has changed, running renderer...");
 
             Console.Read();
             return 0;
@@ -49,25 +52,55 @@ namespace TeamCityBuildChanges.Commands
         {
             try
             {
-                Console.WriteLine(message);
+                ConsoleOutputWithColourToggle(message, ConsoleColor.White, Console.Write);
                 var results = renderer.Render(result);
                 if (!string.IsNullOrEmpty(results))
+                {
                     File.WriteAllText(_outputFilename ?? "Output.html", results);
+                    ConsoleOutputWithColourToggle("success! Please refresh browser.", ConsoleColor.Green, Console.Write);
+                }
                 else
-                    Console.WriteLine("Did not render any output, nothing written...");
+                {
+                    ConsoleOutputWithColourToggle("failed.  Nothing written...", ConsoleColor.Red, Console.Write);
+                }
+                Console.WriteLine();
             }
             catch (Exception ex)
             {
                 Console.Clear();
-                Console.WriteLine("Failed to render template, fix it, save it and I will try again...");
+                ConsoleOutputWithColourToggle("Failed to render template, fix it, save it and I will try again...", ConsoleColor.Red, Console.WriteLine);
                 Console.WriteLine();
-                Console.WriteLine(ex.ToString());
+                ConsoleOutputWithColourToggle(ex.ToString(), ConsoleColor.Yellow, Console.WriteLine);
             }
+        }
+
+        private static void ConsoleOutputWithColourToggle(string message, ConsoleColor colour, Action<string> log)
+        {
+            var oldColour = Console.ForegroundColor;
+            Console.ForegroundColor = colour;
+            log(message);
+            Console.ForegroundColor = oldColour;
         }
 
         private static AggregateBuildDeltaResolver CreateMockedAggregateBuildDeltaResolver()
         {
-            return TestHelpers.CreateMockedAggregateBuildDeltaResolver(new[] { new BuildTemplate { BuildId = "bt1", BuildName = "Build1", BuildCount = 15, BuildNumberPattern = "1.{0}", StartBuildNumber = 2, FinishBuildNumber = 4, StartBuildPackages = new Dictionary<string, string> { { "Package1", "1.0" }, { "Package2", "1.0" } }, FinishBuildPackages = new Dictionary<string, string> { { "Package1", "1.1" }, { "Package2", "1.0" } }, IssueCount = 5, NestedIssueDepth = 1, NestedIssueChance = 80 } });
+            return TestHelpers.CreateMockedAggregateBuildDeltaResolver(new[]
+                {
+                    new BuildTemplate
+                        {
+                            BuildId = "bt1", 
+                            BuildName = "Build1", 
+                            BuildCount = 15, 
+                            BuildNumberPattern = "1.{0}", 
+                            StartBuildNumber = 2, 
+                            FinishBuildNumber = 4, 
+                            StartBuildPackages = new Dictionary<string, string> { { "Package1", "1.0" }, { "Package2", "1.0" } }, 
+                            FinishBuildPackages = new Dictionary<string, string> { { "Package1", "1.1" }, { "Package2", "1.0" } }, 
+                            IssueCount = 5, 
+                            NestedIssueDepth = 1, 
+                            NestedIssueChance = 80
+                        }
+                });
         }
     }
 }
