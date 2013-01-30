@@ -29,11 +29,12 @@ namespace TeamCityBuildChanges.Tests.Commands
                     FinishBuildPackages = new Dictionary<string, string> { { "Package1", "1.1" }, { "Package2", "1.0" } },
                     IssueCount = 5,
                     NestedIssueDepth = 1,
-                    NestedIssueChance = 80
+                    NestedIssueChance = 80,
+                    CreateNuGetPackageChangeManifests = true
                 };
 
             var resolver = TestHelpers.CreateMockedAggregateBuildDeltaResolver(new[]{template});
-            var result = resolver.CreateChangeManifestFromBuildTypeId("bt1", null, "1.2", "1.4");
+            var result = resolver.CreateChangeManifestFromBuildTypeId("bt1", null, "1.2", "1.4",false,true);
 
             //Assert
             Assert.AreEqual(2,result.ChangeDetails.Count);

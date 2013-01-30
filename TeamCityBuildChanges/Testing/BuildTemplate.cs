@@ -13,7 +13,8 @@ namespace TeamCityBuildChanges.Testing
         public int IssueCount;
         public int NestedIssueChance;
         public int NestedIssueDepth;
-        public Dictionary<string, string> StartBuildPackages;
-        public Dictionary<string, string> FinishBuildPackages;
+        public bool CreateNuGetPackageChangeManifests;
+        public Dictionary<string, string> StartBuildPackages = new Dictionary<string, string>();
+        public Dictionary<string, string> FinishBuildPackages = new Dictionary<string, string>();
     }
 }

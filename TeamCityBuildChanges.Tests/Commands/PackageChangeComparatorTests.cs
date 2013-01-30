@@ -31,7 +31,7 @@ namespace TeamCityBuildChanges.Tests.Commands
         [TestCase(2, 4, NuGetPackageChangeType.Added, Result = 2)]
         [TestCase(2, 2, NuGetPackageChangeType.Removed, Result = 1)]
         [TestCase(3, 2, NuGetPackageChangeType.Removed, Result = 1)]
-        public int DetectsModifiedPackages(int initialCount, int finalCount, NuGetPackageChangeType changeType)
+        public int DetectsAddedRemovedPackages(int initialCount, int finalCount, NuGetPackageChangeType changeType)
         {
             var iniital = Enumerable.Repeat(1,initialCount).Select(i => Tuple.Create("Package" +i.ToString(), "1.0"));
             var final = Enumerable.Repeat(1,finalCount).Select(i => Tuple.Create("Package" +i.ToString(), "1.0"));
