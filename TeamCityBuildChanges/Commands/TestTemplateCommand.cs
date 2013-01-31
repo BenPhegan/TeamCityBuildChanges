@@ -98,7 +98,8 @@ namespace TeamCityBuildChanges.Commands
                             FinishBuildPackages = new Dictionary<string, string> { { "Package1", "1.1" }, { "Package2", "1.0" } }, 
                             IssueCount = 5, 
                             NestedIssueDepth = 1, 
-                            NestedIssueChance = 80
+                            NestedIssueChance = 80,
+                            CreateNuGetPackageChangeManifests = true
                         }
                 });
         }
