@@ -28,7 +28,8 @@ namespace TeamCityBuildChanges.Commands
 
             var resolver = CreateMockedAggregateBuildDeltaResolver();
 
-            var result = resolver.CreateChangeManifestFromBuildTypeId("bt1", null, "1.2", "1.6");
+            var result = resolver.CreateChangeManifestFromBuildTypeId("bt1", null, "1.2", "1.4", false, true);
+
             var renderer = new RazorOutputRenderer(_templateFile);
 
             Console.WriteLine("Running Render on File Change - Hit ENTER to EXIT.");
