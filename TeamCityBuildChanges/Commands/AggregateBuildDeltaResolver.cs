@@ -17,6 +17,7 @@ namespace TeamCityBuildChanges.Commands
         private readonly IEnumerable<IExternalIssueResolver> _externalIssueResolvers;
         private readonly IPackageChangeComparator _packageChangeComparator;
         private readonly PackageBuildMappingCache _packageBuildMappingCache;
+        public IEnumerable<NuGetPackageChange> _traversedPackageChanges;
 
         /// <summary>
         /// Provides the ability to generate delta change manifests between arbitrary build versions.
@@ -25,12 +26,13 @@ namespace TeamCityBuildChanges.Commands
         /// <param name="externalIssueResolvers">A list of IExternalIssueResolver objects.</param>
         /// <param name="packageChangeComparator">Provides package dependency comparison capability.</param>
         /// <param name="packageBuildMappingCache">Provides the ability to map from a Nuget package to the build that created the package.</param>
-        public AggregateBuildDeltaResolver(ITeamCityApi api, IEnumerable<IExternalIssueResolver> externalIssueResolvers, IPackageChangeComparator packageChangeComparator, PackageBuildMappingCache packageBuildMappingCache)
+        public AggregateBuildDeltaResolver(ITeamCityApi api, IEnumerable<IExternalIssueResolver> externalIssueResolvers, IPackageChangeComparator packageChangeComparator, PackageBuildMappingCache packageBuildMappingCache, IEnumerable<NuGetPackageChange> traversedPackageChanges)
         {
             _api = api;
             _externalIssueResolvers = externalIssueResolvers;
             _packageChangeComparator = packageChangeComparator;
             _packageBuildMappingCache = packageBuildMappingCache;
+            _traversedPackageChanges = traversedPackageChanges;
         }
 
         /// <summary>
@@ -142,6 +144,8 @@ namespace TeamCityBuildChanges.Commands
             {
                 foreach (var dependency in changeManifest.NuGetPackageChanges.Where(c => c.Type == NuGetPackageChangeType.Modified))
                 {
+                    if (_traversedPackageChanges.Contains(dependency))
+                        continue;
                     var mappings = _packageBuildMappingCache.PackageBuildMappings.Where(m => m.PackageId.Equals(dependency.PackageId, StringComparison.CurrentCultureIgnoreCase)).ToList();
                     PackageBuildMapping build = null;
                     if (mappings.Count == 1)
@@ -163,7 +167,7 @@ namespace TeamCityBuildChanges.Commands
                                                               ? _api
                                                               : new TeamCityApi(build.ServerUrl);
  
-                        var resolver = new AggregateBuildDeltaResolver(instanceTeamCityApi, _externalIssueResolvers,_packageChangeComparator,_packageBuildMappingCache);
+                        var resolver = new AggregateBuildDeltaResolver(instanceTeamCityApi, _externalIssueResolvers,_packageChangeComparator,_packageBuildMappingCache, _traversedPackageChanges);
                         var dependencyManifest = resolver.CreateChangeManifest(null, build.BuildConfigurationId, null,dependency.OldVersion,dependency.NewVersion, null, true, true);
                         dependency.ChangeManifest = dependencyManifest;
                     }
@@ -171,6 +175,7 @@ namespace TeamCityBuildChanges.Commands
                     {
                         changeManifest.GenerationLog.Add(new LogEntry(DateTime.Now, Status.Warning, string.Format("Did not find a mapping for package: {0}.", dependency.PackageId)));
                     }
+                    _traversedPackageChanges.ToList().Add(dependency);
                 }
             }
 

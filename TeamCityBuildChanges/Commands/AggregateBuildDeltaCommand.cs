@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using TeamCityBuildChanges.ExternalApi.TeamCity;
 using TeamCityBuildChanges.NuGetPackage;
+using TeamCityBuildChanges.Output;
 
 namespace TeamCityBuildChanges.Commands
 {
@@ -37,7 +38,7 @@ namespace TeamCityBuildChanges.Commands
 
             var buildPackageCache = string.IsNullOrEmpty(_buildPackageCacheFile) ? null : new PackageBuildMappingCache(_buildPackageCacheFile);
 
-            var resolver = new AggregateBuildDeltaResolver(api, CreateExternalIssueResolvers(), new PackageChangeComparator(),buildPackageCache);
+            var resolver = new AggregateBuildDeltaResolver(api, CreateExternalIssueResolvers(), new PackageChangeComparator(),buildPackageCache, new List<NuGetPackageChange>());
             ChangeManifest = string.IsNullOrEmpty(BuildType) 
                 ? resolver.CreateChangeManifestFromBuildTypeName(ProjectName, BuildName,_referenceBuild, _from, _to, _useBuildSystemIssueResolution, _recurse) 
                 : resolver.CreateChangeManifestFromBuildTypeId(BuildType, _referenceBuild, _from, _to, _useBuildSystemIssueResolution, _recurse);
