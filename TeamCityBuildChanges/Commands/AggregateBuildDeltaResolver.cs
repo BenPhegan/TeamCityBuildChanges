@@ -163,6 +163,8 @@ namespace TeamCityBuildChanges.Commands
 
                     if (build != null)
                     {
+                        if (build.BuildConfigurationId == buildType)
+                            continue;
                         var instanceTeamCityApi = _api.TeamCityServer.Equals(build.ServerUrl, StringComparison.OrdinalIgnoreCase)
                                                               ? _api
                                                               : new TeamCityApi(build.ServerUrl);
