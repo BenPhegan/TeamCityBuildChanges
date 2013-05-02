@@ -17,7 +17,7 @@ namespace TeamCityBuildChanges.Commands
         private readonly IEnumerable<IExternalIssueResolver> _externalIssueResolvers;
         private readonly IPackageChangeComparator _packageChangeComparator;
         private readonly PackageBuildMappingCache _packageBuildMappingCache;
-        public IEnumerable<NuGetPackageChange> _traversedPackageChanges;
+        private List<NuGetPackageChange> _traversedPackageChanges;
 
         /// <summary>
         /// Provides the ability to generate delta change manifests between arbitrary build versions.
@@ -26,7 +26,7 @@ namespace TeamCityBuildChanges.Commands
         /// <param name="externalIssueResolvers">A list of IExternalIssueResolver objects.</param>
         /// <param name="packageChangeComparator">Provides package dependency comparison capability.</param>
         /// <param name="packageBuildMappingCache">Provides the ability to map from a Nuget package to the build that created the package.</param>
-        public AggregateBuildDeltaResolver(ITeamCityApi api, IEnumerable<IExternalIssueResolver> externalIssueResolvers, IPackageChangeComparator packageChangeComparator, PackageBuildMappingCache packageBuildMappingCache, IEnumerable<NuGetPackageChange> traversedPackageChanges)
+        public AggregateBuildDeltaResolver(ITeamCityApi api, IEnumerable<IExternalIssueResolver> externalIssueResolvers, IPackageChangeComparator packageChangeComparator, PackageBuildMappingCache packageBuildMappingCache, List<NuGetPackageChange> traversedPackageChanges)
         {
             _api = api;
             _externalIssueResolvers = externalIssueResolvers;
@@ -144,7 +144,7 @@ namespace TeamCityBuildChanges.Commands
             {
                 foreach (var dependency in changeManifest.NuGetPackageChanges.Where(c => c.Type == NuGetPackageChangeType.Modified))
                 {
-                    if (_traversedPackageChanges.Contains(dependency))
+                    if (_traversedPackageChanges.Exists(x => x.NewVersion == dependency.NewVersion && x.OldVersion == dependency.OldVersion && x.PackageId == dependency.PackageId))
                         continue;
                     var mappings = _packageBuildMappingCache.PackageBuildMappings.Where(m => m.PackageId.Equals(dependency.PackageId, StringComparison.CurrentCultureIgnoreCase)).ToList();
                     PackageBuildMapping build = null;
@@ -177,7 +177,7 @@ namespace TeamCityBuildChanges.Commands
                     {
                         changeManifest.GenerationLog.Add(new LogEntry(DateTime.Now, Status.Warning, string.Format("Did not find a mapping for package: {0}.", dependency.PackageId)));
                     }
-                    _traversedPackageChanges.ToList().Add(dependency);
+                    _traversedPackageChanges.Add(dependency);
                 }
             }
 
