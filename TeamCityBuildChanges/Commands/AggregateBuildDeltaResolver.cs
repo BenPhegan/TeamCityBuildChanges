@@ -144,8 +144,12 @@ namespace TeamCityBuildChanges.Commands
             {
                 foreach (var dependency in changeManifest.NuGetPackageChanges.Where(c => c.Type == NuGetPackageChangeType.Modified))
                 {
-                    if (_traversedPackageChanges.Exists(x => x.NewVersion == dependency.NewVersion && x.OldVersion == dependency.OldVersion && x.PackageId == dependency.PackageId))
+                    var traversedDependency = _traversedPackageChanges.First(p => p.NewVersion == dependency.NewVersion && p.OldVersion == dependency.OldVersion && p.PackageId == dependency.PackageId);
+                    if (traversedDependency != null)
+                    {
+                        dependency.ChangeManifest = traversedDependency.ChangeManifest;
                         continue;
+                    }
                     var mappings = _packageBuildMappingCache.PackageBuildMappings.Where(m => m.PackageId.Equals(dependency.PackageId, StringComparison.CurrentCultureIgnoreCase)).ToList();
                     PackageBuildMapping build = null;
                     if (mappings.Count == 1)
