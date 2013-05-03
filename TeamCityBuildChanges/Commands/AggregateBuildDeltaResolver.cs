@@ -144,7 +144,7 @@ namespace TeamCityBuildChanges.Commands
             {
                 foreach (var dependency in changeManifest.NuGetPackageChanges.Where(c => c.Type == NuGetPackageChangeType.Modified))
                 {
-                    var traversedDependency = _traversedPackageChanges.First(p => p.NewVersion == dependency.NewVersion && p.OldVersion == dependency.OldVersion && p.PackageId == dependency.PackageId);
+                    var traversedDependency = _traversedPackageChanges.FirstOrDefault(p => p.NewVersion == dependency.NewVersion && p.OldVersion == dependency.OldVersion && p.PackageId == dependency.PackageId);
                     if (traversedDependency != null)
                     {
                         dependency.ChangeManifest = traversedDependency.ChangeManifest;
