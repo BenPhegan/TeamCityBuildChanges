@@ -120,6 +120,7 @@
     <Compile Include="ExternalApi\AuthenticatedRestClient.cs" />
     <Compile Include="ExternalApi\UriExtensions.cs" />
     <Compile Include="ExternalApi\TeamCity\ITeamCityApi.cs" />
+    <Compile Include="ExternalApi\TeamCity\MemoryBasedBuildCache.cs" />
     <Compile Include="ExternalApi\TFS\TfsApi.cs" />
     <Compile Include="ExternalApi\TFS\TfsWorkItem.cs" />
     <Compile Include="IssueDetailResolvers\IssueEqualityComparer.cs" />
