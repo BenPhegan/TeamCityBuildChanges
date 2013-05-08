@@ -8,14 +8,18 @@ namespace TeamCityBuildChanges.ExternalApi.TeamCity
     public class MemoryBasedBuildCache
     {
         private readonly Dictionary<string, BuildTypeDetails> _buildTypeDetailsCache;
-        private readonly Dictionary<BuildTypeDetails, List<Artifact>> _buildTypeArtifactsCache;
-        private readonly Dictionary<BuildTypeDetails, List<Build>> _buildTypeBuildDetailsCache; 
+        private readonly Dictionary<string, BuildDetails> _buildDetailsCache;
+        private readonly Dictionary<string, ChangeList> _buildChangeListCache;
+        private readonly Dictionary<string, ChangeDetail> _changeDetailsCache;
+        private readonly Dictionary<int, List<TeamCityApi.PackageDetails>> _buildNuGetDependenciesCache;
 
         public MemoryBasedBuildCache()
         {
             _buildTypeDetailsCache = new Dictionary<string, BuildTypeDetails>();
-            _buildTypeArtifactsCache = new Dictionary<BuildTypeDetails, List<Artifact>>();
-            _buildTypeBuildDetailsCache = new Dictionary<BuildTypeDetails, List<Build>>();
+            _buildDetailsCache = new Dictionary<string, BuildDetails>();
+            _buildChangeListCache = new Dictionary<string, ChangeList>();
+            _changeDetailsCache = new Dictionary<string, ChangeDetail>();
+            _buildNuGetDependenciesCache = new Dictionary<int, List<TeamCityApi.PackageDetails>>();
         }
 
         public bool TryCacheForDetailsByBuildTypeId(string buildTypeId, out BuildTypeDetails buildTypeDetails)
@@ -29,56 +33,79 @@ namespace TeamCityBuildChanges.ExternalApi.TeamCity
             return false;
         }
 
-        public bool TryCacheForArtifactsByBuildTypeId(string buildTypeId, out List<Artifact> artifacts)
+        public bool TryCacheForBuildsByBuildTypeId(string buildTypeId, out IEnumerable<Build> builds)
         {
-            if (_buildTypeDetailsCache.ContainsKey(buildTypeId))
+            builds = _buildDetailsCache.Values.Where(b => b.BuildTypeId == buildTypeId);
+            return builds.Any();
+        }
+
+        public bool TryCacheForBuildDetailsByBuildId(string buildId, out BuildDetails buildDetails)
+        {
+            if (_buildDetailsCache.ContainsKey(buildId))
             {
-                artifacts = _buildTypeArtifactsCache[_buildTypeDetailsCache[buildTypeId]];
+                buildDetails = _buildDetailsCache[buildId];
                 return true;
             }
-            artifacts = new List<Artifact>();
+            buildDetails = null;
             return false;
         }
 
-        public bool TryCacheForBuildsByBuildTypeId(string buildTypeId, out List<Build> builds)
+        public bool TryCacheForChangeListByBuildId(string buildId, out ChangeList changeList)
         {
-            if (_buildTypeDetailsCache.ContainsKey(buildTypeId))
+            if (_buildChangeListCache.ContainsKey(buildId))
             {
-                builds = _buildTypeBuildDetailsCache[_buildTypeDetailsCache[buildTypeId]];
+                changeList = _buildChangeListCache[buildId];
                 return true;
             }
-            builds = new List<Build>();
+            changeList = null;
             return false;
         }
 
-        public bool AddCacheBuildTypeDetailsById(string id, BuildTypeDetails buildTypeDetails)
+        public bool TryCacheForChangeDetailsByChangeId(string changeId, out ChangeDetail changeDetail)
         {
-            if (!_buildTypeDetailsCache.ContainsKey(id))
+            if (_changeDetailsCache.ContainsKey(changeId))
             {
-                _buildTypeDetailsCache.Add(id, buildTypeDetails);
+                changeDetail = _changeDetailsCache[changeId];
                 return true;
             }
+            changeDetail = null;
             return false;
         }
 
-        public bool AddCacheBuildTypeArtifactsById(string id, List<Artifact> artifacts)
+        public bool TryCacheForNuGetDependenciesByBuildTypeAndBuildId(string buildTypeId, string buildId, out List<TeamCityApi.PackageDetails> packageDetails)
         {
-            if (_buildTypeDetailsCache.ContainsKey(id))
+            if (_buildNuGetDependenciesCache.ContainsKey(buildTypeId.GetHashCode() ^ buildId.GetHashCode()))
             {
-                _buildTypeArtifactsCache.Add(_buildTypeDetailsCache[id], artifacts);
+                packageDetails = _buildNuGetDependenciesCache[buildTypeId.GetHashCode() ^ buildId.GetHashCode()];
                 return true;
             }
+            packageDetails = new List<TeamCityApi.PackageDetails>();
             return false;
         }
 
-        public bool AddCacheBuildsById(string id, List<Build> builds)
+        public void AddCacheBuildTypeDetailsById(string id, BuildTypeDetails buildTypeDetails)
         {
-            if (_buildTypeDetailsCache.ContainsKey(id))
-            {
-                _buildTypeBuildDetailsCache.Add(_buildTypeDetailsCache[id], builds);
-                return true;
-            }
-            return false;
+            _buildTypeDetailsCache.Add(id, buildTypeDetails);
+        }
+
+        public void AddCacheBuildDetailsEntry(BuildDetails buildDetails)
+        {
+            _buildDetailsCache.Add(buildDetails.Id, buildDetails);
+        }
+
+        public void AddCacheChangeListByBuildIdEntry(string buildId, ChangeList changeList)
+        {
+            _buildChangeListCache.Add(buildId, changeList);
+        }
+
+        public void AddCacheChangeDetailsByChangeIdEntry(string changeId, ChangeDetail changeDetail)
+        {
+            _changeDetailsCache.Add(changeId, changeDetail);
+        }
+
+        public void AddCacheNuGetDependencies(string buildTypeId, string buildId, List<TeamCityApi.PackageDetails> packageDetails)
+        {
+            _buildNuGetDependenciesCache.Add(buildTypeId.GetHashCode() ^ buildId.GetHashCode(), packageDetails);
         }
     }
 }
