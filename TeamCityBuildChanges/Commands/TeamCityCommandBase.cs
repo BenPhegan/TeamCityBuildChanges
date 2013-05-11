@@ -42,7 +42,7 @@ namespace TeamCityBuildChanges.Commands
                     {"bn=|buildName=", "TeamCity build type to get the details for.", s => BuildName = s},
                     {"jiraurl=", "The Jira URL to query for issue details", x => JiraUrl = x},
                     {"jiraauthtoken=", "The Jira authorisation token to use (refer to 'encode' subcommand", x => JiraToken = x},
-                    {"tfsurl=", "TFS URL to check issues on.", x => TfsUrl = x},
+                    {"tfsurl=", "TFS URL to check issues on (can be semicolon separated)", x => TfsUrl = x},
                     {"template=", "Template to use for output.  Must be a Razor template that accepts a ChangeManifest model.", x => Template = x}
                 };
 
@@ -76,7 +76,8 @@ namespace TeamCityBuildChanges.Commands
             }
             if (!string.IsNullOrEmpty(TfsUrl))
             {
-                resolvers.Add(new TFSIssueResolver(new TfsApi(TfsUrl)));
+                foreach (var url in TfsUrl.Split(';'))
+                    resolvers.Add(new TFSIssueResolver(new TfsApi(url)));
             }
             return resolvers;
         }
