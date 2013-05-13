@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Xml.Serialization;
 using QuickGraph;
 using QuickGraph.Algorithms;
 using TeamCityBuildChanges.ExternalApi.TeamCity;
@@ -11,6 +12,7 @@ namespace TeamCityBuildChanges.Output
     /// <summary>
     /// Provide a ChangeManifest that is used as a Model object to represent Build changes.
     /// </summary>
+    [Serializable]
     public class ChangeManifest
     {
         public ChangeManifest()
@@ -27,10 +29,19 @@ namespace TeamCityBuildChanges.Output
         public DateTime Generated { get; set; }
         public string FromVersion { get; set; }
         public string ToVersion { get; set; }
+
+        [XmlIgnore()]
         public BuildTypeDetails ReferenceBuildConfiguration { get; set; }
+
+        [XmlIgnore()]
         public BuildTypeDetails BuildConfiguration { get; set; }
+
         public List<NuGetPackageChange> NuGetPackageChanges { get; set; }
+
+        [XmlIgnore()]
         public List<LogEntry> GenerationLog { get; set; }
+
+        [XmlIgnore()]
         public Status GenerationStatus { get; set; }
 
         public List<ExternalIssueDetails> ConsolidatedIssueDetails

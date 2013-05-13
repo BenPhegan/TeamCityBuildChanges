@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Xml.Serialization;
 using TeamCityBuildChanges.ExternalApi.TeamCity;
 using TeamCityBuildChanges.NuGetPackage;
 using TeamCityBuildChanges.Output;
@@ -17,6 +18,7 @@ namespace TeamCityBuildChanges.Commands
         private string _teamCityAuthToken;
         private string _buildPackageCacheFile;
         private bool _recurse;
+        private string _xmlOutput;
 
         public AggregateBuildDeltaCommand()
         {
@@ -29,6 +31,7 @@ namespace TeamCityBuildChanges.Commands
             Options.Add("tat=", "TeamCity Auth Token", c => _teamCityAuthToken = c);
             Options.Add("bpc|buildpackagecache=", "An xml build package cache file for package to build mapping.", c => _buildPackageCacheFile = c);
             Options.Add("r|recurse", "Recurse into package dependencies and generate full tree delta.", c => _recurse = c != null);
+            Options.Add("xml=", "Serialize ChangeManifest object to xml", c => _xmlOutput = c);
             SkipsCommandSummaryBeforeRunning();
         }
 
@@ -38,10 +41,18 @@ namespace TeamCityBuildChanges.Commands
 
             var buildPackageCache = string.IsNullOrEmpty(_buildPackageCacheFile) ? null : new PackageBuildMappingCache(_buildPackageCacheFile);
 
-            var resolver = new AggregateBuildDeltaResolver(api, CreateExternalIssueResolvers(), new PackageChangeComparator(),buildPackageCache, new List<NuGetPackageChange>());
-            ChangeManifest = string.IsNullOrEmpty(BuildType) 
-                ? resolver.CreateChangeManifestFromBuildTypeName(ProjectName, BuildName,_referenceBuild, _from, _to, _useBuildSystemIssueResolution, _recurse) 
-                : resolver.CreateChangeManifestFromBuildTypeId(BuildType, _referenceBuild, _from, _to, _useBuildSystemIssueResolution, _recurse);
+            if (!string.IsNullOrEmpty(_xmlOutput) && File.Exists(Path.GetFullPath(_xmlOutput)))
+                ChangeManifest = DeserializeFromXML();
+            else
+            {
+                var resolver = new AggregateBuildDeltaResolver(api, CreateExternalIssueResolvers(), new PackageChangeComparator(), buildPackageCache, new List<NuGetPackageChange>());
+                ChangeManifest = string.IsNullOrEmpty(BuildType)
+                    ? resolver.CreateChangeManifestFromBuildTypeName(ProjectName, BuildName, _referenceBuild, _from, _to, _useBuildSystemIssueResolution, _recurse)
+                    : resolver.CreateChangeManifestFromBuildTypeId(BuildType, _referenceBuild, _from, _to, _useBuildSystemIssueResolution, _recurse);
+            }
+
+            if (!string.IsNullOrEmpty(_xmlOutput))
+                SerializeToXML(ChangeManifest);
 
             OutputChanges(CreateOutputRenderers(), new List<Action<string>> {Console.Write, a =>
                 {
@@ -49,6 +60,23 @@ namespace TeamCityBuildChanges.Commands
                         File.WriteAllText(OutputFileName, a);
                 }});
             return 0;
+        }
+
+        private void SerializeToXML(ChangeManifest changeManifest)
+        {
+            var serializer = new XmlSerializer(typeof (ChangeManifest));
+            var textWriter = new StreamWriter(_xmlOutput);
+            serializer.Serialize(textWriter, changeManifest);
+            textWriter.Close();
+        }
+
+        private ChangeManifest DeserializeFromXML()
+        {
+            var deserializer = new XmlSerializer(typeof (ChangeManifest));
+            var textReader = new StreamReader(_xmlOutput);
+            var changeManifest = (ChangeManifest) deserializer.Deserialize(textReader);
+            textReader.Close();
+            return changeManifest;
         }
     }
 }
