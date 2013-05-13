@@ -6,6 +6,7 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using System.Xml.Linq;
+using System.Xml.Serialization;
 using RestSharp;
 
 namespace TeamCityBuildChanges.ExternalApi.TeamCity
@@ -305,6 +306,7 @@ namespace TeamCityBuildChanges.ExternalApi.TeamCity
         public string Href { get; set; }
         public string ProjectName { get; set; }
         public string ProjectId { get; set; }
+        [XmlIgnore()]
         public Uri WebUrl { get; set; }
 
         public override string ToString()

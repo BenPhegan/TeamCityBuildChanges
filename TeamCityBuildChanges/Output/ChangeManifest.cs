@@ -29,11 +29,7 @@ namespace TeamCityBuildChanges.Output
         public DateTime Generated { get; set; }
         public string FromVersion { get; set; }
         public string ToVersion { get; set; }
-
-        [XmlIgnore()]
         public BuildTypeDetails ReferenceBuildConfiguration { get; set; }
-
-        [XmlIgnore()]
         public BuildTypeDetails BuildConfiguration { get; set; }
 
         public List<NuGetPackageChange> NuGetPackageChanges { get; set; }

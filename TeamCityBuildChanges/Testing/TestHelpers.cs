@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Xml.Serialization;
 using FakeItEasy;
 using Faker;
 using TeamCityBuildChanges.Commands;
@@ -261,6 +262,46 @@ namespace TeamCityBuildChanges.Testing
                                 }
                         }
                 };
+        }
+
+        public static List<NuGetPackageChange> CreateSimpleNuGetPackageDependencies()
+        {
+            var dependencies = new List<NuGetPackageChange>();
+
+            for (int i = 1; i <= 2; i++)
+            {
+                dependencies.Add(CreateNuGetPackageChange(i.ToString(), "1.0.0.0", String.Format("1.0.0.{0}", i)));
+            }
+
+            return dependencies;
+        }
+
+        private static NuGetPackageChange CreateNuGetPackageChange(string id, string oldVersion, string newVersion)
+        {
+            var manifest = CreateSimpleChangeManifest();
+            if (id == "2")
+                manifest.NuGetPackageChanges = new List<NuGetPackageChange>
+                    {
+                        CreateNuGetPackageChange("1", "1.0.0.0", "1.0.0.1"),
+                        CreateNuGetPackageChange("3", "1.0.0.0", "1.0.0.3")
+                    };
+            return new NuGetPackageChange
+                {
+                    PackageId = String.Format("Package-{0}", id),
+                    OldVersion = oldVersion,
+                    NewVersion = newVersion,
+                    Type = NuGetPackageChangeType.Modified,
+                    ChangeManifest = manifest
+                };
+        }
+
+        public static ChangeManifest DeserializeFromXML(string xmlInput)
+        {
+            var deserializer = new XmlSerializer(typeof (ChangeManifest));
+            var textReader = new StreamReader(xmlInput);
+            var changeManifest = (ChangeManifest) deserializer.Deserialize(textReader);
+            textReader.Close();
+            return changeManifest;
         }
     }
 }

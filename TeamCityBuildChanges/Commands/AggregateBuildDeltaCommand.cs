@@ -41,16 +41,11 @@ namespace TeamCityBuildChanges.Commands
 
             var buildPackageCache = string.IsNullOrEmpty(_buildPackageCacheFile) ? null : new PackageBuildMappingCache(_buildPackageCacheFile);
 
-            if (!string.IsNullOrEmpty(_xmlOutput) && File.Exists(Path.GetFullPath(_xmlOutput)))
-                ChangeManifest = DeserializeFromXML();
-            else
-            {
-                var resolver = new AggregateBuildDeltaResolver(api, CreateExternalIssueResolvers(), new PackageChangeComparator(), buildPackageCache, new List<NuGetPackageChange>());
-                ChangeManifest = string.IsNullOrEmpty(BuildType)
-                    ? resolver.CreateChangeManifestFromBuildTypeName(ProjectName, BuildName, _referenceBuild, _from, _to, _useBuildSystemIssueResolution, _recurse)
-                    : resolver.CreateChangeManifestFromBuildTypeId(BuildType, _referenceBuild, _from, _to, _useBuildSystemIssueResolution, _recurse);
-            }
-
+            var resolver = new AggregateBuildDeltaResolver(api, CreateExternalIssueResolvers(), new PackageChangeComparator(), buildPackageCache, new List<NuGetPackageChange>());
+            ChangeManifest = string.IsNullOrEmpty(BuildType)
+                ? resolver.CreateChangeManifestFromBuildTypeName(ProjectName, BuildName, _referenceBuild, _from, _to, _useBuildSystemIssueResolution, _recurse)
+                : resolver.CreateChangeManifestFromBuildTypeId(BuildType, _referenceBuild, _from, _to, _useBuildSystemIssueResolution, _recurse);
+            
             if (!string.IsNullOrEmpty(_xmlOutput))
                 SerializeToXML(ChangeManifest);
 
@@ -68,15 +63,6 @@ namespace TeamCityBuildChanges.Commands
             var textWriter = new StreamWriter(_xmlOutput);
             serializer.Serialize(textWriter, changeManifest);
             textWriter.Close();
-        }
-
-        private ChangeManifest DeserializeFromXML()
-        {
-            var deserializer = new XmlSerializer(typeof (ChangeManifest));
-            var textReader = new StreamReader(_xmlOutput);
-            var changeManifest = (ChangeManifest) deserializer.Deserialize(textReader);
-            textReader.Close();
-            return changeManifest;
         }
     }
 }
