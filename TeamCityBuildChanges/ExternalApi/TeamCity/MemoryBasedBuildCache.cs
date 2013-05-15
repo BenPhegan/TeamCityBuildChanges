@@ -85,27 +85,32 @@ namespace TeamCityBuildChanges.ExternalApi.TeamCity
 
         public void AddCacheBuildTypeDetailsById(string id, BuildTypeDetails buildTypeDetails)
         {
-            _buildTypeDetailsCache.Add(id, buildTypeDetails);
+            if (buildTypeDetails != null && !_buildTypeDetailsCache.ContainsKey(id))
+                _buildTypeDetailsCache.Add(id, buildTypeDetails);
         }
 
         public void AddCacheBuildDetailsEntry(BuildDetails buildDetails)
         {
-            _buildDetailsCache.Add(buildDetails.Id, buildDetails);
+            if (buildDetails != null && !_buildDetailsCache.ContainsKey(buildDetails.Id))
+                _buildDetailsCache.Add(buildDetails.Id, buildDetails);
         }
 
         public void AddCacheChangeListByBuildIdEntry(string buildId, ChangeList changeList)
         {
-            _buildChangeListCache.Add(buildId, changeList);
+            if (changeList != null && !_buildChangeListCache.ContainsKey(buildId))
+                _buildChangeListCache.Add(buildId, changeList);
         }
 
         public void AddCacheChangeDetailsByChangeIdEntry(string changeId, ChangeDetail changeDetail)
         {
-            _changeDetailsCache.Add(changeId, changeDetail);
+            if (changeDetail != null && !_changeDetailsCache.ContainsKey(changeId))
+                _changeDetailsCache.Add(changeId, changeDetail);
         }
 
         public void AddCacheNuGetDependencies(string buildTypeId, string buildId, List<TeamCityApi.PackageDetails> packageDetails)
         {
-            _buildNuGetDependenciesCache.Add(buildTypeId.GetHashCode() ^ buildId.GetHashCode(), packageDetails);
+            if (packageDetails != null && !_buildNuGetDependenciesCache.ContainsKey(buildTypeId.GetHashCode() ^ buildId.GetHashCode()))
+                _buildNuGetDependenciesCache.Add(buildTypeId.GetHashCode() ^ buildId.GetHashCode(), packageDetails);
         }
     }
 }

@@ -153,6 +153,8 @@ namespace TeamCityBuildChanges.ExternalApi.TeamCity
         public IEnumerable<ChangeDetail> GetChangeDetailsByBuildId(string buildId)
         {
             var changeList = GetChangeListByBuildId(buildId);
+            if (changeList == null)
+                return new List<ChangeDetail>();
             var changeDetails = changeList.Changes.Select(c => GetChangeDetailsByChangeId(c.Id)).ToList();
             return changeDetails;
         }
@@ -196,6 +198,8 @@ namespace TeamCityBuildChanges.ExternalApi.TeamCity
         public IEnumerable<Issue> GetIssuesFromBuild(string buildId)
         {
             var buildDetails = GetBuildDetailsByBuildId(buildId);
+            if (buildDetails == null)
+                return new List<Issue>();
             return buildDetails.RelatedIssues.Select(i => i.Issue).Distinct().ToList();
         }
 
