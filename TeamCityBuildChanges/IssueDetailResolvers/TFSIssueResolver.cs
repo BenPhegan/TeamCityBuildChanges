@@ -9,9 +9,9 @@ namespace TeamCityBuildChanges.IssueDetailResolvers
 {
     public class TFSIssueResolver : IExternalIssueResolver
     {
-        readonly TfsApi _tfsApi;
+        readonly ITfsApi _tfsApi;
 
-        public TFSIssueResolver(TfsApi tfsApi)
+        public TFSIssueResolver(ITfsApi tfsApi)
         {
             _tfsApi = tfsApi;
         }

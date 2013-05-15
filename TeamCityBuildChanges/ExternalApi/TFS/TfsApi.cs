@@ -8,9 +8,10 @@ using Microsoft.TeamFoundation.WorkItemTracking.Client;
 
 namespace TeamCityBuildChanges.ExternalApi.TFS
 {
-    public class TfsApi
+    public class TfsApi : ITfsApi
     {
-        public readonly string ConnectionUri;
+        private string _connectionUri;
+        public string ConnectionUri { get; private set; }
 
         private TfsTeamProjectCollection _connection;
 
@@ -24,7 +25,7 @@ namespace TeamCityBuildChanges.ExternalApi.TFS
 
         public TfsApi(string connectionUri)
         {
-            ConnectionUri = connectionUri;
+            _connectionUri = connectionUri;
         }
 
         public IEnumerable<TfsWorkItem> GetWorkItemsByCommit(int commit)

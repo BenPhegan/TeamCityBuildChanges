@@ -68,6 +68,7 @@
     <Compile Include="TeamCityApiTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TfsApiIntegrationTests.cs" />
+    <Compile Include="TFSIssueResolverTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
