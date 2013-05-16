@@ -203,7 +203,8 @@ namespace TeamCityBuildChanges.ExternalApi.TeamCity
 
         public IEnumerable<Issue> GetIssuesByBuildTypeAndBuildRange(string buildType, string from, string to, IEnumerable<Build> buildList = null)
         {
-            var results = GetByBuildTypeAndBuildRange(buildType, from, to, BuildNumberComparitor(), buildList, b => GetIssuesFromBuild(b.Id));
+            var buildTypeDetails = GetBuildTypeDetailsById(buildType);
+            var results = GetByBuildTypeAndBuildRange(buildType, from, to, BuildNumberComparitor(), buildList, b => GetIssuesFromBuild(b.Id).Where(i => buildTypeDetails.VcsRootEntries.Any(v => v.VcsRoot.Any(r => r.Href.StartsWith(i.TfsRootUrl)))));
             return results;
         }
 
@@ -462,6 +463,7 @@ namespace TeamCityBuildChanges.ExternalApi.TeamCity
     {
         public string Id { get; set; }
         public string Url { get; set; }
+        public string TfsRootUrl { get; set; }
     }
 
     public class ChangeSummary

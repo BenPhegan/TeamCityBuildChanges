@@ -27,6 +27,7 @@ namespace TeamCityBuildChanges.Testing
 
     public class BuildDetailsTemplate
     {
+        public string TfsConnection;
         public string Id;
         public List<int> RelatedIssueIds = new List<int>(); 
     }

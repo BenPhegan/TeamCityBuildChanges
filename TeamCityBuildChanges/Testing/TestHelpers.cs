@@ -348,13 +348,13 @@ namespace TeamCityBuildChanges.Testing
         {
             foreach (var workItem in template.WorkItems.Keys)
             {
-                SetWorkItemExpectation(api, workItem, template.WorkItems[workItem]);
+                SetWorkItemExpectation(api, workItem, template.WorkItems);
             }
         }
 
-        private static void SetWorkItemExpectation(ITfsApi api, int workItemId, IEnumerable<int> children)
+        private static void SetWorkItemExpectation(ITfsApi api, int workItemId, Dictionary<int, List<int>> workItems)
         {
-            A.CallTo(() => api.GetWorkItem(workItemId)).Returns(CreateWorkItem(workItemId, children));
+            A.CallTo(() => api.GetWorkItem(workItemId)).Returns(workItems.ContainsKey(workItemId) ? CreateWorkItem(workItemId, workItems[workItemId]) : null);
         }
 
         private static TfsWorkItem CreateWorkItem(int workItemId, IEnumerable<int> children)
@@ -377,14 +377,14 @@ namespace TeamCityBuildChanges.Testing
             var issues = new List<Issue>();
             foreach (var template in templates)
             {
-                issues.AddRange(CreateMockedIssues(template.RelatedIssueIds));
+                issues.AddRange(CreateMockedIssues(template.TfsConnection, template.RelatedIssueIds));
             }
             return issues;
         }
 
-        private static IEnumerable<Issue> CreateMockedIssues(List<int> list)
+        private static IEnumerable<Issue> CreateMockedIssues(string tfsConnection, List<int> list)
         {
-            return list.Select(CreateMockedIssue);
+            return list.Select(i => CreateMockedIssue(i, tfsConnection));
         }
 
         public static ITeamCityApi CreateMockedTeamCityApi(IEnumerable<BuildDetailsTemplate> templates)
@@ -400,9 +400,33 @@ namespace TeamCityBuildChanges.Testing
             return api;
         }
 
+        public static List<Issue> GetIssuesFromMockedTeamCityApi(ITeamCityApi api, IEnumerable<BuildDetailsTemplate> templates)
+        {
+            var issues = new List<Issue>();
+            foreach (var template in templates)
+            {
+                issues.AddRange(CreateMockedBuildDetails(template).RelatedIssues.Select(i => i.Issue));
+            }
+            return issues;
+        }
+
         private static void SetBuildDetailsExpectations(BuildDetailsTemplate template, ITeamCityApi api)
         {
+            A.CallTo(() => api.GetBuildTypeDetailsById(template.Id)).Returns(CreateMockedBuildTypeDetails(template));
             A.CallTo(() => api.GetBuildDetailsByBuildId(template.Id)).Returns(CreateMockedBuildDetails(template));
+        }
+
+        private static BuildTypeDetails CreateMockedBuildTypeDetails(BuildDetailsTemplate template)
+        {
+            return new BuildTypeDetails
+                {
+                    Id = template.Id,
+                    VcsRootEntries =
+                        new List<VcsRootEntry>
+                            {
+                                new VcsRootEntry {VcsRoot = new List<VcsRoot> {new VcsRoot {Href = template.TfsConnection}}}
+                            }
+                };
         }
 
         private static BuildDetails CreateMockedBuildDetails(BuildDetailsTemplate template)
@@ -410,24 +434,25 @@ namespace TeamCityBuildChanges.Testing
             return new BuildDetails
                 {
                     Id = template.Id,
-                    RelatedIssues = template.RelatedIssueIds.Select(CreateMockedIssueUsage).ToList()
+                    RelatedIssues = template.RelatedIssueIds.Select(i => CreateMockedIssueUsage(i, template.TfsConnection)).ToList()
                 };
         }
 
-        private static IssueUsage CreateMockedIssueUsage(int id)
+        private static IssueUsage CreateMockedIssueUsage(int id, string tfsConnection)
         {
             return new IssueUsage
                 {
-                    Issue = CreateMockedIssue(id)
+                    Issue = CreateMockedIssue(id, tfsConnection)
                 };
         }
 
-        private static Issue CreateMockedIssue(int id)
+        private static Issue CreateMockedIssue(int id, string tfsConnection)
         {
             return new Issue
                 {
                     Id = id.ToString(),
-                    Url = String.Format("http://{0}/tfs", Internet.DomainName())
+                    Url = tfsConnection,
+                    TfsRootUrl = tfsConnection
                 };
         }
     }

@@ -20,7 +20,7 @@ namespace TeamCityBuildChanges.IssueDetailResolvers
         {
             var externalIssueDetails = new List<ExternalIssueDetails>();
 
-            externalIssueDetails.AddRange(issues.Where(i => IsTfsUrl(i.Url)).Select(GetDetails));
+            externalIssueDetails.AddRange(issues.Where(i => IsTfsUrl(i.Url)).Select(GetDetails).Where(i => i != null));
 
             return externalIssueDetails;
         }
@@ -42,8 +42,12 @@ namespace TeamCityBuildChanges.IssueDetailResolvers
         }
 
         private ExternalIssueDetails GetDetails(Issue issue)
-        {            
+        {
+            if (issue.TfsRootUrl != _tfsApi.ConnectionUri)
+                return null;
             var tfsWi = _tfsApi.GetWorkItem(ParseTfsWorkItemId(issue.Id));
+            if (tfsWi == null)
+                return null;
             var extIssue = GetDetails(tfsWi);
             extIssue.Url = _tfsApi.ConnectionUri + "/web/wi.aspx?id=" + extIssue.Id;
 
