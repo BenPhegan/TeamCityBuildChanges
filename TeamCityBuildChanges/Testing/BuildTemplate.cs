@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using TeamCityBuildChanges.ExternalApi.TeamCity;
 
 namespace TeamCityBuildChanges.Testing
 {
@@ -16,5 +17,17 @@ namespace TeamCityBuildChanges.Testing
         public bool CreateNuGetPackageChangeManifests;
         public Dictionary<string, string> StartBuildPackages = new Dictionary<string, string>();
         public Dictionary<string, string> FinishBuildPackages = new Dictionary<string, string>();
+    }
+
+    public class TfsTemplate
+    {
+        public string ConnectionUri;
+        public Dictionary<int, List<int>> WorkItems = new Dictionary<int, List<int>>();
+    }
+
+    public class BuildDetailsTemplate
+    {
+        public string Id;
+        public List<int> RelatedIssueIds = new List<int>(); 
     }
 }

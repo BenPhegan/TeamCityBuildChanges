@@ -11,7 +11,10 @@ namespace TeamCityBuildChanges.ExternalApi.TFS
     public class TfsApi : ITfsApi
     {
         private string _connectionUri;
-        public string ConnectionUri { get; private set; }
+        public string ConnectionUri 
+        {
+            get { return _connectionUri; } 
+        }
 
         private TfsTeamProjectCollection _connection;
 

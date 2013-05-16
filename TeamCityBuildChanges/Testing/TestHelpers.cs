@@ -6,6 +6,7 @@ using System.Xml.Serialization;
 using FakeItEasy;
 using Faker;
 using TeamCityBuildChanges.Commands;
+using TeamCityBuildChanges.ExternalApi.TFS;
 using TeamCityBuildChanges.ExternalApi.TeamCity;
 using TeamCityBuildChanges.IssueDetailResolvers;
 using TeamCityBuildChanges.NuGetPackage;
@@ -328,6 +329,106 @@ namespace TeamCityBuildChanges.Testing
             var cache = A.Fake<IPackageBuildMappingCache>();
             A.CallTo(() => cache.PackageBuildMappings).Returns(mappings);
             return cache;
+        }
+
+        public static IEnumerable<TFSIssueResolver> CreateMockedTfsApi(IEnumerable<TfsTemplate> templates)
+        {
+            var resolvers = new List<TFSIssueResolver>();
+            foreach (var template in templates)
+            {
+                var api = A.Fake<ITfsApi>();
+                A.CallTo(() => api.ConnectionUri).Returns(template.ConnectionUri);
+                SetTfsExpectations(api, template);
+                resolvers.Add(new TFSIssueResolver(api));
+            }
+            return resolvers;
+        }
+
+        private static void SetTfsExpectations(ITfsApi api, TfsTemplate template)
+        {
+            foreach (var workItem in template.WorkItems.Keys)
+            {
+                SetWorkItemExpectation(api, workItem, template.WorkItems[workItem]);
+            }
+        }
+
+        private static void SetWorkItemExpectation(ITfsApi api, int workItemId, IEnumerable<int> children)
+        {
+            A.CallTo(() => api.GetWorkItem(workItemId)).Returns(CreateWorkItem(workItemId, children));
+        }
+
+        private static TfsWorkItem CreateWorkItem(int workItemId, IEnumerable<int> children)
+        {
+            return new TfsWorkItem
+                {
+                    Id = workItemId,
+                    Created = DateTime.Today.AddDays(-RandomNumber.Next(150)),
+                    Type = new[] {"Bug", "Task", "Issue"}[RandomNumber.Next(0, 2)],
+                    State = new[] {"Open", "Closed", "Resolved"}[RandomNumber.Next(0, 2)],
+                    Title = Lorem.Sentence(3),
+                    Description = Lorem.Sentence(),
+                    HistoryComments = new List<string> { Lorem.GetFirstWord(), Company.BS() },
+                    ChildrenIds = children
+                };
+        }
+
+        public static List<Issue> CreateMockedIssueList(IEnumerable<BuildDetailsTemplate> templates)
+        {
+            var issues = new List<Issue>();
+            foreach (var template in templates)
+            {
+                issues.AddRange(CreateMockedIssues(template.RelatedIssueIds));
+            }
+            return issues;
+        }
+
+        private static IEnumerable<Issue> CreateMockedIssues(List<int> list)
+        {
+            return list.Select(CreateMockedIssue);
+        }
+
+        public static ITeamCityApi CreateMockedTeamCityApi(IEnumerable<BuildDetailsTemplate> templates)
+        {
+            const string server = "http://test.server";
+            var api = A.Fake<ITeamCityApi>();
+            A.CallTo(() => api.TeamCityServer).Returns(server);
+
+            foreach (var template in templates)
+            {
+                SetBuildDetailsExpectations(template, api);
+            }
+            return api;
+        }
+
+        private static void SetBuildDetailsExpectations(BuildDetailsTemplate template, ITeamCityApi api)
+        {
+            A.CallTo(() => api.GetBuildDetailsByBuildId(template.Id)).Returns(CreateMockedBuildDetails(template));
+        }
+
+        private static BuildDetails CreateMockedBuildDetails(BuildDetailsTemplate template)
+        {
+            return new BuildDetails
+                {
+                    Id = template.Id,
+                    RelatedIssues = template.RelatedIssueIds.Select(CreateMockedIssueUsage).ToList()
+                };
+        }
+
+        private static IssueUsage CreateMockedIssueUsage(int id)
+        {
+            return new IssueUsage
+                {
+                    Issue = CreateMockedIssue(id)
+                };
+        }
+
+        private static Issue CreateMockedIssue(int id)
+        {
+            return new Issue
+                {
+                    Id = id.ToString(),
+                    Url = String.Format("http://{0}/tfs", Internet.DomainName())
+                };
         }
     }
 }
