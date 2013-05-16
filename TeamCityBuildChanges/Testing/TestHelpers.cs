@@ -348,13 +348,13 @@ namespace TeamCityBuildChanges.Testing
         {
             foreach (var workItem in template.WorkItems.Keys)
             {
-                SetWorkItemExpectation(api, workItem, template.WorkItems);
+                SetWorkItemExpectation(api, workItem, template.WorkItems[workItem]);
             }
         }
 
-        private static void SetWorkItemExpectation(ITfsApi api, int workItemId, Dictionary<int, List<int>> workItems)
+        private static void SetWorkItemExpectation(ITfsApi api, int workItemId, IEnumerable<int> children)
         {
-            A.CallTo(() => api.GetWorkItem(workItemId)).Returns(workItems.ContainsKey(workItemId) ? CreateWorkItem(workItemId, workItems[workItemId]) : null);
+            A.CallTo(() => api.GetWorkItem(workItemId)).Returns(CreateWorkItem(workItemId, children));
         }
 
         private static TfsWorkItem CreateWorkItem(int workItemId, IEnumerable<int> children)

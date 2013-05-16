@@ -46,7 +46,7 @@ namespace TeamCityBuildChanges.IssueDetailResolvers
             if (issue.TfsRootUrl != _tfsApi.ConnectionUri)
                 return null;
             var tfsWi = _tfsApi.GetWorkItem(ParseTfsWorkItemId(issue.Id));
-            if (tfsWi == null)
+            if (tfsWi == null || tfsWi.Id.ToString() != issue.Id)
                 return null;
             var extIssue = GetDetails(tfsWi);
             extIssue.Url = _tfsApi.ConnectionUri + "/web/wi.aspx?id=" + extIssue.Id;
