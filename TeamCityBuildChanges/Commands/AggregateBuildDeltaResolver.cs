@@ -169,13 +169,7 @@ namespace TeamCityBuildChanges.Commands
                     {
                         if (build.BuildConfigurationId == buildType)
                             continue;
-                        var instanceTeamCityApi = _api.TeamCityServer.Equals(build.ServerUrl, StringComparison.OrdinalIgnoreCase)
-                                                              ? _api
-                                                              : new TeamCityApi(build.ServerUrl);
- 
-                        var resolver = new AggregateBuildDeltaResolver(instanceTeamCityApi, _externalIssueResolvers,_packageChangeComparator,_packageBuildMappingCache, _traversedPackageChanges);
-                        var dependencyManifest = resolver.CreateChangeManifest(null, build.BuildConfigurationId, null,dependency.OldVersion,dependency.NewVersion, null, true, true);
-                        dependency.ChangeManifest = dependencyManifest;
+                        dependency.ChangeManifest = CreateChangeManifest(null, build.BuildConfigurationId, null, dependency.OldVersion, dependency.NewVersion, null, true, true); ;
                     }
                     else
                     {
