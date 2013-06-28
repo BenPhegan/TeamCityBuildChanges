@@ -32,28 +32,19 @@ namespace TeamCityBuildChanges.ExternalApi.Jira
                 IRestResponse<RootObject> response = _client.Value.Execute<RootObject>(request);
                 return response.Data;
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 return null;
             }
         }
-
-
     }
 
-
-
-    #region Nested type: Aggregateprogress
 
     public class Aggregateprogress
     {
         public int Progress { get; set; }
         public int Total { get; set; }
     }
-
-    #endregion
-
-    #region Nested type: Assignee
 
     public class Assignee
     {
@@ -64,10 +55,6 @@ namespace TeamCityBuildChanges.ExternalApi.Jira
         public bool Active { get; set; }
     }
 
-    #endregion
-
-    #region Nested type: Author
-
     public class Author
     {
         public string Self { get; set; }
@@ -77,10 +64,6 @@ namespace TeamCityBuildChanges.ExternalApi.Jira
         public bool Active { get; set; }
     }
 
-    #endregion
-
-    #region Nested type: Comment
-
     public class Comment
     {
         public int StartAt { get; set; }
@@ -88,10 +71,6 @@ namespace TeamCityBuildChanges.ExternalApi.Jira
         public int Total { get; set; }
         public List<Comment2> Comments { get; set; }
     }
-
-    #endregion
-
-    #region Nested type: Comment2
 
     public class Comment2
     {
@@ -103,11 +82,6 @@ namespace TeamCityBuildChanges.ExternalApi.Jira
         public string Created { get; set; }
         public string Updated { get; set; }
     }
-
-    #endregion
-
-
-    #region Nested type: Fields
 
     public class Fields
     {
@@ -144,20 +118,12 @@ namespace TeamCityBuildChanges.ExternalApi.Jira
         public object AggregateTimeSpent { get; set; }
     }
 
-    #endregion
-
-    #region Nested type: Fields2
-
     public class Fields2
     {
         public string Summary { get; set; }
         public Status Status { get; set; }
         public Issuetype2 Issuetype { get; set; }
     }
-
-    #endregion
-
-    #region Nested type: FixVersion
 
     public class FixVersion
     {
@@ -169,10 +135,6 @@ namespace TeamCityBuildChanges.ExternalApi.Jira
         public string ReleaseDate { get; set; }
     }
 
-    #endregion
-
-    #region Nested type: Issuetype
-
     public class Issuetype
     {
         public string Self { get; set; }
@@ -182,10 +144,6 @@ namespace TeamCityBuildChanges.ExternalApi.Jira
         public string Name { get; set; }
         public bool Subtask { get; set; }
     }
-
-    #endregion
-
-    #region Nested type: Issuetype2
 
     public class Issuetype2
     {
@@ -197,10 +155,6 @@ namespace TeamCityBuildChanges.ExternalApi.Jira
         public bool Subtask { get; set; }
     }
 
-    #endregion
-
-    #region Nested type: Priority
-
     public class Priority
     {
         public string Self { get; set; }
@@ -209,19 +163,11 @@ namespace TeamCityBuildChanges.ExternalApi.Jira
         public string Id { get; set; }
     }
 
-    #endregion
-
-    #region Nested type: Progress
-
     public class Progress
     {
         public int progress { get; set; }
         public int Total { get; set; }
     }
-
-    #endregion
-
-    #region Nested type: Project
 
     public class Project
     {
@@ -230,10 +176,6 @@ namespace TeamCityBuildChanges.ExternalApi.Jira
         public string Key { get; set; }
         public string Name { get; set; }
     }
-
-    #endregion
-
-    #region Nested type: Reporter
 
     public class Reporter
     {
@@ -244,10 +186,6 @@ namespace TeamCityBuildChanges.ExternalApi.Jira
         public bool Active { get; set; }
     }
 
-    #endregion
-
-    #region Nested type: Resolution
-
     public class Resolution
     {
         public string Self { get; set; }
@@ -255,10 +193,6 @@ namespace TeamCityBuildChanges.ExternalApi.Jira
         public string Description { get; set; }
         public string Name { get; set; }
     }
-
-    #endregion
-
-    #region Nested type: RootObject
 
     public class RootObject
     {
@@ -269,10 +203,6 @@ namespace TeamCityBuildChanges.ExternalApi.Jira
         public Fields Fields { get; set; }
     }
 
-    #endregion
-
-    #region Nested type: Status
-
     public class Status
     {
         public string Self { get; set; }
@@ -281,10 +211,6 @@ namespace TeamCityBuildChanges.ExternalApi.Jira
         public string Name { get; set; }
         public string Id { get; set; }
     }
-
-    #endregion
-
-    #region Nested type: Status2
 
     public class Status2
     {
@@ -295,10 +221,6 @@ namespace TeamCityBuildChanges.ExternalApi.Jira
         public string Id { get; set; }
     }
 
-    #endregion
-
-    #region Nested type: Subtask
-
     public class Subtask
     {
         public string Id { get; set; }
@@ -306,10 +228,6 @@ namespace TeamCityBuildChanges.ExternalApi.Jira
         public string Self { get; set; }
         public Fields2 Fields { get; set; }
     }
-
-    #endregion
-
-    #region Nested type: UpdateAuthor
 
     public class UpdateAuthor
     {
@@ -320,10 +238,6 @@ namespace TeamCityBuildChanges.ExternalApi.Jira
         public bool Active { get; set; }
     }
 
-    #endregion
-
-    #region Nested type: Votes
-
     public class Votes
     {
         public string Self { get; set; }
@@ -331,18 +245,12 @@ namespace TeamCityBuildChanges.ExternalApi.Jira
         public bool HasVoted { get; set; }
     }
 
-    #endregion
-
-    #region Nested type: Watches
-
     public class Watches
     {
         public string Self { get; set; }
         public int WatchCount { get; set; }
         public bool IsWatching { get; set; }
     }
-
-    #endregion
 }
 
 

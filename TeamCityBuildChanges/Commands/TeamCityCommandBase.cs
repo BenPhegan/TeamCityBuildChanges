@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using ManyConsole;
 using NDesk.Options;
-using TeamCityBuildChanges.ExternalApi;
 using TeamCityBuildChanges.ExternalApi.Jira;
 using TeamCityBuildChanges.ExternalApi.TFS;
 using TeamCityBuildChanges.ExternalApi.TeamCity;

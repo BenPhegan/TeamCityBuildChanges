@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
-using System.Text;
 using NUnit.Framework;
 using TeamCityBuildChanges.Commands;
 using TeamCityBuildChanges.ExternalApi.TeamCity;
@@ -33,8 +33,8 @@ namespace TeamCityBuildChanges.Tests.Commands
         [TestCase(3, 2, NuGetPackageChangeType.Removed, Result = 1)]
         public int DetectsAddedRemovedPackages(int initialCount, int finalCount, NuGetPackageChangeType changeType)
         {
-            var initial = Enumerable.Range(1,initialCount).Select(i => Tuple.Create("Package" +i.ToString(), "1.0")).ToList();
-            var final = Enumerable.Range(1,finalCount).Select(i => Tuple.Create("Package" + i.ToString(), "1.0")).ToList();
+            var initial = Enumerable.Range(1,initialCount).Select(i => Tuple.Create("Package" +i.ToString(CultureInfo.InvariantCulture), "1.0")).ToList();
+            var final = Enumerable.Range(1,finalCount).Select(i => Tuple.Create("Package" + i.ToString(CultureInfo.InvariantCulture), "1.0")).ToList();
 
             var compararator = new PackageChangeComparator();
             var results = compararator.GetPackageChanges(CreateNuGetPackegList(initial), CreateNuGetPackegList(final));
