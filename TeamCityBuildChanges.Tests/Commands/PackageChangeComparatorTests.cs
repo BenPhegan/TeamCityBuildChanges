@@ -17,11 +17,11 @@ namespace TeamCityBuildChanges.Tests.Commands
         [TestCase("1.1", "1.1", Result = 2)]
         public int DetectsModifiedPackages(string package1Final, string package2Final)
         {
-            var iniital = new[] {Tuple.Create("Package1", "1.0"), Tuple.Create("Package2", "1.0")};
+            var initial = new[] {Tuple.Create("Package1", "1.0"), Tuple.Create("Package2", "1.0")};
             var final = new[] {Tuple.Create("Package1", package1Final), Tuple.Create("Package2", package2Final)};
             
             var compararator = new PackageChangeComparator();
-            var results = compararator.GetPackageChanges(CreateNuGetPackegList(iniital), CreateNuGetPackegList(final));
+            var results = compararator.GetPackageChanges(CreateNuGetPackegList(initial), CreateNuGetPackegList(final));
 
             return results.Count(r => r.Type == NuGetPackageChangeType.Modified);
         }
@@ -29,15 +29,15 @@ namespace TeamCityBuildChanges.Tests.Commands
         [TestCase(1,1, NuGetPackageChangeType.Added, Result = 0)]
         [TestCase(1, 2, NuGetPackageChangeType.Added, Result = 1)]
         [TestCase(2, 4, NuGetPackageChangeType.Added, Result = 2)]
-        [TestCase(2, 2, NuGetPackageChangeType.Removed, Result = 1)]
+        [TestCase(2, 2, NuGetPackageChangeType.Removed, Result = 0)]
         [TestCase(3, 2, NuGetPackageChangeType.Removed, Result = 1)]
         public int DetectsAddedRemovedPackages(int initialCount, int finalCount, NuGetPackageChangeType changeType)
         {
-            var iniital = Enumerable.Repeat(1,initialCount).Select(i => Tuple.Create("Package" +i.ToString(), "1.0"));
-            var final = Enumerable.Repeat(1,finalCount).Select(i => Tuple.Create("Package" +i.ToString(), "1.0"));
+            var initial = Enumerable.Range(1,initialCount).Select(i => Tuple.Create("Package" +i.ToString(), "1.0")).ToList();
+            var final = Enumerable.Range(1,finalCount).Select(i => Tuple.Create("Package" + i.ToString(), "1.0")).ToList();
 
             var compararator = new PackageChangeComparator();
-            var results = compararator.GetPackageChanges(CreateNuGetPackegList(iniital), CreateNuGetPackegList(final));
+            var results = compararator.GetPackageChanges(CreateNuGetPackegList(initial), CreateNuGetPackegList(final));
 
             return results.Count(r => r.Type == changeType);
         }

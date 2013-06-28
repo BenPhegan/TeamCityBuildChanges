@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using NUnit.Framework;
-using TeamCityBuildChanges.ExternalApi.TeamCity;
-using TeamCityBuildChanges.IssueDetailResolvers;
+﻿using NUnit.Framework;
 using TeamCityBuildChanges.Output;
 using TeamCityBuildChanges.Testing;
 
@@ -14,10 +8,10 @@ namespace TeamCityBuildChanges.Tests
     public class HtmlOutputTests
     {
         [Test]
-        public void Test()
+        public void CanRenderSimpleTemplate()
         {
             var result = new RazorOutputRenderer(@".\templates\text.cshtml").Render(TestHelpers.CreateSimpleChangeManifest());
-            Assert.True(true);//Giddyup.
+            Assert.True(result.ToString().StartsWith("Version"));//Giddyup.
         }
 
     }
