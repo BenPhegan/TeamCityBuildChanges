@@ -9,11 +9,14 @@
 <script src="http://themergency.com/footable-demo/js/footable.sortable.js" type="text/javascript"></script>
 <link href="http://themergency.com/footable-demo/css/footable-0.1.css" rel="stylesheet" type="text/css" />
 <link href="http://themergency.com/footable-demo/css/footable.sortable-0.1.css" rel="stylesheet" type="text/css" />
+
 <script type="text/javascript">
     $(function () {
         $('table').footable();
     });
 </script>
+
+
 <html>
     <head>
         <title>TeamCity Build Change Manifest</title>
@@ -49,7 +52,7 @@
             </div>
             <br/>
             
-                        <div>
+            <div>
                 @if (Model.IssueDetails != null && Model.IssueDetails.Any())
                 {
                     <table class="footable">
@@ -59,6 +62,7 @@
                                    <th>Summary</th>
                                    <th>Status</th>
                                    <th>Created</th>
+                                   <th>Parent ID</th>
                                </tr>
                         </thead>
                         <tbody>
@@ -70,6 +74,7 @@
                                     <td>@(issue.Summary ?? "")</td>
                                     <td>@(issue.Status ?? "")</td>
                                     <td>@(issue.Created ?? "")</td>
+                                    <td></td>
                                 </tr>
                                 foreach (var child in issue.SubIssues)
                                 {
@@ -79,6 +84,7 @@
                                         <td>@(child.Summary ?? "")</td>
                                         <td>@(child.Status ?? "")</td>
                                         <td>@(child.Created ?? "")</td>
+                                        <td>@issue.Id</td>
                                     </tr>
                                     foreach (var subIssue in child.SubIssues)
                                     {
@@ -88,6 +94,7 @@
                                             <td>@(subIssue.Summary ?? "")</td>
                                             <td>@(subIssue.Status ?? "")</td>
                                             <td>@(subIssue.Created ?? "")</td>
+                                            <td>@child.Id</td>
                                         </tr>
                                     }
                                 }
@@ -96,6 +103,7 @@
                     </table>
                 }
             </div>
+            
             <br />
 
             <div>
@@ -107,24 +115,39 @@
                             <tr>
                                 <th data-class="expand" data-sort-initial="true">VCS Version</th>
                                 <th data-sort-ignore="true">Commit Comment</th>
-                                <th data-hide="default">File Name</th>
-                                <th data-hide="default">Before Revision</th>
-                                <th data-hide="default">After Revision</th>
+                                <th data-sort-ignore="true">Commiter</th>
+                                <th data-hide="default">File Details</th>
                             </tr>
                         </thead>
                         <tbody>
                             @foreach (var change in Model.ChangeDetails)
                             {
-                                foreach (var file in @change.Files)
-                                {
-                                    <tr>
-                                      <td>@(change.Version ?? "")</td>
-                                      <td>@(change.Comment ?? "")</td>
-                                      <td>@(file.File ?? "")</td>
-                                      <td>@(file.beforerevision ?? "")</td>
-                                      <td>@(file.afterrevision ?? "")</td>
-                                    </tr>
-                                }
+                                <tr>
+                                    <td>@(change.Version ?? "")</td>
+                                    <td>@(change.Comment ?? "")</td>
+                                    <td>@(change.Username ?? "")</td>
+                                    <td>
+                                        <table class="footable">
+                                            <thead>
+                                                <tr>
+                                                    <th data-sort-ignore="true">File Name</th>
+                                                    <th data-sort-ignore="true">Before Revision</th>
+                                                    <th data-sort-ignore="true">After Revision</th>
+                                                </tr>
+                                            </thead>
+                                            @foreach (var file in @change.Files)
+                                            {
+                                                <tbody>
+                                                    <tr>
+                                                        <td>@(file.File ?? "")</td>
+                                                        <td>@(file.beforerevision ?? "")</td>
+                                                        <td>@(file.afterrevision ?? "")</td>
+                                                    </tr>
+                                                </tbody>
+                                            }
+                                        </table>
+                                    </td>
+                                </tr>
                             }
                         </tbody>
                     </table>
