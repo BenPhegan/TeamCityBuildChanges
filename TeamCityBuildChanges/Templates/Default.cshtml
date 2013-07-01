@@ -1,3 +1,4 @@
+@using System
 @using System.Globalization
 @using System.Linq
 
@@ -33,7 +34,10 @@
                 <table class="footable">
                     <thead><tr>
                                <th data-sort-ignore="true">Build Configuration</th>
-                               <th data-sort-ignore="true">Reference Build Configuration</th>
+                               @if (Model.ReferenceBuildConfiguration != null && !String.IsNullOrEmpty(Model.ReferenceBuildConfiguration.Name))
+                               {
+                                   <th data-sort-ignore="true">Reference Build Configuration</th>
+                               }
                                <th data-sort-ignore="true">From Version</th>
                                <th data-sort-ignore="true">To Version</th>
                                <th data-sort-ignore="true">Generation Date</th>
@@ -42,7 +46,10 @@
                     <tbody>
                         <tr>
                             <td>@(Model.BuildConfiguration != null ? Model.BuildConfiguration.Name : "")</td>
-                            <td>@(Model.ReferenceBuildConfiguration != null ? Model.ReferenceBuildConfiguration.Name : "")</td>
+                            @if (Model.ReferenceBuildConfiguration != null && !String.IsNullOrEmpty(Model.ReferenceBuildConfiguration.Name))
+                            {
+                                <td>@(Model.ReferenceBuildConfiguration != null ? Model.ReferenceBuildConfiguration.Name : "")</td>
+                            }
                             <td>@(Model.FromVersion ?? "")</td>
                             <td>@(Model.ToVersion ?? "")</td>
                             <td>@(Model.Generated != null ? Model.Generated.ToString(CultureInfo.InvariantCulture) : "")</td>
