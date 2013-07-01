@@ -1,10 +1,15 @@
-@model TeamCityBuildChanges.Output.ChangeManifest 
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
-   "http://www.w3.org/TR/html4/strict.dtd">
+@using System.Globalization
+@using System.Linq
+@using TeamCityBuildChanges
+@using TeamCityBuildChanges.Output
+
+@inherits RazorEngine.Templating.TemplateBase<ChangeManifest>
+              
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
 <style>
     table{
-  border: 0px solid black;
-  border-spacing: 0px;
+  border: 0 solid black;
+  border-spacing: 0;
 }
 
 table thead tr{
@@ -15,7 +20,7 @@ table thead tr{
 table thead tr th{
   border-bottom: 2px solid black;
   border-top: 1px solid black;
-  margin: 0px;
+  margin: 0;
   padding: 2px;
   background-color: #cccccc;
 }
@@ -58,87 +63,128 @@ a:visited{
         <title>TeamCity Build Change Manifest</title>
     </head>
     <body>
-        <div>
-            <table>
-                <tr>
-                    <th>Build Configuration</th>
-                    <th>Reference Build Configuration</th>
-                    <th>From Version</th>
-                    <th>To Version</th>
-                    <th>Generation Date</th>
-                </tr>
-                <tr>
-                    <td>@Model.BuildConfiguration.Name</td>
-                    <td>@Model.ReferenceBuildConfiguration.Name</td>
-                    <td>@Model.FromVersion</td>
-                    <td>@Model.ToVersion</td>
-                    <td>@Model.Generated.ToString()</td>
-                </tr>
-            </table>
-        </div>
-        <br/>
-        <div>
-            @if (Model.ChangeDetails.Any())
-            {
+        @if (Model == null)
+        {
+            <h1>Model is null!!!</h1>
+        }
+        else
+        {
+
+            <div>
                 <table>
                     <tr>
-                        <th>VCS Version</th>
-                        <th>Commit Comment</th>
+                        <th>Build Configuration</th>
+                        <th>Reference Build Configuration</th>
+                        <th>From Version</th>
+                        <th>To Version</th>
+                        <th>Generation Date</th>
                     </tr>
-                    @foreach (var change in Model.ChangeDetails)
-                    {
-                        <tr>
-                            <td>@change.Version</td>
-                            <td>@change.Comment</td>
-                        </tr>
-                    }
+                    <tr>
+                        <td>@(Model.BuildConfiguration != null ? Model.BuildConfiguration.Name : "")</td>
+                        <td>@(Model.ReferenceBuildConfiguration != null ? Model.ReferenceBuildConfiguration.Name : "")</td>
+                        <td>@(Model.FromVersion ?? "")</td>
+                        <td>@(Model.ToVersion ?? "")</td>
+                        <td>@(Model.Generated != null ? Model.Generated.ToString(CultureInfo.InvariantCulture) : "")</td>
+                    </tr>
                 </table>
-            }
-        </div>
-        <br />
-        <div>
-            @if (Model.IssueDetails.Any())
-            {
-                <table>
-                    <tr>
-                        <th>Issue ID</th>
-                        <th>Type</th>
-                        <th>Summary</th>
-                        <th>Status</th>
-                        <th>Created</th>
-                    </tr>
-                    @foreach (var issue in Model.IssueDetails)
-                    {
+            </div>
+            <br/>
+            
+                        <div>
+                @if (Model.IssueDetails != null && Model.IssueDetails.Any())
+                {
+                    <table>
                         <tr>
-                            <td><a href="@issue.Url">@issue.Id</a></td>
-                            <td>@issue.Type</td>
-                            <td>@issue.Summary</td>
-                            <td>@issue.Status</td>
-                            <td>@issue.Created</td>
+                            <th>Issue ID</th>
+                            <th>Type</th>
+                            <th>Summary</th>
+                            <th>Status</th>
+                            <th>Created</th>
                         </tr>
-                        foreach (var child in issue.SubIssues)
+                        @foreach (var issue in Model.IssueDetails)
                         {
-                            <tr style="font-style: italic">
-                                <td><a href="@child.Url">@child.Id</a></td>
-                                <td>@child.Type</td>
-                                <td>@child.Summary</td>
-                                <td>@child.Status</td>
-                                <td>@child.Created</td>
+                            <tr>
+                                <td><a href="@issue.Url">@(issue.Id ?? "")</a></td>
+                                <td>@(issue.Type ?? "")</td>
+                                <td>@(issue.Summary ?? "")</td>
+                                <td>@(issue.Status ?? "")</td>
+                                <td>@(issue.Created ?? "")</td>
                             </tr>
-                            foreach (var subIssue in child.SubIssues)
+                            foreach (var child in issue.SubIssues)
                             {
-                                <tr style="font-style:oblique">
-                                    <td><a href="@subIssue.Url">@subIssue.Id</a></td>
-                                    <td>@subIssue.Type</td>
-                                    <td>@subIssue.Summary</td>
-                                    <td>@subIssue.Status</td>
-                                    <td>@subIssue.Created</td>
+                                <tr style="font-style: italic">
+                                    <td><a href="@child.Url">@(child.Id ?? "")</a></td>
+                                    <td>@(child.Type ?? "")</td>
+                                    <td>@(child.Summary ?? "")</td>
+                                    <td>@(child.Status ?? "")</td>
+                                    <td>@(child.Created ?? "")</td>
+                                </tr>
+                                foreach (var subIssue in child.SubIssues)
+                                {
+                                    <tr style="font-style: oblique">
+                                        <td><a href="@subIssue.Url">@(subIssue.Id ?? "")</a></td>
+                                        <td>@(subIssue.Type ?? "")</td>
+                                        <td>@(subIssue.Summary ?? "")</td>
+                                        <td>@(subIssue.Status ?? "")</td>
+                                        <td>@(subIssue.Created ?? "")</td>
+                                    </tr>
+                                }
+                            }
+                        }
+                    </table>
+                }
+            </div>
+            <br />
+
+            <div>
+            
+                @if (Model.ChangeDetails != null && Model.ChangeDetails.Any())
+                {
+                    <table>
+                        <tr>
+                            <th>VCS Version</th>
+                            <th>Commit Comment</th>
+                            <th>File Name</th>
+                            <th>Before Revision</th>
+                            <th>After Revision</th>
+                        </tr>
+                        @foreach (var change in Model.ChangeDetails)
+                        {
+                            foreach (var file in @change.Files)
+                            {
+                                <tr>
+                                  <td>@(change.Version ?? "")</td>
+                                  <td>@(change.Comment ?? "")</td>
+                                  <td>@(file.File ?? "")</td>
+                                  <td>@(file.beforerevision ?? "")</td>
+                                  <td>@(file.afterrevision ?? "")</td>
                                 </tr>
                             }
                         }
-                    }
-                </table>
-            }
-        </div>
+                    </table>
+                }
+            </div>
+            <br />
+            <div>
+                @if (Model.NuGetPackageChanges != null && Model.NuGetPackageChanges.Any())
+                {
+                    <table>
+                        <tr>
+                            <th>Package Id</th>
+                            <th>Old Version</th>
+                            <th>New Version</th>
+                        </tr>
+                        @foreach (var package in Model.NuGetPackageChanges)
+                        {
+                            <tr style="font-style: italic">
+                                <td>@(package.PackageId ?? "")</td>
+                                <td>@(package.OldVersion ?? "")</td>
+                                <td>@(package.NewVersion ?? "")</td>
+                            </tr>
+                        }
+                    </table>
+                }
+            </div>
+        }
     </body>
 </html>

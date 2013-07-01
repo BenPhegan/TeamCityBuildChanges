@@ -33,7 +33,7 @@ namespace TeamCityBuildChanges.Commands
             var renderer = new RazorOutputRenderer(_templateFile);
 
             Console.WriteLine("Running Render on File Change - Hit ENTER to EXIT.");
-            if (!File.Exists(_outputFilename ?? "Output.html")) TryToRender(renderer, result, "Rendering on first run...");
+            if (!File.Exists(_outputFilename ?? "Output.html")) TryToRender(renderer, result, String.Format("{0} - Rendering on first run...",DateTime.Now));
 
             var watcher = new FileSystemWatcher
                 {
@@ -69,7 +69,7 @@ namespace TeamCityBuildChanges.Commands
             catch (Exception ex)
             {
                 Console.Clear();
-                ConsoleOutputWithColourToggle("Failed to render template, fix it, save it and I will try again...", ConsoleColor.Red, Console.WriteLine);
+                ConsoleOutputWithColourToggle(String.Format("{0} - Failed to render template, fix it, save it and I will try again...",DateTime.Now), ConsoleColor.Red, Console.WriteLine);
                 Console.WriteLine();
                 ConsoleOutputWithColourToggle(ex.ToString(), ConsoleColor.Yellow, Console.WriteLine);
             }
