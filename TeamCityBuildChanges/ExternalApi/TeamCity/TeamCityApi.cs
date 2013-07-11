@@ -58,6 +58,17 @@ namespace TeamCityBuildChanges.ExternalApi.TeamCity
             return response.Data;
         }
 
+        public Build GetBuildDetailsFromBuildNumber(IEnumerable<string> ids, string number)
+        {
+            List<Build> builds = new List<Build>();
+            builds.AddRange(ids.Select(x => _cache.TryCacheForBuildDetailsByBuildTypeIdAndNumber(x, number)).Where(b => b != null));
+            if (builds.Any())
+                return builds.First();
+
+            builds.AddRange(ids.Select(id => _client.Execute<List<Build>>(GetXmlBuildRequest(string.Format("app/rest/builds/?locator=buildType:{0},number:{1}", id, number))).Data).Where(x => x != null).SelectMany(x => x));
+            return builds.First();
+        }
+
         private static RestRequest GetXmlBuildRequest(string endpoint, string variable = null, string replacement = null)
         {
             var request = new RestRequest(endpoint, Method.GET);

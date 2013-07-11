@@ -160,8 +160,8 @@ namespace TeamCityBuildChanges.Commands
                     }
                     else if (mappings.Any())
                     {
-                        //Ok, so multiple builds are outputting this package, so we need to try and constrain on project...
-                        build = mappings.FirstOrDefault(m => m.Project.Equals(buildTypeDetails.Project.Name, StringComparison.OrdinalIgnoreCase));
+                        //Because there are multiple builds, now we have to troll along and query TeamCity for the correct build...
+                        build = mappings.FirstOrDefault(b => b.BuildConfigurationId == _api.GetBuildDetailsFromBuildNumber(mappings.Select(map => map.BuildConfigurationId), dependency.NewVersion).BuildTypeId);
                         if (build != null) changeManifest.GenerationLog.Add(new LogEntry(DateTime.Now, Status.Warning, string.Format("Found duplicate mappings, using package to build mapping {0}.", build.BuildConfigurationName)));
                     }
 

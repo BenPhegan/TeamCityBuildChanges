@@ -83,6 +83,11 @@ namespace TeamCityBuildChanges.ExternalApi.TeamCity
             return false;
         }
 
+        public BuildDetails TryCacheForBuildDetailsByBuildTypeIdAndNumber(string buildTypeId, string number)
+        {
+            return _buildDetailsCache.Values.FirstOrDefault(b => b.BuildTypeId == buildTypeId && b.Number == number);
+        }
+
         public void AddCacheBuildTypeDetailsById(string id, BuildTypeDetails buildTypeDetails)
         {
             if (buildTypeDetails != null && !_buildTypeDetailsCache.ContainsKey(id))
