@@ -15,23 +15,30 @@ namespace TeamCityBuildChanges.Testing
 {
     public class TestHelpers
     {
-        public static AggregateBuildDeltaResolver CreateMockedAggregateBuildDeltaResolver(IEnumerable<BuildTemplate> buildTemplates)
+        public static ITeamCityApi CreateMockedTeamCityApi()
         {
             const string apiServer = "http://test.server";
 
             var api = A.Fake<ITeamCityApi>();
             A.CallTo(() => api.TeamCityServer).Returns(apiServer);
+            return api;
+        }
 
-            var packageCache = new PackageBuildMappingCache();
+        public static AggregateBuildDeltaResolver CreateMockedAggregateBuildDeltaResolver(IEnumerable<BuildTemplate> buildTemplates)
+        {
+            return CreateMockedAggregateBuildDeltaResolver(buildTemplates, CreateMockedTeamCityApi(), new PackageBuildMappingCache());
+        }
 
+        public static AggregateBuildDeltaResolver CreateMockedAggregateBuildDeltaResolver(IEnumerable<BuildTemplate> buildTemplates, ITeamCityApi api, IPackageBuildMappingCache packageCache)
+        {
             var issueResolver = A.Fake<IExternalIssueResolver>();
 
             foreach (var template in buildTemplates)
             {
                 SetExpectations(template, api, issueResolver, packageCache);
             }
-            
-            var resolver = new AggregateBuildDeltaResolver(api, new[] {issueResolver}, new PackageChangeComparator(), packageCache, new List<NuGetPackageChange>());
+
+            var resolver = new AggregateBuildDeltaResolver(api, new[] { issueResolver }, new PackageChangeComparator(), packageCache, new List<NuGetPackageChange>());
             return resolver;
         }
 
@@ -302,6 +309,15 @@ namespace TeamCityBuildChanges.Testing
             var changeManifest = (ChangeManifest) deserializer.Deserialize(textReader);
             textReader.Close();
             return changeManifest;
+        }
+
+        public static IPackageBuildMappingCache CreateMockedMultiplePackageBuildMappingCache(List<PackageBuildMapping> mappingTemplates)
+        {
+            var mappings = mappingTemplates;
+
+            var cache = A.Fake<IPackageBuildMappingCache>();
+            A.CallTo(() => cache.PackageBuildMappings).Returns(mappings);
+            return cache;
         }
     }
 }
