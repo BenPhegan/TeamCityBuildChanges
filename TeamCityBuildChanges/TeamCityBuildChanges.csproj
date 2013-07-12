@@ -125,6 +125,7 @@
     <Compile Include="ExternalApi\TFS\TfsWorkItem.cs" />
     <Compile Include="IssueDetailResolvers\IssueEqualityComparer.cs" />
     <Compile Include="IssueDetailResolvers\TFSIssueResolver.cs" />
+    <Compile Include="NuGetPackage\IPackageBuildMappingCache.cs" />
     <Compile Include="NuGetPackage\PackageBuildMapping.cs" />
     <Compile Include="NuGetPackage\PackageBuildMappingCache.cs" />
     <Compile Include="Output\ChangeDetailOutputFormatter.cs" />

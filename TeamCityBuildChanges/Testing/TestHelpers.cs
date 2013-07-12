@@ -35,7 +35,7 @@ namespace TeamCityBuildChanges.Testing
             return resolver;
         }
 
-        private static void SetExpectations(BuildTemplate template, ITeamCityApi api, IExternalIssueResolver issueResolver, PackageBuildMappingCache packageCache)
+        private static void SetExpectations(BuildTemplate template, ITeamCityApi api, IExternalIssueResolver issueResolver, IPackageBuildMappingCache packageCache)
         {
             var startBuild = string.Format(template.BuildNumberPattern, template.StartBuildNumber);
             var finishBuild = string.Format(template.BuildNumberPattern, template.FinishBuildNumber);
@@ -113,7 +113,7 @@ namespace TeamCityBuildChanges.Testing
                 };
         }
 
-        private static void SetNugetPackageDependencyExpectations(ITeamCityApi api, PackageBuildMappingCache cache, BuildTemplate template, IExternalIssueResolver issueResolver)
+        private static void SetNugetPackageDependencyExpectations(ITeamCityApi api, IPackageBuildMappingCache cache, BuildTemplate template, IExternalIssueResolver issueResolver)
         {
             var initial = template.StartBuildPackages.Select(p => new TeamCityApi.PackageDetails {Id = p.Key, Version = p.Value}).ToList();
             var final = template.FinishBuildPackages.Select(p => new TeamCityApi.PackageDetails { Id = p.Key, Version = p.Value }).ToList();
