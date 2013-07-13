@@ -25,7 +25,7 @@ namespace TeamCityBuildChanges.ExternalApi.TeamCity
                               {
                                   Path = string.IsNullOrEmpty(this._client.AuthenticationToken) ? "guestAuth" : "httpAuth"
                               };
-            //_serverUrl = string.Format("{0}/{1}", TeamCityServer, string.IsNullOrEmpty(_client.AuthenticationToken) ? "guestAuth" : "httpAuth");
+            
             _client.BaseUrl = builder.ToString();
         }
 
