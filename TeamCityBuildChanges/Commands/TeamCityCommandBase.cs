@@ -68,13 +68,7 @@ namespace TeamCityBuildChanges.Commands
         {
             var resolvers = new List<IExternalIssueResolver>();
 
-            if (string.IsNullOrEmpty(JiraToken))
-            {
-                Uri cleanUri;
-                JiraToken = new Uri(JiraUrl).TryResolveAuthToken(out cleanUri);
-            }
-
-            if (!string.IsNullOrEmpty(JiraToken) && !string.IsNullOrEmpty(JiraUrl))
+            if (!string.IsNullOrEmpty(JiraUrl))
             {
                 resolvers.Add(new JiraIssueResolver(new JiraApi(JiraUrl, JiraToken)));
             }
