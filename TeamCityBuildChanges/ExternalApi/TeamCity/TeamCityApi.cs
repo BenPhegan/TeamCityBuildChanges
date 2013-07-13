@@ -13,16 +13,20 @@ namespace TeamCityBuildChanges.ExternalApi.TeamCity
     public class TeamCityApi : ITeamCityApi
     {
         private readonly string _teamCityServer;
-        private readonly RestClient _client;
-        private static string _authToken;
-        private readonly string _serverUrl;
+        private readonly AuthenticatedRestClient _client;
 
         public TeamCityApi(string server, string authToken = null)
         {
             _teamCityServer = server;
-            _authToken = authToken;
-            _serverUrl = string.IsNullOrEmpty(_authToken) ? TeamCityServer + "/guestAuth/": TeamCityServer + "/httpAuth/";
-            _client = new RestClient(_serverUrl);
+
+            _client = new AuthenticatedRestClient(TeamCityServer, authToken);
+
+            var builder = new UriBuilder(_client.BaseUrl)
+                              {
+                                  Path = string.IsNullOrEmpty(this._client.AuthenticationToken) ? "guestAuth" : "httpAuth"
+                              };
+            //_serverUrl = string.Format("{0}/{1}", TeamCityServer, string.IsNullOrEmpty(_client.AuthenticationToken) ? "guestAuth" : "httpAuth");
+            _client.BaseUrl = builder.ToString();
         }
 
         public string TeamCityServer
@@ -53,7 +57,6 @@ namespace TeamCityBuildChanges.ExternalApi.TeamCity
                 request.AddParameter(variable, replacement, ParameterType.UrlSegment);
             request.RequestFormat = DataFormat.Xml;
             request.AddHeader("Accept", "application/xml");
-            if (!string.IsNullOrEmpty(_authToken)) request.AddHeader("Authorization", "Basic " + _authToken);
             return request;
         }
 
@@ -63,7 +66,7 @@ namespace TeamCityBuildChanges.ExternalApi.TeamCity
             request.AddParameter("ID", buildType, ParameterType.UrlSegment);
             request.RequestFormat = DataFormat.Xml;
             request.AddHeader("Accept", "application/xml");
-            if (!string.IsNullOrEmpty(_authToken)) request.AddHeader("Authorization", "Basic " + _authToken);
+
             var response = _client.Execute<IvyModule>(request);
             return response.Data != null ? response.Data.Publications : new List<Artifact>();
         }
@@ -71,10 +74,15 @@ namespace TeamCityBuildChanges.ExternalApi.TeamCity
         public List<PackageDetails> GetNuGetDependenciesByBuildTypeAndBuildId(string buildType, string buildId)
         {
             var restUrl = new StringBuilder();
-            restUrl.AppendFormat("{0}repository/download/{1}/{2}:id/.teamcity/nuget/nuget.xml", _serverUrl, buildType, buildId);
+            restUrl.AppendFormat("{0}/repository/download/{1}/{2}:id/.teamcity/nuget/nuget.xml", _client.BaseUrl, buildType, buildId);
 
             var restRequest = (HttpWebRequest)WebRequest.Create(restUrl.ToString());
-            if (!string.IsNullOrEmpty(_authToken)) restRequest.Headers.Add(HttpRequestHeader.Authorization, "Basic " + _authToken);
+
+            if (!string.IsNullOrEmpty(_client.AuthenticationToken))
+            {
+                restRequest.Headers.Add(HttpRequestHeader.Authorization, "Basic " + _client.AuthenticationToken);
+            }
+
             try
             {
                 var restResponse = (HttpWebResponse)restRequest.GetResponse();
