@@ -50,21 +50,6 @@ namespace TeamCityBuildChanges.IssueDetailResolvers
                        .Select(x => new Issue { Id = x.Value })
                        .Where(x => x.Id != "-") // need a better regex but I'm crap at that
                        .ToList();
-
-
-
-
-
-                //var regex = new Regex("/[A-Z]*-[0-9]*");
-
-                //var match = regex.Match(change.Comment);
-
-                //var issue = new Issue()
-                //    {
-                //        Id = match.Groups[0].Captures[0].ToString()
-                //    };
-                //parse the change with a regex and add the result to a list
-
                 issues.AddRange(changeIssues);
             }
             var distinct = issues.Distinct(new IssueEqualityComparer());
