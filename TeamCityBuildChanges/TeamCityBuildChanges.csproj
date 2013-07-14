@@ -82,8 +82,9 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\RazorEngine.3.2.0\lib\net40\RazorEngine.dll</HintPath>
     </Reference>
-    <Reference Include="RestSharp">
-      <HintPath>..\packages\RestSharp.103.1\lib\net4-client\RestSharp.dll</HintPath>
+    <Reference Include="RestSharp, Version=104.1.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\RestSharp.104.1\lib\net4\RestSharp.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -104,9 +105,12 @@
     <Compile Include="Commands\TestTemplateCommand.cs" />
     <Compile Include="Commands\IPackageChangeComparator.cs" />
     <Compile Include="Commands\PackageChangeComparator.cs" />
+    <Compile Include="ExternalApi\AuthenticatedRestClient.cs" />
+    <Compile Include="ExternalApi\UriExtensions.cs" />
     <Compile Include="ExternalApi\TeamCity\ITeamCityApi.cs" />
     <Compile Include="ExternalApi\TFS\TfsApi.cs" />
     <Compile Include="ExternalApi\TFS\TfsWorkItem.cs" />
+    <Compile Include="IssueDetailResolvers\IssueEqualityComparer.cs" />
     <Compile Include="IssueDetailResolvers\TFSIssueResolver.cs" />
     <Compile Include="NuGetPackage\PackageBuildMapping.cs" />
     <Compile Include="NuGetPackage\PackageBuildMappingCache.cs" />

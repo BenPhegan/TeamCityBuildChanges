@@ -18,7 +18,7 @@ namespace TeamCityBuildChanges.Commands
         protected string OutputFileName;
         protected List<ChangeDetail> ChangeDetails;
         protected List<Issue> IssueDetails;
-        protected ChangeManifest ChangeManifest = new ChangeManifest(); 
+        protected ChangeManifest ChangeManifest = new ChangeManifest();
         protected string ServerName;
         protected string BuildType;
         protected string ProjectName;
@@ -67,7 +67,8 @@ namespace TeamCityBuildChanges.Commands
         protected IEnumerable<IExternalIssueResolver> CreateExternalIssueResolvers()
         {
             var resolvers = new List<IExternalIssueResolver>();
-            if (!string.IsNullOrEmpty(JiraToken) && !string.IsNullOrEmpty(JiraUrl))
+
+            if (!string.IsNullOrEmpty(JiraUrl))
             {
                 resolvers.Add(new JiraIssueResolver(new JiraApi(JiraUrl, JiraToken)));
             }

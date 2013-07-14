@@ -5,6 +5,9 @@ using TeamCityBuildChanges.ExternalApi.TeamCity;
 
 namespace TeamCityBuildChanges.IssueDetailResolvers
 {
+    using System.Linq;
+    using Castle.Core;
+
     public class JiraIssueResolver : IExternalIssueResolver
     {
         private readonly JiraApi _api;
@@ -42,14 +45,16 @@ namespace TeamCityBuildChanges.IssueDetailResolvers
             var issues = new List<Issue>();
             foreach (var change in changeDetails)
             {
-                var regex = new Regex("/[A-Z]*-[0-9]*");
-                var issue = new Issue()
-                    {
-                        Id = regex.Match(change.Comment).Groups[0].Captures[0].ToString()
-                    };
-                //parse the change with a regex and add the result to a list
+                var changeIssues = Regex.Matches(change.Comment, @"[A-Z]*-[0-9]*", RegexOptions.IgnoreCase)
+                       .Cast<Match>()
+                       .Select(x => new Issue { Id = x.Value })
+                       .Where(x => x.Id != "-") // need a better regex but I'm crap at that
+                       .ToList();
+                issues.AddRange(changeIssues);
             }
-            return issues;
+            var distinct = issues.Distinct(new IssueEqualityComparer());
+            return distinct;
         }
+
     }
 }
