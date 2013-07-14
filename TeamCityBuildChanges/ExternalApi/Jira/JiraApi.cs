@@ -7,13 +7,11 @@ namespace TeamCityBuildChanges.ExternalApi.Jira
 {
     public class JiraApi
     {
-        private readonly string _jiraAuthToken;
-        private readonly Lazy<RestClient> _client;
+        private readonly Lazy<AuthenticatedRestClient> _client;
 
-        public JiraApi(string url, string jiraAuthToken)
+        public JiraApi(string url, string authenticationToken)
         {
-            _jiraAuthToken = jiraAuthToken;
-            _client = new Lazy<RestClient>(() => new RestClient(url));
+            _client = new Lazy<AuthenticatedRestClient>(() => new AuthenticatedRestClient(url, authenticationToken));
         }
 
         public static string GetEncodedCredentials(string username, string password)
@@ -26,7 +24,6 @@ namespace TeamCityBuildChanges.ExternalApi.Jira
         public RootObject GetJiraIssue(string key)
         {
             var request = new RestRequest(string.Format("/rest/api/2/issue/{0}", key), Method.GET);
-            request.AddHeader("Authorization", "Basic " + _jiraAuthToken);
             try
             {
                 IRestResponse<RootObject> response = _client.Value.Execute<RootObject>(request);
