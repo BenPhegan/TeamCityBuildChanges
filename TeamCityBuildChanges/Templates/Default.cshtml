@@ -3,189 +3,190 @@
 @using System.Linq
 
 @inherits RazorEngine.Templating.TemplateBase<TeamCityBuildChanges.Output.ChangeManifest>
-              
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
-<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js" type="text/javascript"></script>
-<script src="http://themergency.com/footable-demo/js/footable-0.1.js" type="text/javascript"></script>
-<script src="http://themergency.com/footable-demo/js/footable.sortable.js" type="text/javascript"></script>
-<link href="http://themergency.com/footable-demo/css/footable-0.1.css" rel="stylesheet" type="text/css" />
-<link href="http://themergency.com/footable-demo/css/footable.sortable-0.1.css" rel="stylesheet" type="text/css" />
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js" type="text/javascript"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-footable/0.1.0/js/footable.min.js" type="text/javascript"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-footable/0.1.0/js/footable.sortable.min.js" type="text/javascript"></script>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/jquery-footable/0.1.0/css/footable.min.css" rel="stylesheet" type="text/css" />
+<link href="https://cdnjs.cloudflare.com/ajax/libs/jquery-footable/0.1.0/css/footable.sortable.min.css" rel="stylesheet" type="text/css" />
 
 <script type="text/javascript">
-    $(function () {
-        $('table').footable();
-    });
+  $(function () {
+    $('table').footable();
+  });
 </script>
 
 
 <html>
-    <head>
-        <title>TeamCity Build Change Manifest</title>
-    </head>
-    <body>
-        @if (Model == null)
-        {
-            <h1>Model is null!!!</h1>
-        }
-        else
-        {
+<head>
+  <title>TeamCity Build Change Manifest</title>
+</head>
+<body>
+  @if (Model == null)
+  {
+    <h1>Model is null!!!</h1>
+  }
+  else
+  {
 
-            <div>
-                <table class="footable">
-                    <thead><tr>
-                               <th data-sort-ignore="true">Build Configuration</th>
-                               @if (Model.ReferenceBuildConfiguration != null && !String.IsNullOrEmpty(Model.ReferenceBuildConfiguration.Name))
-                               {
-                                   <th data-sort-ignore="true">Reference Build Configuration</th>
-                               }
-                               <th data-sort-ignore="true">From Version</th>
-                               <th data-sort-ignore="true">To Version</th>
-                               <th data-sort-ignore="true">Generation Date</th>
-                           </tr>
+    <div>
+      <table class="footable">
+        <thead>
+          <tr>
+            <th data-sort-ignore="true">Build Configuration</th>
+            @if (Model.ReferenceBuildConfiguration != null && !String.IsNullOrEmpty(Model.ReferenceBuildConfiguration.Name))
+            {
+              <th data-sort-ignore="true">Reference Build Configuration</th>
+            }
+            <th data-sort-ignore="true">From Version</th>
+            <th data-sort-ignore="true">To Version</th>
+            <th data-sort-ignore="true">Generation Date</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>@(Model.BuildConfiguration != null ? Model.BuildConfiguration.Name : "")</td>
+            @if (Model.ReferenceBuildConfiguration != null && !String.IsNullOrEmpty(Model.ReferenceBuildConfiguration.Name))
+            {
+              <td>@(Model.ReferenceBuildConfiguration != null ? Model.ReferenceBuildConfiguration.Name : "")</td>
+            }
+            <td>@(Model.FromVersion ?? "")</td>
+            <td>@(Model.ToVersion ?? "")</td>
+            <td>@(Model.Generated != null ? Model.Generated.ToString(CultureInfo.InvariantCulture) : "")</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <br />
+            
+    <div>
+      @if (Model.IssueDetails != null && Model.IssueDetails.Any())
+      {
+        <table class="footable">
+          <thead>
+            <tr>
+              <th>Issue ID</th>
+              <th>Type</th>
+              <th>Summary</th>
+              <th>Status</th>
+              <th>Created</th>
+              <th>Parent ID</th>
+            </tr>
+          </thead>
+          <tbody>
+            @foreach (var issue in Model.IssueDetails)
+            {
+              <tr>
+                <td><a href="@issue.Url">@(issue.Id ?? "")</a></td>
+                <td>@(issue.Type ?? "")</td>
+                <td>@(issue.Summary ?? "")</td>
+                <td>@(issue.Status ?? "")</td>
+                <td>@(issue.Created ?? "")</td>
+                <td></td>
+              </tr>
+              foreach (var child in issue.SubIssues)
+              {
+              <tr style="font-style: italic">
+                <td><a href="@child.Url">@(child.Id ?? "")</a></td>
+                <td>@(child.Type ?? "")</td>
+                <td>@(child.Summary ?? "")</td>
+                <td>@(child.Status ?? "")</td>
+                <td>@(child.Created ?? "")</td>
+                <td>@issue.Id</td>
+              </tr>
+                foreach (var subIssue in child.SubIssues)
+                {
+              <tr style="font-style: oblique">
+                <td><a href="@subIssue.Url">@(subIssue.Id ?? "")</a></td>
+                <td>@(subIssue.Type ?? "")</td>
+                <td>@(subIssue.Summary ?? "")</td>
+                <td>@(subIssue.Status ?? "")</td>
+                <td>@(subIssue.Created ?? "")</td>
+                <td>@child.Id</td>
+              </tr>
+                }
+              }
+            }
+          </tbody>
+        </table>
+      }
+    </div>
+            
+    <br />
+
+    <div>
+
+      @if (Model.ChangeDetails != null && Model.ChangeDetails.Any())
+      {
+        <table class="footable">
+          <thead>
+            <tr>
+              <th data-class="expand" data-sort-initial="true">VCS Version</th>
+              <th data-sort-ignore="true">Commit Comment</th>
+              <th data-sort-ignore="true">Commiter</th>
+              <th data-hide="default">File Details</th>
+            </tr>
+          </thead>
+          <tbody>
+            @foreach (var change in Model.ChangeDetails)
+            {
+              <tr>
+                <td>@(change.Version ?? "")</td>
+                <td>@(change.Comment ?? "")</td>
+                <td>@(change.Username ?? "")</td>
+                <td>
+                  <table class="footable">
+                    <thead>
+                      <tr>
+                        <th data-sort-ignore="true">File Name</th>
+                        <th data-sort-ignore="true">Before Revision</th>
+                        <th data-sort-ignore="true">After Revision</th>
+                      </tr>
                     </thead>
-                    <tbody>
+                    @foreach (var file in @change.Files)
+                    {
+                      <tbody>
                         <tr>
-                            <td>@(Model.BuildConfiguration != null ? Model.BuildConfiguration.Name : "")</td>
-                            @if (Model.ReferenceBuildConfiguration != null && !String.IsNullOrEmpty(Model.ReferenceBuildConfiguration.Name))
-                            {
-                                <td>@(Model.ReferenceBuildConfiguration != null ? Model.ReferenceBuildConfiguration.Name : "")</td>
-                            }
-                            <td>@(Model.FromVersion ?? "")</td>
-                            <td>@(Model.ToVersion ?? "")</td>
-                            <td>@(Model.Generated != null ? Model.Generated.ToString(CultureInfo.InvariantCulture) : "")</td>
+                          <td>@(file.File ?? "")</td>
+                          <td>@(file.beforerevision ?? "")</td>
+                          <td>@(file.afterrevision ?? "")</td>
                         </tr>
-                    </tbody>
-                </table>
-            </div>
-            <br/>
-            
-            <div>
-                @if (Model.IssueDetails != null && Model.IssueDetails.Any())
-                {
-                    <table class="footable">
-                        <thead><tr>
-                                   <th>Issue ID</th>
-                                   <th>Type</th>
-                                   <th>Summary</th>
-                                   <th>Status</th>
-                                   <th>Created</th>
-                                   <th>Parent ID</th>
-                               </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var issue in Model.IssueDetails)
-                            {
-                                <tr>
-                                    <td><a href="@issue.Url">@(issue.Id ?? "")</a></td>
-                                    <td>@(issue.Type ?? "")</td>
-                                    <td>@(issue.Summary ?? "")</td>
-                                    <td>@(issue.Status ?? "")</td>
-                                    <td>@(issue.Created ?? "")</td>
-                                    <td></td>
-                                </tr>
-                                foreach (var child in issue.SubIssues)
-                                {
-                                    <tr style="font-style: italic">
-                                        <td><a href="@child.Url">@(child.Id ?? "")</a></td>
-                                        <td>@(child.Type ?? "")</td>
-                                        <td>@(child.Summary ?? "")</td>
-                                        <td>@(child.Status ?? "")</td>
-                                        <td>@(child.Created ?? "")</td>
-                                        <td>@issue.Id</td>
-                                    </tr>
-                                    foreach (var subIssue in child.SubIssues)
-                                    {
-                                        <tr style="font-style: oblique">
-                                            <td><a href="@subIssue.Url">@(subIssue.Id ?? "")</a></td>
-                                            <td>@(subIssue.Type ?? "")</td>
-                                            <td>@(subIssue.Summary ?? "")</td>
-                                            <td>@(subIssue.Status ?? "")</td>
-                                            <td>@(subIssue.Created ?? "")</td>
-                                            <td>@child.Id</td>
-                                        </tr>
-                                    }
-                                }
-                            }
-                        </tbody>
-                    </table>
-                }
-            </div>
-            
-            <br />
+                      </tbody>
+                    }
+                  </table>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      }
+    </div>
+    <br />
+    <div>
+      @if (Model.NuGetPackageChanges != null && Model.NuGetPackageChanges.Any())
+      {
+        <table class="footable">
+          <thead>
+            <tr>
+              <th>Package Id</th>
+              <th>Old Version</th>
+              <th>New Version</th>
+            </tr>
+          </thead>
+          <tbody>
+            @foreach (var package in Model.NuGetPackageChanges)
+            {
+              <tr style="font-style: italic">
+                <td>@(package.PackageId ?? "")</td>
+                <td>@(package.OldVersion ?? "")</td>
+                <td>@(package.NewVersion ?? "")</td>
+              </tr>
+            }
+          </tbody>
 
-            <div>
-            
-                @if (Model.ChangeDetails != null && Model.ChangeDetails.Any())
-                {
-                    <table class="footable">
-                        <thead>
-                            <tr>
-                                <th data-class="expand" data-sort-initial="true">VCS Version</th>
-                                <th data-sort-ignore="true">Commit Comment</th>
-                                <th data-sort-ignore="true">Commiter</th>
-                                <th data-hide="default">File Details</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var change in Model.ChangeDetails)
-                            {
-                                <tr>
-                                    <td>@(change.Version ?? "")</td>
-                                    <td>@(change.Comment ?? "")</td>
-                                    <td>@(change.Username ?? "")</td>
-                                    <td>
-                                        <table class="footable">
-                                            <thead>
-                                                <tr>
-                                                    <th data-sort-ignore="true">File Name</th>
-                                                    <th data-sort-ignore="true">Before Revision</th>
-                                                    <th data-sort-ignore="true">After Revision</th>
-                                                </tr>
-                                            </thead>
-                                            @foreach (var file in @change.Files)
-                                            {
-                                                <tbody>
-                                                    <tr>
-                                                        <td>@(file.File ?? "")</td>
-                                                        <td>@(file.beforerevision ?? "")</td>
-                                                        <td>@(file.afterrevision ?? "")</td>
-                                                    </tr>
-                                                </tbody>
-                                            }
-                                        </table>
-                                    </td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
-                }
-            </div>
-            <br />
-            <div>
-                @if (Model.NuGetPackageChanges != null && Model.NuGetPackageChanges.Any())
-                {
-                    <table class="footable">
-                        <thead>
-                            <tr>
-                                <th>Package Id</th>
-                                <th>Old Version</th>
-                                <th>New Version</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var package in Model.NuGetPackageChanges)
-                            {
-                                <tr style="font-style: italic">
-                                    <td>@(package.PackageId ?? "")</td>
-                                    <td>@(package.OldVersion ?? "")</td>
-                                    <td>@(package.NewVersion ?? "")</td>
-                                </tr>
-                            }
-                        </tbody>
-
-                    </table>
-                }
-            </div>
-        }
-    </body>
+        </table>
+      }
+    </div>
+  }
+</body>
 </html>
