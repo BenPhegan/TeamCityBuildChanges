@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Xml.Serialization;
+using ServiceStack.Text;
 using TeamCityBuildChanges.ExternalApi.TeamCity;
 using TeamCityBuildChanges.NuGetPackage;
 using TeamCityBuildChanges.Output;
@@ -18,7 +18,8 @@ namespace TeamCityBuildChanges.Commands
         private string _teamCityAuthToken;
         private string _buildPackageCacheFile;
         private bool _recurse;
-        private string _xmlOutput;
+        private string _serializeType = "xml";
+        private string _serializeOutput;
 
         public AggregateBuildDeltaCommand()
         {
@@ -31,7 +32,8 @@ namespace TeamCityBuildChanges.Commands
             Options.Add("tat=", "TeamCity Auth Token", c => _teamCityAuthToken = c);
             Options.Add("bpc|buildpackagecache=", "An xml build package cache file for package to build mapping.", c => _buildPackageCacheFile = c);
             Options.Add("r|recurse", "Recurse into package dependencies and generate full tree delta.", c => _recurse = c != null);
-            Options.Add("xml=", "Serialize ChangeManifest object to xml", c => _xmlOutput = c);
+            Options.Add("serializeType=", "Serialize ChangeManifest object to type (default: xml)", c => _serializeType = c);
+            Options.Add("serializeOutput=", "Serialize ChangeManifest object to filename", c => _serializeOutput = c);
             SkipsCommandSummaryBeforeRunning();
         }
 
@@ -46,8 +48,8 @@ namespace TeamCityBuildChanges.Commands
                 ? resolver.CreateChangeManifestFromBuildTypeName(ProjectName, BuildName, _referenceBuild, _from, _to, _useBuildSystemIssueResolution, _recurse)
                 : resolver.CreateChangeManifestFromBuildTypeId(BuildType, _referenceBuild, _from, _to, _useBuildSystemIssueResolution, _recurse);
             
-            if (!string.IsNullOrEmpty(_xmlOutput))
-                SerializeToXML(ChangeManifest, _xmlOutput);
+            if (!string.IsNullOrEmpty(_serializeOutput))
+                SerializeManifest(ChangeManifest, _serializeType, _serializeOutput);
 
             OutputChanges(CreateOutputRenderers(), new List<Action<string>> {Console.Write, a =>
                 {

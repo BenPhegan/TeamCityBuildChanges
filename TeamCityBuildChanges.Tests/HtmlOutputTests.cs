@@ -6,6 +6,7 @@ using System.Text;
 using NUnit.Framework;
 using TeamCityBuildChanges.ExternalApi.TeamCity;
 using TeamCityBuildChanges.IssueDetailResolvers;
+using ServiceStack.Text;
 using TeamCityBuildChanges.Output;
 using TeamCityBuildChanges.Testing;
 
