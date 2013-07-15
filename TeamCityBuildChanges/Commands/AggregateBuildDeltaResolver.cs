@@ -183,9 +183,6 @@ namespace TeamCityBuildChanges.Commands
             else if (mappings.Any())
             {
                 //Because there are STILL multiple builds, now we have to troll along and query TeamCity for the correct build...
-                var buildDetails = api.GetBuildDetailsFromBuildNumber(mappings.Select(map => map.BuildConfigurationId), dependency.NewVersion);
-                var buildTypeId = buildDetails.BuildTypeId;
-                var blah = mappings.FirstOrDefault(b => b.BuildConfigurationId == buildTypeId);
                 build = mappings.FirstOrDefault(b => b.BuildConfigurationId == api.GetBuildDetailsFromBuildNumber(mappings.Select(map => map.BuildConfigurationId), dependency.NewVersion).BuildTypeId);
                 if (build != null)
                     changeManifest.GenerationLog.Add(new LogEntry(DateTime.Now, Status.Warning, string.Format("Found duplicate mappings, using package to build mapping {0}.", build.BuildConfigurationName)));

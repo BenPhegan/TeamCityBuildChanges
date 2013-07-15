@@ -47,6 +47,16 @@ namespace TeamCityBuildChanges.Testing
             var startBuild = string.Format(template.BuildNumberPattern, template.StartBuildNumber);
             var finishBuild = string.Format(template.BuildNumberPattern, template.FinishBuildNumber);
 
+            var mappings = packageCache.PackageBuildMappings.Select(map => map.BuildConfigurationId);
+
+            A.CallTo(() => api.GetBuildDetailsFromBuildNumber(A<IEnumerable<string>>.That.IsSameSequenceAs(mappings), string.Format(template.BuildNumberPattern, template.FinishBuildNumber)))
+             .Returns(new Build
+                 {
+                     BuildTypeId = template.BuildId,
+                     Name = template.BuildName,
+                     Number = string.Format(template.BuildNumberPattern, template.FinishBuildNumber)
+                 });
+
             //BuildType/Builds/ChangeDetails
             A.CallTo(() => api.GetBuildTypeDetailsById(template.BuildId))
              .Returns(new BuildTypeDetails
