@@ -1,14 +1,14 @@
 ﻿
-Microsoft Visual Studio Solution File, Format Version 11.00
-# Visual Studio 2010
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TeamCityBuildChanges", "TeamCityBuildChanges\TeamCityBuildChanges.csproj", "{CC9953CC-8487-4105-9AE6-3B1061D0EE6B}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TeamCityBuildChanges.Tests", "TeamCityBuildChanges.Tests\TeamCityBuildChanges.Tests.csproj", "{4B062C90-9F66-467A-9E99-EA55E0447867}"
-EndProject
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2012
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ThirdParty", "ThirdParty", "{5FA45546-E2E6-4E1C-9A64-E7305A52DEC2}"
 	ProjectSection(SolutionItems) = preProject
 		ThirdParty\Microsoft.TeamFoundation.Client.dll = ThirdParty\Microsoft.TeamFoundation.Client.dll
 	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TeamCityBuildChanges", "TeamCityBuildChanges\TeamCityBuildChanges.csproj", "{CC9953CC-8487-4105-9AE6-3B1061D0EE6B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TeamCityBuildChanges.Tests", "TeamCityBuildChanges.Tests\TeamCityBuildChanges.Tests.csproj", "{4B062C90-9F66-467A-9E99-EA55E0447867}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

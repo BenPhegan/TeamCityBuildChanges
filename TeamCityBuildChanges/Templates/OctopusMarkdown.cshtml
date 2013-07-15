@@ -1,0 +1,30 @@
+@using System.Linq
+@inherits RazorEngine.Templating.TemplateBase<TeamCityBuildChanges.Output.ChangeManifest>
+@if (Model.IssueDetails != null && Model.IssueDetails.Any())
+{
+<text>### Issue Details ###</text>
+foreach (var issue in Model.IssueDetails)
+{
+<text>- [@(issue.Id ?? "")](@issue.Url "@(issue.Id ?? "")") - @issue.Type - @issue.Summary - @issue.Status</text>
+}
+}
+
+----------
+@if (Model.ChangeDetails != null && Model.ChangeDetails.Any())
+{
+<text>### Change Details ###</text>
+foreach (var change in Model.ChangeDetails)
+{
+<text>- @((change.Comment ?? "").Replace("#comment ", "")) (@(change.Username ?? ""))</text>
+}
+}
+
+----------
+@if (Model.NuGetPackageChanges != null && Model.NuGetPackageChanges.Any())
+{
+<text>### Packaged Dependency Details ###</text>
+foreach (var packageChange in Model.NuGetPackageChanges)
+{
+<text>- **@(packageChange.PackageId ?? "")** : @(packageChange.OldVersion ?? "") -> @(packageChange.NewVersion ?? "") (Original -> Current)</text>
+}
+}
