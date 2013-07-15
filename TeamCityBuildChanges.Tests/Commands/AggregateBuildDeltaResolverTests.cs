@@ -112,7 +112,7 @@ namespace TeamCityBuildChanges.Tests.Commands
             var cache = TestHelpers.CreateMockedMultiplePackageBuildMappingCache(mappingTemplate);
             var resolver = TestHelpers.CreateMockedAggregateBuildDeltaResolver(buildTemplates, api, cache);
             var build = resolver.RetrieveBuild(api, cache, packageChange, new ChangeManifest());
-            Assert.IsNotNull(build);
+            Assert.AreSame("bt1", build.BuildConfigurationId);
         }
     }
 }
