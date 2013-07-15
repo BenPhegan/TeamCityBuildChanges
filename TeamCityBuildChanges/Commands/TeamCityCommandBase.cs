@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Xml.Serialization;
 using ManyConsole;
 using NDesk.Options;
 using TeamCityBuildChanges.ExternalApi.Jira;
@@ -87,6 +89,14 @@ namespace TeamCityBuildChanges.Commands
                 };
 
             return renderers;
+        }
+
+        protected void SerializeToXML(ChangeManifest changeManifest, string xmlOutput)
+        {
+            var serializer = new XmlSerializer(typeof(ChangeManifest));
+            var textWriter = new StreamWriter(xmlOutput);
+            serializer.Serialize(textWriter, changeManifest);
+            textWriter.Close();
         }
     }
 }

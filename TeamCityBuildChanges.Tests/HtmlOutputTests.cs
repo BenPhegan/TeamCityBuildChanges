@@ -20,14 +20,5 @@ namespace TeamCityBuildChanges.Tests
             var result = new RazorOutputRenderer(@".\templates\text.cshtml").Render(TestHelpers.CreateSimpleChangeManifest());
             Assert.True(result.ToString().StartsWith("Version"));//Giddyup.
         }
-
-        [TestCase("changeManifest.xml", "Default.cshtml", "FlattenNuGetPackageChangesTest.html")]
-        public void FlattenNuGetPackageChangesTest(string inputManifest, string template, string outputHtml)
-        {
-            var manifest = TestHelpers.DeserializeFromXML(string.Format(@"{0}\{1}", Directory.GetCurrentDirectory(), inputManifest));
-            var result = new RazorOutputRenderer(string.Format(@".\templates\{0}", template)).Render(manifest);
-            File.WriteAllText(string.Format(@"{0}\{1}", Directory.GetCurrentDirectory(), outputHtml), result);
-            Assert.True(true);
-        }
     }
 }

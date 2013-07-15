@@ -47,7 +47,7 @@ namespace TeamCityBuildChanges.Commands
                 : resolver.CreateChangeManifestFromBuildTypeId(BuildType, _referenceBuild, _from, _to, _useBuildSystemIssueResolution, _recurse);
             
             if (!string.IsNullOrEmpty(_xmlOutput))
-                SerializeToXML(ChangeManifest);
+                SerializeToXML(ChangeManifest, _xmlOutput);
 
             OutputChanges(CreateOutputRenderers(), new List<Action<string>> {Console.Write, a =>
                 {
@@ -55,14 +55,6 @@ namespace TeamCityBuildChanges.Commands
                         File.WriteAllText(OutputFileName, a);
                 }});
             return 0;
-        }
-
-        private void SerializeToXML(ChangeManifest changeManifest)
-        {
-            var serializer = new XmlSerializer(typeof (ChangeManifest));
-            var textWriter = new StreamWriter(_xmlOutput);
-            serializer.Serialize(textWriter, changeManifest);
-            textWriter.Close();
         }
     }
 }
