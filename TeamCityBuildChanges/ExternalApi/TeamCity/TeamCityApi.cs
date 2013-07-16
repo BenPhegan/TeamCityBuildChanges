@@ -201,10 +201,9 @@ namespace TeamCityBuildChanges.ExternalApi.TeamCity
             return results;
         }
 
-        public IEnumerable<Issue> GetIssuesByBuildTypeAndBuildRange(string buildType, string from, string to, IEnumerable<Build> buildList = null)
+        public IEnumerable<Issue> GetIssuesByBuildTypeAndBuildRange(BuildTypeDetails buildTypeDetails, string from, string to, IEnumerable<Build> buildList = null)
         {
-            var buildTypeDetails = GetBuildTypeDetailsById(buildType);
-            var results = GetByBuildTypeAndBuildRange(buildType, from, to, BuildNumberComparitor(), buildList, b => GetIssuesFromBuild(b.Id).Where(i => buildTypeDetails.VcsRootEntries.Any(v => v.VcsRoot.Any(r => r.Href.StartsWith(i.TfsRootUrl)))));
+            var results = GetByBuildTypeAndBuildRange(buildTypeDetails.Id, from, to, BuildNumberComparitor(), buildList, b => GetIssuesFromBuild(b.Id).Where(i => buildTypeDetails.VcsRootEntries.Any(v => v.VcsRoot.Any(r => r.Href.StartsWith(i.TfsRootUrl)))));
             return results;
         }
 
@@ -309,6 +308,20 @@ namespace TeamCityBuildChanges.ExternalApi.TeamCity
             var response = _client.Execute<List<Build>>(request);
             return response.Data;
         }
+
+        public IEnumerable<VcsRoot> GetVcsRoots()
+        {
+            var request = GetXmlBuildRequest("app/rest/vcs-roots");
+            var response = _client.Execute<List<VcsRoot>>(request);
+            return response.Data;
+        }
+
+        public VcsRoot GetVcsRootById(string vcsRootId)
+        {
+            var request = GetXmlBuildRequest("app/rest/vcs-roots/id:{ID}", "ID", vcsRootId);
+            var response = _client.Execute<VcsRoot>(request);
+            return response.Data;
+        }
     }
 
     public class BuildType
@@ -384,6 +397,8 @@ namespace TeamCityBuildChanges.ExternalApi.TeamCity
 
     public class VcsRoot : GenericTeamCityStubValue
     {
+        public string VcsName { get; set; }
+        public List<Property> Properties { get; set; } 
     }
 
     public class GenericTeamCityStubValue : GenericTeamCityBase

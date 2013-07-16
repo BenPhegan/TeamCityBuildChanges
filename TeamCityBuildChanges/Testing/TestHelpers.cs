@@ -76,7 +76,7 @@ namespace TeamCityBuildChanges.Testing
             {
                 var issues = Enumerable.Range(1, template.IssueCount).Select(i => new Issue {Id = RandomNumber.Next(2000).ToString()}).ToList();
                 
-                A.CallTo(() => api.GetIssuesByBuildTypeAndBuildRange(template.BuildId, startBuild, finishBuild, A<IEnumerable<Build>>.Ignored))
+                A.CallTo(() => api.GetIssuesByBuildTypeAndBuildRange(api.GetBuildTypeDetailsById(template.BuildId), startBuild, finishBuild, A<IEnumerable<Build>>.Ignored))
                  .Returns(issues);
 
                 A.CallTo(issueResolver).WithReturnType<IEnumerable<ExternalIssueDetails>>()

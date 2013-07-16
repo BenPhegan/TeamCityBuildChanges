@@ -105,9 +105,12 @@ namespace TeamCityBuildChanges.Commands
                     var issueDetailResolver = new IssueDetailResolver(_externalIssueResolvers);
 
                     //Rather than use TeamCity to resolve the issue to commit details (via TeamCity plugins) use the issue resolvers directly...
+                    var buildTypeDetailsWithCommitData = _api.GetBuildTypeDetailsById(buildWithCommitData);
+                    var vcsRoots = buildTypeDetailsWithCommitData.VcsRootEntries.Select(v => _api.GetVcsRootById(v.Id));
+                    var vcsUrls = GetUrlsFromVcsRoots(vcsRoots);
                     var issues = useBuildSystemIssueResolution
-                                     ? _api.GetIssuesByBuildTypeAndBuildRange(buildWithCommitData, @from, to, buildList).ToList()
-                                     : issueDetailResolver.GetAssociatedIssues(changeDetails).ToList();
+                                     ? _api.GetIssuesByBuildTypeAndBuildRange(buildTypeDetailsWithCommitData, @from, to, buildList).ToList()
+                                     : issueDetailResolver.GetAssociatedIssues(changeDetails, vcsUrls).ToList();
 
                     changeManifest.GenerationLog.Add(new LogEntry(DateTime.Now,Status.Ok, string.Format("Got {0} issues for BuildType {1}.", issues.Count(),buildType)));
 
@@ -168,6 +171,24 @@ namespace TeamCityBuildChanges.Commands
             }
 
             return changeManifest;
+        }
+
+        public IEnumerable<string> GetUrlsFromVcsRoots(IEnumerable<VcsRoot> vcsRoots)
+        {
+            var urls = new List<string>();
+            foreach (var vcsRoot in vcsRoots)
+            {
+                switch (vcsRoot.VcsName)
+                {
+                    case "tfs":
+                        urls.Add(vcsRoot.Properties.FirstOrDefault(p => p.Name == "tfs-url").value);
+                        break;
+                    case "jetbrains.git":
+                        urls.Add(vcsRoot.Properties.FirstOrDefault(p => p.Name == "url").value);
+                        break;
+                }
+            }
+            return urls;
         }
 
         public PackageBuildMapping RetrieveBuild(ITeamCityApi api, IPackageBuildMappingCache packageBuildMappingCache, NuGetPackageChange dependency, ChangeManifest changeManifest)

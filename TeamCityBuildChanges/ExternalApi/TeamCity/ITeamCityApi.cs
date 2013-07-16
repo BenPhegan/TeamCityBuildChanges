@@ -18,7 +18,7 @@ namespace TeamCityBuildChanges.ExternalApi.TeamCity
         IEnumerable<Build> GetRunningBuildByBuildType(string buildType);
         IEnumerable<BuildType> GetBuildTypeByProjectAndName(string project, string buildName);
         IEnumerable<ChangeDetail> GetChangeDetailsByBuildTypeAndBuildId(string buildType, string from, string to, Func<Build, string, bool> comparitor, IEnumerable<Build> buildList = null);
-        IEnumerable<Issue> GetIssuesByBuildTypeAndBuildRange(string buildType, string from, string to, IEnumerable<Build> buildList = null);
+        IEnumerable<Issue> GetIssuesByBuildTypeAndBuildRange(BuildTypeDetails buildType, string from, string to, IEnumerable<Build> buildList = null);
         IEnumerable<Issue> GetIssuesFromBuild(string buildId);
         IEnumerable<ChangeDetail> GetChangeDetailsByBuildTypeAndBuildId(string buildType, string from, string to);
         IEnumerable<ChangeDetail> GetChangeDetailsByBuildTypeAndBuildNumber(string buildType, string from, string to, IEnumerable<Build> buildList = null);
@@ -27,5 +27,7 @@ namespace TeamCityBuildChanges.ExternalApi.TeamCity
         ChangeDetail GetChangeDetailsByChangeId(string id);
         IEnumerable<Build> GetBuildsByBuildType(string buildType);
         Build GetBuildDetailsFromBuildNumber(IEnumerable<string> ids, string number);
+        IEnumerable<VcsRoot> GetVcsRoots();
+        VcsRoot GetVcsRootById(string vcsRootId);
     }
 }
