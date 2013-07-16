@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Serialization;
 using QuickGraph;
 using QuickGraph.Algorithms;
 using TeamCityBuildChanges.ExternalApi.TeamCity;
@@ -29,8 +30,12 @@ namespace TeamCityBuildChanges.Output
         public string ToVersion { get; set; }
         public BuildTypeDetails ReferenceBuildConfiguration { get; set; }
         public BuildTypeDetails BuildConfiguration { get; set; }
+
         public List<NuGetPackageChange> NuGetPackageChanges { get; set; }
+
+        [IgnoreDataMember]
         public List<LogEntry> GenerationLog { get; set; }
+
         public Status GenerationStatus { get; set; }
 
         public List<ExternalIssueDetails> ConsolidatedIssueDetails

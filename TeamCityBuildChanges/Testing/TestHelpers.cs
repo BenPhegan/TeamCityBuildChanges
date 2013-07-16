@@ -2,9 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Xml.Serialization;
 using FakeItEasy;
 using Faker;
 using TeamCityBuildChanges.Commands;
+using TeamCityBuildChanges.ExternalApi.TFS;
 using TeamCityBuildChanges.ExternalApi.TeamCity;
 using TeamCityBuildChanges.IssueDetailResolvers;
 using TeamCityBuildChanges.NuGetPackage;
@@ -14,30 +16,47 @@ namespace TeamCityBuildChanges.Testing
 {
     public class TestHelpers
     {
-        public static AggregateBuildDeltaResolver CreateMockedAggregateBuildDeltaResolver(IEnumerable<BuildTemplate> buildTemplates)
+        public static ITeamCityApi CreateMockedTeamCityApi()
         {
             const string apiServer = "http://test.server";
 
             var api = A.Fake<ITeamCityApi>();
             A.CallTo(() => api.TeamCityServer).Returns(apiServer);
+            return api;
+        }
 
-            var packageCache = new PackageBuildMappingCache();
+        public static AggregateBuildDeltaResolver CreateMockedAggregateBuildDeltaResolver(IEnumerable<BuildTemplate> buildTemplates)
+        {
+            return CreateMockedAggregateBuildDeltaResolver(buildTemplates, CreateMockedTeamCityApi(), new PackageBuildMappingCache());
+        }
 
+        public static AggregateBuildDeltaResolver CreateMockedAggregateBuildDeltaResolver(IEnumerable<BuildTemplate> buildTemplates, ITeamCityApi api, IPackageBuildMappingCache packageCache)
+        {
             var issueResolver = A.Fake<IExternalIssueResolver>();
 
             foreach (var template in buildTemplates)
             {
                 SetExpectations(template, api, issueResolver, packageCache);
             }
-            
-            var resolver = new AggregateBuildDeltaResolver(api, new[] {issueResolver}, new PackageChangeComparator(), packageCache, new List<NuGetPackageChange>());
+
+            var resolver = new AggregateBuildDeltaResolver(api, new[] { issueResolver }, new PackageChangeComparator(), packageCache, new List<NuGetPackageChange>());
             return resolver;
         }
 
-        private static void SetExpectations(BuildTemplate template, ITeamCityApi api, IExternalIssueResolver issueResolver, PackageBuildMappingCache packageCache)
+        private static void SetExpectations(BuildTemplate template, ITeamCityApi api, IExternalIssueResolver issueResolver, IPackageBuildMappingCache packageCache)
         {
             var startBuild = string.Format(template.BuildNumberPattern, template.StartBuildNumber);
             var finishBuild = string.Format(template.BuildNumberPattern, template.FinishBuildNumber);
+
+            var mappings = packageCache.PackageBuildMappings.Select(map => map.BuildConfigurationId);
+
+            A.CallTo(() => api.GetBuildDetailsFromBuildNumber(A<IEnumerable<string>>.That.IsSameSequenceAs(mappings), string.Format(template.BuildNumberPattern, template.FinishBuildNumber)))
+             .Returns(new Build
+                 {
+                     BuildTypeId = template.BuildId,
+                     Name = template.BuildName,
+                     Number = string.Format(template.BuildNumberPattern, template.FinishBuildNumber)
+                 });
 
             //BuildType/Builds/ChangeDetails
             A.CallTo(() => api.GetBuildTypeDetailsById(template.BuildId))
@@ -57,7 +76,7 @@ namespace TeamCityBuildChanges.Testing
             {
                 var issues = Enumerable.Range(1, template.IssueCount).Select(i => new Issue {Id = RandomNumber.Next(2000).ToString()}).ToList();
                 
-                A.CallTo(() => api.GetIssuesByBuildTypeAndBuildRange(template.BuildId, startBuild, finishBuild, A<IEnumerable<Build>>.Ignored))
+                A.CallTo(() => api.GetIssuesByBuildTypeAndBuildRange(api.GetBuildTypeDetailsById(template.BuildId), startBuild, finishBuild, A<IEnumerable<Build>>.Ignored))
                  .Returns(issues);
 
                 A.CallTo(issueResolver).WithReturnType<IEnumerable<ExternalIssueDetails>>()
@@ -112,7 +131,7 @@ namespace TeamCityBuildChanges.Testing
                 };
         }
 
-        private static void SetNugetPackageDependencyExpectations(ITeamCityApi api, PackageBuildMappingCache cache, BuildTemplate template, IExternalIssueResolver issueResolver)
+        private static void SetNugetPackageDependencyExpectations(ITeamCityApi api, IPackageBuildMappingCache cache, BuildTemplate template, IExternalIssueResolver issueResolver)
         {
             var initial = template.StartBuildPackages.Select(p => new TeamCityApi.PackageDetails {Id = p.Key, Version = p.Value}).ToList();
             var final = template.FinishBuildPackages.Select(p => new TeamCityApi.PackageDetails { Id = p.Key, Version = p.Value }).ToList();
@@ -260,6 +279,180 @@ namespace TeamCityBuildChanges.Testing
                                         }
                                 }
                         }
+                };
+        }
+
+        public static List<NuGetPackageChange> CreateSimpleNuGetPackageDependencies()
+        {
+            var dependencies = new List<NuGetPackageChange>();
+
+            for (int i = 1; i <= 2; i++)
+            {
+                dependencies.Add(CreateNuGetPackageChange(i.ToString(), "1.0.0.0", String.Format("1.0.0.{0}", i)));
+            }
+
+            return dependencies;
+        }
+
+        private static NuGetPackageChange CreateNuGetPackageChange(string id, string oldVersion, string newVersion)
+        {
+            var manifest = CreateSimpleChangeManifest();
+            if (id == "2")
+                manifest.NuGetPackageChanges = new List<NuGetPackageChange>
+                    {
+                        CreateNuGetPackageChange("1", "1.0.0.0", "1.0.0.1"),
+                        CreateNuGetPackageChange("3", "1.0.0.0", "1.0.0.3")
+                    };
+            return new NuGetPackageChange
+                {
+                    PackageId = String.Format("Package-{0}", id),
+                    OldVersion = oldVersion,
+                    NewVersion = newVersion,
+                    Type = NuGetPackageChangeType.Modified,
+                    ChangeManifest = manifest
+                };
+        }
+
+        public static ChangeManifest DeserializeFromXML(string xmlInput)
+        {
+            var deserializer = new XmlSerializer(typeof (ChangeManifest));
+            var textReader = new StreamReader(xmlInput);
+            var changeManifest = (ChangeManifest) deserializer.Deserialize(textReader);
+            textReader.Close();
+            return changeManifest;
+        }
+
+        public static IPackageBuildMappingCache CreateMockedMultiplePackageBuildMappingCache(List<PackageBuildMapping> mappingTemplates)
+        {
+            var mappings = mappingTemplates;
+
+            var cache = A.Fake<IPackageBuildMappingCache>();
+            A.CallTo(() => cache.PackageBuildMappings).Returns(mappings);
+            return cache;
+        }
+
+        public static IEnumerable<TFSIssueResolver> CreateMockedTfsApi(IEnumerable<TfsTemplate> templates)
+        {
+            var resolvers = new List<TFSIssueResolver>();
+            foreach (var template in templates)
+            {
+                var api = A.Fake<ITfsApi>();
+                A.CallTo(() => api.ConnectionUri).Returns(template.ConnectionUri);
+                SetTfsExpectations(api, template);
+                resolvers.Add(new TFSIssueResolver(api));
+            }
+            return resolvers;
+        }
+
+        private static void SetTfsExpectations(ITfsApi api, TfsTemplate template)
+        {
+            foreach (var workItem in template.WorkItems.Keys)
+            {
+                SetWorkItemExpectation(api, workItem, template.WorkItems[workItem]);
+            }
+        }
+
+        private static void SetWorkItemExpectation(ITfsApi api, int workItemId, IEnumerable<int> children)
+        {
+            A.CallTo(() => api.GetWorkItem(workItemId)).Returns(CreateWorkItem(workItemId, children));
+        }
+
+        private static TfsWorkItem CreateWorkItem(int workItemId, IEnumerable<int> children)
+        {
+            return new TfsWorkItem
+                {
+                    Id = workItemId,
+                    Created = DateTime.Today.AddDays(-RandomNumber.Next(150)),
+                    Type = new[] {"Bug", "Task", "Issue"}[RandomNumber.Next(0, 2)],
+                    State = new[] {"Open", "Closed", "Resolved"}[RandomNumber.Next(0, 2)],
+                    Title = Lorem.Sentence(3),
+                    Description = Lorem.Sentence(),
+                    HistoryComments = new List<string> { Lorem.GetFirstWord(), Company.BS() },
+                    ChildrenIds = children
+                };
+        }
+
+        public static List<Issue> CreateMockedIssueList(IEnumerable<BuildDetailsTemplate> templates)
+        {
+            var issues = new List<Issue>();
+            foreach (var template in templates)
+            {
+                issues.AddRange(CreateMockedIssues(template.TfsConnection, template.RelatedIssueIds));
+            }
+            return issues;
+        }
+
+        private static IEnumerable<Issue> CreateMockedIssues(string tfsConnection, List<int> list)
+        {
+            return list.Select(i => CreateMockedIssue(i, tfsConnection));
+        }
+
+        public static ITeamCityApi CreateMockedTeamCityApi(IEnumerable<BuildDetailsTemplate> templates)
+        {
+            const string server = "http://test.server";
+            var api = A.Fake<ITeamCityApi>();
+            A.CallTo(() => api.TeamCityServer).Returns(server);
+
+            foreach (var template in templates)
+            {
+                SetBuildDetailsExpectations(template, api);
+            }
+            return api;
+        }
+
+        public static List<Issue> GetIssuesFromMockedTeamCityApi(ITeamCityApi api, IEnumerable<BuildDetailsTemplate> templates)
+        {
+            var issues = new List<Issue>();
+            foreach (var template in templates)
+            {
+                issues.AddRange(CreateMockedBuildDetails(template).RelatedIssues.Select(i => i.Issue));
+            }
+            return issues;
+        }
+
+        private static void SetBuildDetailsExpectations(BuildDetailsTemplate template, ITeamCityApi api)
+        {
+            A.CallTo(() => api.GetBuildTypeDetailsById(template.Id)).Returns(CreateMockedBuildTypeDetails(template));
+            A.CallTo(() => api.GetBuildDetailsByBuildId(template.Id)).Returns(CreateMockedBuildDetails(template));
+        }
+
+        private static BuildTypeDetails CreateMockedBuildTypeDetails(BuildDetailsTemplate template)
+        {
+            return new BuildTypeDetails
+                {
+                    Id = template.Id,
+                    VcsRootEntries =
+                        new List<VcsRootEntry>
+                            {
+                                new VcsRootEntry {VcsRoot = new List<VcsRoot> {new VcsRoot {Href = template.TfsConnection}}}
+                            }
+                };
+        }
+
+        private static BuildDetails CreateMockedBuildDetails(BuildDetailsTemplate template)
+        {
+            return new BuildDetails
+                {
+                    Id = template.Id,
+                    RelatedIssues = template.RelatedIssueIds.Select(i => CreateMockedIssueUsage(i, template.TfsConnection)).ToList()
+                };
+        }
+
+        private static IssueUsage CreateMockedIssueUsage(int id, string tfsConnection)
+        {
+            return new IssueUsage
+                {
+                    Issue = CreateMockedIssue(id, tfsConnection)
+                };
+        }
+
+        private static Issue CreateMockedIssue(int id, string tfsConnection)
+        {
+            return new Issue
+                {
+                    Id = id.ToString(),
+                    Url = tfsConnection,
+                    TfsRootUrl = tfsConnection
                 };
         }
     }

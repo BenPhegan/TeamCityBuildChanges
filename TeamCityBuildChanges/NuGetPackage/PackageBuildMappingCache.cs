@@ -11,7 +11,7 @@ namespace TeamCityBuildChanges.NuGetPackage
     /// <summary>
     /// Provides TeamCity Build to NuGet package mappings.  If a build creates a package, it will be listed in the cache to allow cross referencing.
     /// </summary>
-    public class PackageBuildMappingCache
+    public class PackageBuildMappingCache : IPackageBuildMappingCache
     {
         private List<PackageBuildMapping> _packageBuildMappings = new List<PackageBuildMapping>();
 

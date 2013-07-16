@@ -9,9 +9,9 @@ namespace TeamCityBuildChanges.IssueDetailResolvers
 {
     public class TFSIssueResolver : IExternalIssueResolver
     {
-        readonly TfsApi _tfsApi;
+        readonly ITfsApi _tfsApi;
 
-        public TFSIssueResolver(TfsApi tfsApi)
+        public TFSIssueResolver(ITfsApi tfsApi)
         {
             _tfsApi = tfsApi;
         }
@@ -20,7 +20,10 @@ namespace TeamCityBuildChanges.IssueDetailResolvers
         {
             var externalIssueDetails = new List<ExternalIssueDetails>();
 
-            externalIssueDetails.AddRange(issues.Where(i => IsTfsUrl(i.Url)).Select(GetDetails));
+            var tfsIssue = issues.Where(i => IsTfsUrl(i.Url));
+            var details = tfsIssue.Select(GetDetails);
+            var blah = details.Any(i => i == null);
+            externalIssueDetails.AddRange(issues.Where(i => IsTfsUrl(i.Url)).Select(GetDetails).Where(i => i != null));
 
             return externalIssueDetails;
         }
@@ -28,16 +31,26 @@ namespace TeamCityBuildChanges.IssueDetailResolvers
         public IEnumerable<Issue> GetIssues(IEnumerable<ChangeDetail> changeDetails)
         {
             var issues = new List<Issue>();
-            foreach (var workItems in changeDetails.Select(changeDetail => _tfsApi.GetWorkItemsByCommit(Convert.ToInt32(changeDetail.Version))))
+            try
             {
-                issues.AddRange(workItems.Select(GetIssueFromTfsWorkItem));
+                foreach (var workItems in changeDetails.Select(changeDetail => _tfsApi.GetWorkItemsByCommit(Convert.ToInt32(changeDetail.Version))))
+                {
+                    issues.AddRange(workItems.Select(GetIssueFromTfsWorkItem));
+                }
+            }
+            catch (Exception e)
+            {
             }
             return issues;
         }
 
         private ExternalIssueDetails GetDetails(Issue issue)
-        {            
+        {
+            if (!issue.Url.ToLowerInvariant().StartsWith(_tfsApi.ConnectionUri.ToLowerInvariant()))
+                return null;
             var tfsWi = _tfsApi.GetWorkItem(ParseTfsWorkItemId(issue.Id));
+            if (tfsWi == null || tfsWi.Id.ToString() != issue.Id)
+                return null;
             var extIssue = GetDetails(tfsWi);
             extIssue.Url = _tfsApi.ConnectionUri + "/web/wi.aspx?id=" + extIssue.Id;
 
