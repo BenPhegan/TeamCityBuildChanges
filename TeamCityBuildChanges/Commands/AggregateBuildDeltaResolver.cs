@@ -160,7 +160,7 @@ namespace TeamCityBuildChanges.Commands
                     {
                         if (build.BuildConfigurationId == buildType)
                             continue;
-                        dependency.ChangeManifest = CreateChangeManifest(null, build.BuildConfigurationId, null, dependency.OldVersion, dependency.NewVersion, null, true, true); ;
+                        dependency.ChangeManifest = CreateChangeManifest(null, build.BuildConfigurationId, null, dependency.OldVersion, dependency.NewVersion, null, false, true); ;
                     }
                     else
                     {
