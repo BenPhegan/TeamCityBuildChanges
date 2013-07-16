@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using ManyConsole;
 using NDesk.Options;
+using ServiceStack.Text;
 using TeamCityBuildChanges.ExternalApi.Jira;
 using TeamCityBuildChanges.ExternalApi.TFS;
 using TeamCityBuildChanges.ExternalApi.TeamCity;
@@ -87,6 +89,26 @@ namespace TeamCityBuildChanges.Commands
                 };
 
             return renderers;
+        }
+
+        protected void SerializeManifest(ChangeManifest changeManifest, string outputType, string outputFileName)
+        {
+            var outputFile = new StreamWriter(string.Format("{0}.{1}", outputFileName, outputType.ToLowerInvariant()));
+            switch (outputType.ToLowerInvariant())
+            {
+                case "json":
+                    JsonSerializer.SerializeToWriter(changeManifest, outputFile);
+                    break;
+                case "jsv":
+                    TypeSerializer.SerializeToWriter(changeManifest, outputFile);
+                    break;
+                case "csv":
+                    CsvSerializer.SerializeToWriter(changeManifest, outputFile);
+                    break;
+                default:
+                    XmlSerializer.SerializeToWriter(changeManifest, outputFile);
+                    break;
+            }
         }
     }
 }

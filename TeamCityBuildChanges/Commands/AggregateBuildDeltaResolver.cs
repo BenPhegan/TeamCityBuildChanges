@@ -16,7 +16,7 @@ namespace TeamCityBuildChanges.Commands
         private readonly ITeamCityApi _api;
         private readonly IEnumerable<IExternalIssueResolver> _externalIssueResolvers;
         private readonly IPackageChangeComparator _packageChangeComparator;
-        private readonly PackageBuildMappingCache _packageBuildMappingCache;
+        private readonly IPackageBuildMappingCache _packageBuildMappingCache;
         private List<NuGetPackageChange> _traversedPackageChanges;
 
         /// <summary>
@@ -26,7 +26,7 @@ namespace TeamCityBuildChanges.Commands
         /// <param name="externalIssueResolvers">A list of IExternalIssueResolver objects.</param>
         /// <param name="packageChangeComparator">Provides package dependency comparison capability.</param>
         /// <param name="packageBuildMappingCache">Provides the ability to map from a Nuget package to the build that created the package.</param>
-        public AggregateBuildDeltaResolver(ITeamCityApi api, IEnumerable<IExternalIssueResolver> externalIssueResolvers, IPackageChangeComparator packageChangeComparator, PackageBuildMappingCache packageBuildMappingCache, List<NuGetPackageChange> traversedPackageChanges)
+        public AggregateBuildDeltaResolver(ITeamCityApi api, IEnumerable<IExternalIssueResolver> externalIssueResolvers, IPackageChangeComparator packageChangeComparator, IPackageBuildMappingCache packageBuildMappingCache, List<NuGetPackageChange> traversedPackageChanges)
         {
             _api = api;
             _externalIssueResolvers = externalIssueResolvers;
@@ -150,32 +150,14 @@ namespace TeamCityBuildChanges.Commands
                         dependency.ChangeManifest = traversedDependency.ChangeManifest;
                         continue;
                     }
-                    var mappings = _packageBuildMappingCache.PackageBuildMappings.Where(m => m.PackageId.Equals(dependency.PackageId, StringComparison.CurrentCultureIgnoreCase)).ToList();
-                    PackageBuildMapping build = null;
-                    if (mappings.Count == 1)
-                    {
-                        //We only got one back, this is good...
-                        build = mappings.First();
-                        changeManifest.GenerationLog.Add(new LogEntry(DateTime.Now, Status.Ok, string.Format("Found singular packages to build mapping {0}.", build.BuildConfigurationName)));
-                    }
-                    else if (mappings.Any())
-                    {
-                        //Ok, so multiple builds are outputting this package, so we need to try and constrain on project...
-                        build = mappings.FirstOrDefault(m => m.Project.Equals(buildTypeDetails.Project.Name, StringComparison.OrdinalIgnoreCase));
-                        if (build != null) changeManifest.GenerationLog.Add(new LogEntry(DateTime.Now, Status.Warning, string.Format("Found duplicate mappings, using package to build mapping {0}.", build.BuildConfigurationName)));
-                    }
+
+                    var build = RetrieveBuild(_api, _packageBuildMappingCache, dependency, changeManifest);
 
                     if (build != null)
                     {
                         if (build.BuildConfigurationId == buildType)
                             continue;
-                        var instanceTeamCityApi = _api.TeamCityServer.Equals(build.ServerUrl, StringComparison.OrdinalIgnoreCase)
-                                                              ? _api
-                                                              : new TeamCityApi(build.ServerUrl);
- 
-                        var resolver = new AggregateBuildDeltaResolver(instanceTeamCityApi, _externalIssueResolvers,_packageChangeComparator,_packageBuildMappingCache, _traversedPackageChanges);
-                        var dependencyManifest = resolver.CreateChangeManifest(null, build.BuildConfigurationId, null,dependency.OldVersion,dependency.NewVersion, null, true, true);
-                        dependency.ChangeManifest = dependencyManifest;
+                        dependency.ChangeManifest = CreateChangeManifest(null, build.BuildConfigurationId, null, dependency.OldVersion, dependency.NewVersion, null, true, true); ;
                     }
                     else
                     {
@@ -186,6 +168,26 @@ namespace TeamCityBuildChanges.Commands
             }
 
             return changeManifest;
+        }
+
+        public PackageBuildMapping RetrieveBuild(ITeamCityApi api, IPackageBuildMappingCache packageBuildMappingCache, NuGetPackageChange dependency, ChangeManifest changeManifest)
+        {
+            var mappings = packageBuildMappingCache.PackageBuildMappings.Where(m => m.PackageId.Equals(dependency.PackageId, StringComparison.CurrentCultureIgnoreCase)).ToList();
+            PackageBuildMapping build = null;
+            if (mappings.Count == 1)
+            {
+                //We only got one back, this is good...
+                build = mappings.First();
+                changeManifest.GenerationLog.Add(new LogEntry(DateTime.Now, Status.Ok, string.Format("Found singular packages to build mapping {0}.", build.BuildConfigurationName)));
+            }
+            else if (mappings.Any())
+            {
+                //Because there are STILL multiple builds, now we have to troll along and query TeamCity for the correct build...
+                build = mappings.FirstOrDefault(b => b.BuildConfigurationId == api.GetBuildDetailsFromBuildNumber(mappings.Select(map => map.BuildConfigurationId), dependency.NewVersion).BuildTypeId);
+                if (build != null)
+                    changeManifest.GenerationLog.Add(new LogEntry(DateTime.Now, Status.Warning, string.Format("Found duplicate mappings, using package to build mapping {0}.", build.BuildConfigurationName)));
+            }
+            return build;
         }
 
         private string ResolveToVersion(string buildType)

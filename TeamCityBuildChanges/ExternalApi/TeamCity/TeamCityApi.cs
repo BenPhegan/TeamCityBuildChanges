@@ -6,6 +6,7 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using System.Xml.Linq;
+using System.Xml.Serialization;
 using RestSharp;
 
 namespace TeamCityBuildChanges.ExternalApi.TeamCity
@@ -14,6 +15,7 @@ namespace TeamCityBuildChanges.ExternalApi.TeamCity
     {
         private readonly string _teamCityServer;
         private readonly AuthenticatedRestClient _client;
+        private MemoryBasedBuildCache _cache;
 
         public TeamCityApi(string server, string authToken = null)
         {
@@ -27,6 +29,7 @@ namespace TeamCityBuildChanges.ExternalApi.TeamCity
                               };
             
             _client.BaseUrl = builder.ToString();
+            _cache = new MemoryBasedBuildCache();
         }
 
         public string TeamCityServer
@@ -45,9 +48,25 @@ namespace TeamCityBuildChanges.ExternalApi.TeamCity
 
         public BuildTypeDetails GetBuildTypeDetailsById(string id)
         {
+            BuildTypeDetails buildTypeDetails;
+            if (_cache.TryCacheForDetailsByBuildTypeId(id, out buildTypeDetails))
+                return buildTypeDetails;
+
             var buildDetails = GetXmlBuildRequest("app/rest/buildTypes/id:{ID}", "ID", id);
             var response = _client.Execute<BuildTypeDetails>(buildDetails);
+            _cache.AddCacheBuildTypeDetailsById(id, response.Data);
             return response.Data;
+        }
+
+        public Build GetBuildDetailsFromBuildNumber(IEnumerable<string> ids, string number)
+        {
+            List<Build> builds = new List<Build>();
+            builds.AddRange(ids.Select(x => _cache.TryCacheForBuildDetailsByBuildTypeIdAndNumber(x, number)).Where(b => b != null));
+            if (builds.Any())
+                return builds.First();
+
+            builds.AddRange(ids.Select(id => _client.Execute<List<Build>>(GetXmlBuildRequest(string.Format("app/rest/builds/?locator=buildType:{0},number:{1}", id, number))).Data).Where(x => x != null).SelectMany(x => x));
+            return builds.First();
         }
 
         private static RestRequest GetXmlBuildRequest(string endpoint, string variable = null, string replacement = null)
@@ -73,6 +92,10 @@ namespace TeamCityBuildChanges.ExternalApi.TeamCity
 
         public List<PackageDetails> GetNuGetDependenciesByBuildTypeAndBuildId(string buildType, string buildId)
         {
+            List<PackageDetails> packageDetails;
+            if (_cache.TryCacheForNuGetDependenciesByBuildTypeAndBuildId(buildType, buildId, out packageDetails))
+                return packageDetails;
+
             var restUrl = new StringBuilder();
             restUrl.AppendFormat("{0}/repository/download/{1}/{2}:id/.teamcity/nuget/nuget.xml", _client.BaseUrl, buildType, buildId);
 
@@ -98,6 +121,7 @@ namespace TeamCityBuildChanges.ExternalApi.TeamCity
                         Version = p.Attribute("version").Value
                     }).ToList();
 
+                _cache.AddCacheNuGetDependencies(buildType, buildId, packageList);
                 return packageList;
             }
             catch (WebException exception)
@@ -141,6 +165,8 @@ namespace TeamCityBuildChanges.ExternalApi.TeamCity
         public IEnumerable<ChangeDetail> GetChangeDetailsByBuildId(string buildId)
         {
             var changeList = GetChangeListByBuildId(buildId);
+            if (changeList == null)
+                return new List<ChangeDetail>();
             var changeDetails = changeList.Changes.Select(c => GetChangeDetailsByChangeId(c.Id)).ToList();
             return changeDetails;
         }
@@ -184,6 +210,8 @@ namespace TeamCityBuildChanges.ExternalApi.TeamCity
         public IEnumerable<Issue> GetIssuesFromBuild(string buildId)
         {
             var buildDetails = GetBuildDetailsByBuildId(buildId);
+            if (buildDetails == null)
+                return new List<Issue>();
             return buildDetails.RelatedIssues.Select(i => i.Issue).Distinct().ToList();
         }
 
@@ -236,27 +264,46 @@ namespace TeamCityBuildChanges.ExternalApi.TeamCity
 
         public BuildDetails GetBuildDetailsByBuildId(string id)
         {
+            BuildDetails buildDetails;
+            if (_cache.TryCacheForBuildDetailsByBuildId(id, out buildDetails))
+                return buildDetails;
+
             var request = GetXmlBuildRequest("app/rest/builds/id:{ID}", "ID", id);
             var response = _client.Execute<BuildDetails>(request);
+            _cache.AddCacheBuildDetailsEntry(response.Data);
             return response.Data;
         }
 
         public ChangeList GetChangeListByBuildId(string id)
         {
+            ChangeList changeList;
+            if (_cache.TryCacheForChangeListByBuildId(id, out changeList))
+                return changeList;
+
             var request = GetXmlBuildRequest("app/rest/changes?build=id:{ID}", "ID", id);
             var response = _client.Execute<ChangeList>(request);
+            _cache.AddCacheChangeListByBuildIdEntry(id, response.Data);
             return response.Data;
         }
 
         public ChangeDetail GetChangeDetailsByChangeId(string id)
         {
+            ChangeDetail changeDetail;
+            if (_cache.TryCacheForChangeDetailsByChangeId(id, out changeDetail))
+                return changeDetail;
+
             var request = GetXmlBuildRequest("app/rest/changes/id:{ID}", "ID", id);
             var response = _client.Execute<ChangeDetail>(request);
+            _cache.AddCacheChangeDetailsByChangeIdEntry(id, response.Data);
             return response.Data;
         }
 
         public IEnumerable<Build> GetBuildsByBuildType(string buildType)
         {
+            IEnumerable<Build> builds;
+            if (_cache.TryCacheForBuildsByBuildTypeId(buildType, out builds))
+                return builds;
+
             var request = GetXmlBuildRequest("app/rest/builds/?locator=buildType:{ID}", "ID", buildType);
             var response = _client.Execute<List<Build>>(request);
             return response.Data;
@@ -270,6 +317,7 @@ namespace TeamCityBuildChanges.ExternalApi.TeamCity
         public string Href { get; set; }
         public string ProjectName { get; set; }
         public string ProjectId { get; set; }
+        [XmlIgnore()]
         public Uri WebUrl { get; set; }
 
         public override string ToString()

@@ -28,9 +28,15 @@ namespace TeamCityBuildChanges.IssueDetailResolvers
         public IEnumerable<Issue> GetIssues(IEnumerable<ChangeDetail> changeDetails)
         {
             var issues = new List<Issue>();
-            foreach (var workItems in changeDetails.Select(changeDetail => _tfsApi.GetWorkItemsByCommit(Convert.ToInt32(changeDetail.Version))))
+            try
             {
-                issues.AddRange(workItems.Select(GetIssueFromTfsWorkItem));
+                foreach (var workItems in changeDetails.Select(changeDetail => _tfsApi.GetWorkItemsByCommit(Convert.ToInt32(changeDetail.Version))))
+                {
+                    issues.AddRange(workItems.Select(GetIssueFromTfsWorkItem));
+                }
+            }
+            catch (Exception e)
+            {
             }
             return issues;
         }

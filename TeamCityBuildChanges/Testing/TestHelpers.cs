@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Xml.Serialization;
 using FakeItEasy;
 using Faker;
 using TeamCityBuildChanges.Commands;
@@ -14,30 +15,47 @@ namespace TeamCityBuildChanges.Testing
 {
     public class TestHelpers
     {
-        public static AggregateBuildDeltaResolver CreateMockedAggregateBuildDeltaResolver(IEnumerable<BuildTemplate> buildTemplates)
+        public static ITeamCityApi CreateMockedTeamCityApi()
         {
             const string apiServer = "http://test.server";
 
             var api = A.Fake<ITeamCityApi>();
             A.CallTo(() => api.TeamCityServer).Returns(apiServer);
+            return api;
+        }
 
-            var packageCache = new PackageBuildMappingCache();
+        public static AggregateBuildDeltaResolver CreateMockedAggregateBuildDeltaResolver(IEnumerable<BuildTemplate> buildTemplates)
+        {
+            return CreateMockedAggregateBuildDeltaResolver(buildTemplates, CreateMockedTeamCityApi(), new PackageBuildMappingCache());
+        }
 
+        public static AggregateBuildDeltaResolver CreateMockedAggregateBuildDeltaResolver(IEnumerable<BuildTemplate> buildTemplates, ITeamCityApi api, IPackageBuildMappingCache packageCache)
+        {
             var issueResolver = A.Fake<IExternalIssueResolver>();
 
             foreach (var template in buildTemplates)
             {
                 SetExpectations(template, api, issueResolver, packageCache);
             }
-            
-            var resolver = new AggregateBuildDeltaResolver(api, new[] {issueResolver}, new PackageChangeComparator(), packageCache, new List<NuGetPackageChange>());
+
+            var resolver = new AggregateBuildDeltaResolver(api, new[] { issueResolver }, new PackageChangeComparator(), packageCache, new List<NuGetPackageChange>());
             return resolver;
         }
 
-        private static void SetExpectations(BuildTemplate template, ITeamCityApi api, IExternalIssueResolver issueResolver, PackageBuildMappingCache packageCache)
+        private static void SetExpectations(BuildTemplate template, ITeamCityApi api, IExternalIssueResolver issueResolver, IPackageBuildMappingCache packageCache)
         {
             var startBuild = string.Format(template.BuildNumberPattern, template.StartBuildNumber);
             var finishBuild = string.Format(template.BuildNumberPattern, template.FinishBuildNumber);
+
+            var mappings = packageCache.PackageBuildMappings.Select(map => map.BuildConfigurationId);
+
+            A.CallTo(() => api.GetBuildDetailsFromBuildNumber(A<IEnumerable<string>>.That.IsSameSequenceAs(mappings), string.Format(template.BuildNumberPattern, template.FinishBuildNumber)))
+             .Returns(new Build
+                 {
+                     BuildTypeId = template.BuildId,
+                     Name = template.BuildName,
+                     Number = string.Format(template.BuildNumberPattern, template.FinishBuildNumber)
+                 });
 
             //BuildType/Builds/ChangeDetails
             A.CallTo(() => api.GetBuildTypeDetailsById(template.BuildId))
@@ -112,7 +130,7 @@ namespace TeamCityBuildChanges.Testing
                 };
         }
 
-        private static void SetNugetPackageDependencyExpectations(ITeamCityApi api, PackageBuildMappingCache cache, BuildTemplate template, IExternalIssueResolver issueResolver)
+        private static void SetNugetPackageDependencyExpectations(ITeamCityApi api, IPackageBuildMappingCache cache, BuildTemplate template, IExternalIssueResolver issueResolver)
         {
             var initial = template.StartBuildPackages.Select(p => new TeamCityApi.PackageDetails {Id = p.Key, Version = p.Value}).ToList();
             var final = template.FinishBuildPackages.Select(p => new TeamCityApi.PackageDetails { Id = p.Key, Version = p.Value }).ToList();
@@ -261,6 +279,55 @@ namespace TeamCityBuildChanges.Testing
                                 }
                         }
                 };
+        }
+
+        public static List<NuGetPackageChange> CreateSimpleNuGetPackageDependencies()
+        {
+            var dependencies = new List<NuGetPackageChange>();
+
+            for (int i = 1; i <= 2; i++)
+            {
+                dependencies.Add(CreateNuGetPackageChange(i.ToString(), "1.0.0.0", String.Format("1.0.0.{0}", i)));
+            }
+
+            return dependencies;
+        }
+
+        private static NuGetPackageChange CreateNuGetPackageChange(string id, string oldVersion, string newVersion)
+        {
+            var manifest = CreateSimpleChangeManifest();
+            if (id == "2")
+                manifest.NuGetPackageChanges = new List<NuGetPackageChange>
+                    {
+                        CreateNuGetPackageChange("1", "1.0.0.0", "1.0.0.1"),
+                        CreateNuGetPackageChange("3", "1.0.0.0", "1.0.0.3")
+                    };
+            return new NuGetPackageChange
+                {
+                    PackageId = String.Format("Package-{0}", id),
+                    OldVersion = oldVersion,
+                    NewVersion = newVersion,
+                    Type = NuGetPackageChangeType.Modified,
+                    ChangeManifest = manifest
+                };
+        }
+
+        public static ChangeManifest DeserializeFromXML(string xmlInput)
+        {
+            var deserializer = new XmlSerializer(typeof (ChangeManifest));
+            var textReader = new StreamReader(xmlInput);
+            var changeManifest = (ChangeManifest) deserializer.Deserialize(textReader);
+            textReader.Close();
+            return changeManifest;
+        }
+
+        public static IPackageBuildMappingCache CreateMockedMultiplePackageBuildMappingCache(List<PackageBuildMapping> mappingTemplates)
+        {
+            var mappings = mappingTemplates;
+
+            var cache = A.Fake<IPackageBuildMappingCache>();
+            A.CallTo(() => cache.PackageBuildMappings).Returns(mappings);
+            return cache;
         }
     }
 }
