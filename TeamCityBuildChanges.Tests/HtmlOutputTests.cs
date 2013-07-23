@@ -1,4 +1,5 @@
-﻿using NUnit.Framework;
+﻿using System.Globalization;
+using NUnit.Framework;
 using TeamCityBuildChanges.Output;
 using TeamCityBuildChanges.Testing;
 
@@ -11,7 +12,7 @@ namespace TeamCityBuildChanges.Tests
         public void CanRenderSimpleTemplate()
         {
             var result = new RazorOutputRenderer(@".\templates\text.cshtml").Render(TestHelpers.CreateSimpleChangeManifest());
-            Assert.True(result.ToString().StartsWith("Version"));//Giddyup.
+            Assert.True(result.ToString(CultureInfo.InvariantCulture).StartsWith("  Version"));//Giddyup.
         }
 
     }
