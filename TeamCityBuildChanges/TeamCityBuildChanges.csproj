@@ -155,7 +155,9 @@
     <Compile Include="Commands\SingleBuildDeltaCommand.cs" />
     <Compile Include="ExternalApi\TeamCity\TeamCityApi.cs" />
     <Compile Include="Testing\BuildTemplate.cs" />
+    <Compile Include="Testing\TeamCityApiMockTemplate.cs" />
     <Compile Include="Testing\TestHelpers.cs" />
+    <Compile Include="Testing\TFSApiMockTemplate.cs" />
     <None Include="app.config" />
     <Content Include="Templates\Octopus.cshtml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>

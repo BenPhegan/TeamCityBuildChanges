@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Xml.Serialization;
@@ -50,8 +51,10 @@ namespace TeamCityBuildChanges.Testing
 
             var mappings = packageCache.PackageBuildMappings.Select(map => map.BuildConfigurationId);
 
-            A.CallTo(() => api.GetBuildDetailsFromBuildNumber(A<IEnumerable<string>>.That.IsSameSequenceAs(mappings), string.Format(template.BuildNumberPattern, template.FinishBuildNumber)))
-             .Returns(new Build
+            A.CallTo(() => api.GetBuildDetailsFromBuildNumber(A<IEnumerable<string>>
+                .That
+                .IsSameSequenceAs(mappings), string.Format(template.BuildNumberPattern, template.FinishBuildNumber)))
+                .Returns(new Build
                  {
                      BuildTypeId = template.BuildId,
                      Name = template.BuildName,
@@ -60,7 +63,7 @@ namespace TeamCityBuildChanges.Testing
 
             //BuildType/Builds/ChangeDetails
             A.CallTo(() => api.GetBuildTypeDetailsById(template.BuildId))
-             .Returns(new BuildTypeDetails
+                .Returns(new BuildTypeDetails
                  {
                      Id = template.BuildId,
                      Name = template.BuildName,
@@ -68,7 +71,7 @@ namespace TeamCityBuildChanges.Testing
                  });
 
             var changeDetails = SetupBuildTypeAndBuilds(api, template);
-            A.CallTo(() =>api.GetChangeDetailsByBuildTypeAndBuildNumber(template.BuildId, startBuild, finishBuild, A<IEnumerable<Build>>.Ignored))
+            A.CallTo(() => api.GetChangeDetailsByBuildTypeAndBuildNumber(template.BuildId, startBuild, finishBuild, A<IEnumerable<Build>>.Ignored))
              .Returns(changeDetails.Where(c => Convert.ToInt16(c.Id) > template.StartBuildNumber && Convert.ToInt16(c.Id) <= template.FinishBuildNumber).ToList());
 
             //Issues
@@ -138,13 +141,13 @@ namespace TeamCityBuildChanges.Testing
 
             if (initial.Any())
             {
-                A.CallTo(() => api.GetNuGetDependenciesByBuildTypeAndBuildId(template.BuildId, template.StartBuildNumber.ToString()))
+                A.CallTo(() => api.GetNuGetDependenciesByBuildTypeAndBuildId(template.BuildId, template.StartBuildNumber.ToString(CultureInfo.InvariantCulture)))
                 .Returns(initial);
             }
             
             if (initial.Any())
             {
-                A.CallTo(() => api.GetNuGetDependenciesByBuildTypeAndBuildId(template.BuildId, template.FinishBuildNumber.ToString()))
+                A.CallTo(() => api.GetNuGetDependenciesByBuildTypeAndBuildId(template.BuildId, template.FinishBuildNumber.ToString(CultureInfo.InvariantCulture)))
                 .Returns(final);
             }
 
@@ -188,17 +191,17 @@ namespace TeamCityBuildChanges.Testing
         private static IEnumerable<ChangeDetail> SetupBuildTypeAndBuilds(ITeamCityApi api, BuildTemplate template)
         {
             A.CallTo(() => api.GetBuildDetailsByBuildId(template.BuildId)).Returns(new BuildDetails {BuildTypeId = template.BuildId, Name = template.BuildName, Id = template.BuildId});
-            var builds = Enumerable.Range(1, template.BuildCount).Select(i => new Build {BuildTypeId = template.BuildId, Id = i.ToString(), Number = String.Format(template.BuildNumberPattern, i)});
+            var builds = Enumerable.Range(1, template.BuildCount).Select(i => new Build {BuildTypeId = template.BuildId, Id = i.ToString(CultureInfo.InvariantCulture), Number = String.Format(template.BuildNumberPattern, i)});
             var changeDetails = Enumerable.Range(1, template.BuildCount).Select(i => new ChangeDetail 
                 {
                     Comment = Company.CatchPhrase(), 
-                    Id = i.ToString(),
+                    Id = i.ToString(CultureInfo.InvariantCulture),
                     Username = Name.FullName(),
-                    Version = (100+i*10+RandomNumber.Next(9)).ToString(),
+                    Version = (100+i*10+RandomNumber.Next(9)).ToString(CultureInfo.InvariantCulture),
                     Files = Enumerable.Range(1,RandomNumber.Next(1,50)).Select(j => new FileDetails 
                         {
-                            beforerevision = RandomNumber.Next(50,500).ToString(),
-                            afterrevision = RandomNumber.Next(450, 700).ToString(),
+                            beforerevision = RandomNumber.Next(50,500).ToString(CultureInfo.InvariantCulture),
+                            afterrevision = RandomNumber.Next(450, 700).ToString(CultureInfo.InvariantCulture),
                             File = Path.GetTempFileName(),
                             relativefile = Path.GetTempFileName()
                         }).ToList(),
@@ -288,7 +291,7 @@ namespace TeamCityBuildChanges.Testing
 
             for (int i = 1; i <= 2; i++)
             {
-                dependencies.Add(CreateNuGetPackageChange(i.ToString(), "1.0.0.0", String.Format("1.0.0.{0}", i)));
+                dependencies.Add(CreateNuGetPackageChange(i.ToString(CultureInfo.InvariantCulture), "1.0.0.0", String.Format("1.0.0.{0}", i)));
             }
 
             return dependencies;
@@ -331,30 +334,21 @@ namespace TeamCityBuildChanges.Testing
             return cache;
         }
 
-        public static IEnumerable<TFSIssueResolver> CreateMockedTfsApi(IEnumerable<TfsTemplate> templates)
+        public static IEnumerable<TFSIssueResolver> CreateMockedTfsApi(IEnumerable<TFSApiMockTemplate> templates)
         {
             var resolvers = new List<TFSIssueResolver>();
             foreach (var template in templates)
             {
                 var api = A.Fake<ITfsApi>();
                 A.CallTo(() => api.ConnectionUri).Returns(template.ConnectionUri);
-                SetTfsExpectations(api, template);
+                foreach (var workItem in template.WorkItems.Keys)
+                {
+                    var item = workItem;
+                    A.CallTo(() => api.GetWorkItem(item)).Returns(CreateWorkItem(workItem, template.WorkItems[workItem]));
+                }
                 resolvers.Add(new TFSIssueResolver(api));
             }
             return resolvers;
-        }
-
-        private static void SetTfsExpectations(ITfsApi api, TfsTemplate template)
-        {
-            foreach (var workItem in template.WorkItems.Keys)
-            {
-                SetWorkItemExpectation(api, workItem, template.WorkItems[workItem]);
-            }
-        }
-
-        private static void SetWorkItemExpectation(ITfsApi api, int workItemId, IEnumerable<int> children)
-        {
-            A.CallTo(() => api.GetWorkItem(workItemId)).Returns(CreateWorkItem(workItemId, children));
         }
 
         private static TfsWorkItem CreateWorkItem(int workItemId, IEnumerable<int> children)
@@ -372,7 +366,7 @@ namespace TeamCityBuildChanges.Testing
                 };
         }
 
-        public static List<Issue> CreateMockedIssueList(IEnumerable<BuildDetailsTemplate> templates)
+        public static List<Issue> CreateMockedIssueList(IEnumerable<TeamCityApiMockTemplate> templates)
         {
             var issues = new List<Issue>();
             foreach (var template in templates)
@@ -387,7 +381,7 @@ namespace TeamCityBuildChanges.Testing
             return list.Select(i => CreateMockedIssue(i, tfsConnection));
         }
 
-        public static ITeamCityApi CreateMockedTeamCityApi(IEnumerable<BuildDetailsTemplate> templates)
+        public static ITeamCityApi CreateMockedTeamCityApi(IEnumerable<TeamCityApiMockTemplate> templates)
         {
             const string server = "http://test.server";
             var api = A.Fake<ITeamCityApi>();
@@ -395,12 +389,14 @@ namespace TeamCityBuildChanges.Testing
 
             foreach (var template in templates)
             {
-                SetBuildDetailsExpectations(template, api);
+                var localTemplate = template;
+                A.CallTo(() => api.GetBuildTypeDetailsById(localTemplate.Id)).Returns(CreateMockedBuildTypeDetails(template));
+                A.CallTo(() => api.GetBuildDetailsByBuildId(localTemplate.Id)).Returns(CreateMockedBuildDetails(template));
             }
             return api;
         }
 
-        public static List<Issue> GetIssuesFromMockedTeamCityApi(ITeamCityApi api, IEnumerable<BuildDetailsTemplate> templates)
+        public static List<Issue> GetIssuesFromMockedTeamCityApi(ITeamCityApi api, IEnumerable<TeamCityApiMockTemplate> templates)
         {
             var issues = new List<Issue>();
             foreach (var template in templates)
@@ -410,13 +406,7 @@ namespace TeamCityBuildChanges.Testing
             return issues;
         }
 
-        private static void SetBuildDetailsExpectations(BuildDetailsTemplate template, ITeamCityApi api)
-        {
-            A.CallTo(() => api.GetBuildTypeDetailsById(template.Id)).Returns(CreateMockedBuildTypeDetails(template));
-            A.CallTo(() => api.GetBuildDetailsByBuildId(template.Id)).Returns(CreateMockedBuildDetails(template));
-        }
-
-        private static BuildTypeDetails CreateMockedBuildTypeDetails(BuildDetailsTemplate template)
+        private static BuildTypeDetails CreateMockedBuildTypeDetails(TeamCityApiMockTemplate template)
         {
             return new BuildTypeDetails
                 {
@@ -429,7 +419,7 @@ namespace TeamCityBuildChanges.Testing
                 };
         }
 
-        private static BuildDetails CreateMockedBuildDetails(BuildDetailsTemplate template)
+        private static BuildDetails CreateMockedBuildDetails(TeamCityApiMockTemplate template)
         {
             return new BuildDetails
                 {
@@ -450,7 +440,7 @@ namespace TeamCityBuildChanges.Testing
         {
             return new Issue
                 {
-                    Id = id.ToString(),
+                    Id = id.ToString(CultureInfo.InvariantCulture),
                     Url = tfsConnection,
                     TfsRootUrl = tfsConnection
                 };

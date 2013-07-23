@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using Faker;
 using NUnit.Framework;
@@ -10,17 +11,14 @@ namespace TeamCityBuildChanges.Tests
     [TestFixture]
     public class TFSIssueResolverTests
     {
+        private static string _uri = string.Format("http://{0}/tfs", Internet.DomainName());
+
         [Test]
         public void TestSingleTfsUrl()
         {
-            var tfsConnections = new List<string>
+            var tfsTemplate = new TFSApiMockTemplate
                 {
-                    string.Format("http://{0}/tfs", Internet.DomainName())
-                };
-
-            var tfsTemplate = new TfsTemplate
-                {
-                    ConnectionUri = tfsConnections.First(),
+                    ConnectionUri = _uri,
                     WorkItems = new Dictionary<int, List<int>>
                         {
                             {1, new List<int> {2, 3, 4}},
@@ -34,10 +32,10 @@ namespace TeamCityBuildChanges.Tests
                         }
                 };
 
-            var buildDetailTemplates = new BuildDetailsTemplate
+            var buildDetailTemplates = new TeamCityApiMockTemplate
                 {
-                    TfsConnection = tfsConnections.First(),
-                    Id = 1.ToString(),
+                    TfsConnection = _uri,
+                    Id = 1.ToString(CultureInfo.InvariantCulture),
                     RelatedIssueIds = new List<int> {1, 2, 3, 4, 5, 6, 7, 8}
                 };
 
@@ -53,15 +51,9 @@ namespace TeamCityBuildChanges.Tests
         [Test]
         public void TestMultipleTfsUrl()
         {
-            var tfsConnections = new List<string>
-                {
-                    string.Format("http://{0}/tfs", Internet.DomainName()),
-                    string.Format("http://{0}/tfs", Internet.DomainName())
-                };
-
-            var tfsTemplate1 = new TfsTemplate
+            var tfsTemplate1 = new TFSApiMockTemplate
             {
-                ConnectionUri = tfsConnections.First(),
+                ConnectionUri = _uri,
                 WorkItems = new Dictionary<int, List<int>>
                         {
                             {1, new List<int> {2, 3, 4}},
@@ -71,9 +63,9 @@ namespace TeamCityBuildChanges.Tests
                         }
             };
 
-            var tfsTemplate2 = new TfsTemplate
+            var tfsTemplate2 = new TFSApiMockTemplate
             {
-                ConnectionUri = tfsConnections.Last(),
+                ConnectionUri = _uri,
                 WorkItems = new Dictionary<int, List<int>>
                         {
                             {5, new List<int> {6, 7, 8}},
@@ -83,9 +75,9 @@ namespace TeamCityBuildChanges.Tests
                         }
             };
 
-            var buildDetailTemplates = new BuildDetailsTemplate
+            var buildDetailTemplates = new TeamCityApiMockTemplate
             {
-                TfsConnection = tfsConnections.First(),
+                TfsConnection = _uri,
                 Id = 1.ToString(),
                 RelatedIssueIds = new List<int> { 1, 2, 3, 4, 5, 6, 7, 8 }
             };
