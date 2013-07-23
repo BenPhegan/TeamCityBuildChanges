@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using TeamCityBuildChanges.ExternalApi.TeamCity;
 
 namespace TeamCityBuildChanges.Testing
 {
