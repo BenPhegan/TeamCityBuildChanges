@@ -20,7 +20,7 @@ namespace TeamCityBuildChanges.Output
             IssueDetails = new List<ExternalIssueDetails>();
             NuGetPackageChanges = new List<NuGetPackageChange>();
             GenerationLog = new List<LogEntry>();
-            GenerationStatus = Status.FTMFW;
+            GenerationStatus = Status.Ok;
         }
 
         public List<ChangeDetail> ChangeDetails { get; set; }
@@ -48,16 +48,16 @@ namespace TeamCityBuildChanges.Output
                 // this gets a little freaky
 
                 // add root nodes - these comprise the full list
-                List<ExternalIssueDetails> roots = graph.Roots().ToList();
+                var roots = graph.Roots().ToList();
                 returnList.AddRange(roots);
                 // now we just tweak the subissues properties within the source of each edge of every sink vertex
-                foreach (ExternalIssueDetails issue in graph.Sinks())
+                foreach (var issue in graph.Sinks())
                 {
-                    ExternalIssueDetails targetIssue = issue;
-                    IEnumerable<SubIssueEdge> edges = graph.Edges.Where(e => e.Target.Equals(targetIssue));
-                    foreach (SubIssueEdge edge in edges)
+                    var targetIssue = issue;
+                    var edges = graph.Edges.Where(e => e.Target.Equals(targetIssue));
+                    foreach (var edge in edges)
                     {
-                        ExternalIssueDetails source = edge.GetOtherVertex(issue);
+                        var source = edge.GetOtherVertex(issue);
                         if (!source.ContainsSubIssue(issue))
                             source.SubIssues.Add(issue);
                     }
@@ -103,8 +103,6 @@ namespace TeamCityBuildChanges.Output
     public enum Status
     {
         Ok,
-        FTW,
-        FTMFW,
         Error,
         Warning
     }

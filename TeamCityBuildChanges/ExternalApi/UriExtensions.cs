@@ -1,8 +1,8 @@
-﻿namespace TeamCityBuildChanges.ExternalApi.TeamCity
-{
-    using System;
-    using System.Text;
+﻿using System;
+using System.Text;
 
+namespace TeamCityBuildChanges.ExternalApi
+{
     public static class UriExtensions
     {
         /// <summary>

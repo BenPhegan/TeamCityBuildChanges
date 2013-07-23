@@ -2,11 +2,10 @@
 {
     using System;
     using RestSharp;
-    using TeamCityBuildChanges.ExternalApi.TeamCity;
 
     public class AuthenticatedRestClient : RestClient
     {
-        private readonly string authenticationToken;
+        private readonly string _authenticationToken;
 
         /// <summary>
         /// Gets the authentication token.
@@ -16,7 +15,7 @@
         /// </value>
         public string AuthenticationToken
         {
-            get { return this.authenticationToken; }
+            get { return _authenticationToken; }
         }
 
         /// <summary>
@@ -29,7 +28,7 @@
             var uri = new Uri(url);
             var derivedAuthToken = uri.TryResolveAuthToken(out uri);
             
-            this.authenticationToken = authenticationToken ?? derivedAuthToken;
+            _authenticationToken = authenticationToken ?? derivedAuthToken;
 
             base.BaseUrl = uri.ToString();
         }

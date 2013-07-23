@@ -15,7 +15,7 @@ namespace TeamCityBuildChanges.ExternalApi.TeamCity
     {
         private readonly string _teamCityServer;
         private readonly AuthenticatedRestClient _client;
-        private MemoryBasedBuildCache _cache;
+        private readonly MemoryBasedBuildCache _cache;
 
         public TeamCityApi(string server, string authToken = null)
         {
@@ -25,7 +25,7 @@ namespace TeamCityBuildChanges.ExternalApi.TeamCity
 
             var builder = new UriBuilder(_client.BaseUrl)
                               {
-                                  Path = string.IsNullOrEmpty(this._client.AuthenticationToken) ? "guestAuth" : "httpAuth"
+                                  Path = string.IsNullOrEmpty(_client.AuthenticationToken) ? "guestAuth" : "httpAuth"
                               };
             
             _client.BaseUrl = builder.ToString();
@@ -60,12 +60,13 @@ namespace TeamCityBuildChanges.ExternalApi.TeamCity
 
         public Build GetBuildDetailsFromBuildNumber(IEnumerable<string> ids, string number)
         {
-            List<Build> builds = new List<Build>();
-            builds.AddRange(ids.Select(x => _cache.TryCacheForBuildDetailsByBuildTypeIdAndNumber(x, number)).Where(b => b != null));
+            var builds = new List<Build>();
+            var idList = ids as IList<string> ?? ids.ToList();
+            builds.AddRange(idList.Select(x => _cache.TryCacheForBuildDetailsByBuildTypeIdAndNumber(x, number)).Where(b => b != null));
             if (builds.Any())
                 return builds.First();
 
-            builds.AddRange(ids.Select(id => _client.Execute<List<Build>>(GetXmlBuildRequest(string.Format("app/rest/builds/?locator=buildType:{0},number:{1}", id, number))).Data).Where(x => x != null).SelectMany(x => x));
+            builds.AddRange(idList.Select(id => _client.Execute<List<Build>>(GetXmlBuildRequest(string.Format("app/rest/builds/?locator=buildType:{0},number:{1}", id, number))).Data).Where(x => x != null).SelectMany(x => x));
             return builds.First();
         }
 
@@ -174,7 +175,7 @@ namespace TeamCityBuildChanges.ExternalApi.TeamCity
         public IEnumerable<ChangeDetail> GetChangeDetailsForCurrentBuildByBuildType(string buildType)
         {
             var response = GetRunningBuildByBuildType(buildType);
-            if (response == null)
+            if (response == null || response.FirstOrDefault() == null)
                 return new List<ChangeDetail>();
 
             var releaseNotes = GetChangeDetailsByBuildId(response.FirstOrDefault().Id);
@@ -331,7 +332,7 @@ namespace TeamCityBuildChanges.ExternalApi.TeamCity
         public string Href { get; set; }
         public string ProjectName { get; set; }
         public string ProjectId { get; set; }
-        [XmlIgnore()]
+        [XmlIgnore]
         public Uri WebUrl { get; set; }
 
         public override string ToString()

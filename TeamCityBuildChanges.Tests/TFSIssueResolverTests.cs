@@ -11,14 +11,14 @@ namespace TeamCityBuildChanges.Tests
     [TestFixture]
     public class TFSIssueResolverTests
     {
-        private static string _uri = string.Format("http://{0}/tfs", Internet.DomainName());
+        private static readonly string Uri = string.Format("http://{0}/tfs", Internet.DomainName());
 
         [Test]
         public void TestSingleTfsUrl()
         {
             var tfsTemplate = new TFSApiMockTemplate
                 {
-                    ConnectionUri = _uri,
+                    ConnectionUri = Uri,
                     WorkItems = new Dictionary<int, List<int>>
                         {
                             {1, new List<int> {2, 3, 4}},
@@ -34,7 +34,7 @@ namespace TeamCityBuildChanges.Tests
 
             var buildDetailTemplates = new TeamCityApiMockTemplate
                 {
-                    TfsConnection = _uri,
+                    TfsConnection = Uri,
                     Id = 1.ToString(CultureInfo.InvariantCulture),
                     RelatedIssueIds = new List<int> {1, 2, 3, 4, 5, 6, 7, 8}
                 };
@@ -53,7 +53,7 @@ namespace TeamCityBuildChanges.Tests
         {
             var tfsTemplate1 = new TFSApiMockTemplate
             {
-                ConnectionUri = _uri,
+                ConnectionUri = Uri,
                 WorkItems = new Dictionary<int, List<int>>
                         {
                             {1, new List<int> {2, 3, 4}},
@@ -65,7 +65,7 @@ namespace TeamCityBuildChanges.Tests
 
             var tfsTemplate2 = new TFSApiMockTemplate
             {
-                ConnectionUri = _uri,
+                ConnectionUri = Uri,
                 WorkItems = new Dictionary<int, List<int>>
                         {
                             {5, new List<int> {6, 7, 8}},
@@ -77,8 +77,8 @@ namespace TeamCityBuildChanges.Tests
 
             var buildDetailTemplates = new TeamCityApiMockTemplate
             {
-                TfsConnection = _uri,
-                Id = 1.ToString(),
+                TfsConnection = Uri,
+                Id = 1.ToString(CultureInfo.InvariantCulture),
                 RelatedIssueIds = new List<int> { 1, 2, 3, 4, 5, 6, 7, 8 }
             };
 

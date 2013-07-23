@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using TeamCityBuildChanges.ExternalApi.TeamCity;
 using TeamCityBuildChanges.Output;
 
-namespace TeamCityBuildChanges.Commands
+namespace TeamCityBuildChanges
 {
     public interface IPackageChangeComparator
     {

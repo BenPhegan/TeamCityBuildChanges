@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using Microsoft.TeamFoundation.Client;
 using Microsoft.TeamFoundation.VersionControl.Client;
 using Microsoft.TeamFoundation.WorkItemTracking.Client;
@@ -10,11 +9,7 @@ namespace TeamCityBuildChanges.ExternalApi.TFS
 {
     public class TfsApi : ITfsApi
     {
-        private string _connectionUri;
-        public string ConnectionUri 
-        {
-            get { return _connectionUri; } 
-        }
+        public string ConnectionUri { get; private set; }
 
         private TfsTeamProjectCollection _connection;
 
@@ -28,12 +23,18 @@ namespace TeamCityBuildChanges.ExternalApi.TFS
 
         public TfsApi(string connectionUri)
         {
-            _connectionUri = connectionUri;
+            if (String.IsNullOrEmpty(connectionUri))
+                throw new ArgumentException("Connection string cannot be null.");
+
+            ConnectionUri = connectionUri;
         }
 
         public IEnumerable<TfsWorkItem> GetWorkItemsByCommit(int commit)
         {
             if (_connection == null) Connect();
+
+            if (_connection == null)
+                throw new Exception("Could not connect to TFS server");
 
             var versionControlServer = _connection.GetService<VersionControlServer>();
             var changeSet = versionControlServer.GetChangeset(commit);
@@ -55,6 +56,9 @@ namespace TeamCityBuildChanges.ExternalApi.TFS
         public TfsWorkItem GetWorkItem(int workItemId)
         {
             if (_connection == null) Connect();
+
+            if (_connection == null)
+                throw new Exception("Could not connect to TFS server");
 
             var workItemStore = _connection.GetService<WorkItemStore>();
 

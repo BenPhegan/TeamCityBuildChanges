@@ -10,9 +10,9 @@ namespace TeamCityBuildChanges.IssueDetailResolvers
 
     public class JiraIssueResolver : IExternalIssueResolver
     {
-        private readonly JiraApi _api;
+        private readonly IJiraApi _api;
 
-        public JiraIssueResolver(JiraApi api)
+        public JiraIssueResolver(IJiraApi api)
         {
             _api = api;
         }

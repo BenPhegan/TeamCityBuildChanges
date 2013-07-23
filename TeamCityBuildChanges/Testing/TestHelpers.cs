@@ -68,6 +68,10 @@ namespace TeamCityBuildChanges.Testing
                      Id = template.BuildId,
                      Name = template.BuildName,
                      Description = template.BuildName,
+                     VcsRootEntries = new List<VcsRootEntry>
+                            {
+                                new VcsRootEntry {VcsRoot = new List<VcsRoot> {new VcsRoot {Href = "http://random.url/tfs"}}}
+                            }
                  });
 
             var changeDetails = SetupBuildTypeAndBuilds(api, template);
@@ -190,7 +194,12 @@ namespace TeamCityBuildChanges.Testing
 
         private static IEnumerable<ChangeDetail> SetupBuildTypeAndBuilds(ITeamCityApi api, BuildTemplate template)
         {
-            A.CallTo(() => api.GetBuildDetailsByBuildId(template.BuildId)).Returns(new BuildDetails {BuildTypeId = template.BuildId, Name = template.BuildName, Id = template.BuildId});
+            A.CallTo(() => api.GetBuildDetailsByBuildId(template.BuildId))
+                .Returns(new BuildDetails
+                    {
+                        BuildTypeId = template.BuildId, Name = template.BuildName, Id = template.BuildId
+                    });
+
             var builds = Enumerable.Range(1, template.BuildCount).Select(i => new Build {BuildTypeId = template.BuildId, Id = i.ToString(CultureInfo.InvariantCulture), Number = String.Format(template.BuildNumberPattern, i)});
             var changeDetails = Enumerable.Range(1, template.BuildCount).Select(i => new ChangeDetail 
                 {
@@ -220,12 +229,20 @@ namespace TeamCityBuildChanges.Testing
                     BuildConfiguration = new BuildTypeDetails
                         {
                             Description = "Test",
-                            Name = "Test"
+                            Name = "Test",
+                            VcsRootEntries = new List<VcsRootEntry>
+                            {
+                                new VcsRootEntry {VcsRoot = new List<VcsRoot> {new VcsRoot {Href = "http://random.url/tfs"}}}
+                            }
                         },
                     ReferenceBuildConfiguration = new BuildTypeDetails
                         {
                             Description = "Test",
-                            Name = "Test"
+                            Name = "Test",
+                            VcsRootEntries = new List<VcsRootEntry>
+                            {
+                                new VcsRootEntry {VcsRoot = new List<VcsRoot> {new VcsRoot {Href = "http://random.url/tfs"}}}
+                            }
                         },
                     ChangeDetails = new List<ChangeDetail>
                         {

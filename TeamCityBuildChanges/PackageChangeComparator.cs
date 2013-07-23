@@ -3,7 +3,7 @@ using System.Linq;
 using TeamCityBuildChanges.ExternalApi.TeamCity;
 using TeamCityBuildChanges.Output;
 
-namespace TeamCityBuildChanges.Commands
+namespace TeamCityBuildChanges
 {
     /// <summary>
     /// Provides a list of NuGetPackageChange objects representing the difference in a set of build dependencies.

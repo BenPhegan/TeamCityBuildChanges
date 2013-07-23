@@ -6,7 +6,7 @@ using TeamCityBuildChanges.IssueDetailResolvers;
 using TeamCityBuildChanges.NuGetPackage;
 using TeamCityBuildChanges.Output;
 
-namespace TeamCityBuildChanges.Commands
+namespace TeamCityBuildChanges
 {
     /// <summary>
     /// Calculates ChangeManifest objects based on TeamCity builds.
@@ -26,6 +26,7 @@ namespace TeamCityBuildChanges.Commands
         /// <param name="externalIssueResolvers">A list of IExternalIssueResolver objects.</param>
         /// <param name="packageChangeComparator">Provides package dependency comparison capability.</param>
         /// <param name="packageBuildMappingCache">Provides the ability to map from a Nuget package to the build that created the package.</param>
+        /// <param name="traversedPackageChanges">List of already traversed packages</param>
         public AggregateBuildDeltaResolver(ITeamCityApi api, IEnumerable<IExternalIssueResolver> externalIssueResolvers, IPackageChangeComparator packageChangeComparator, IPackageBuildMappingCache packageBuildMappingCache, List<NuGetPackageChange> traversedPackageChanges)
         {
             _api = api;
@@ -104,27 +105,11 @@ namespace TeamCityBuildChanges.Commands
                     var changeDetails =_api.GetChangeDetailsByBuildTypeAndBuildNumber(buildWithCommitData, @from, to, buildList).ToList();
                     var issueDetailResolver = new IssueDetailResolver(_externalIssueResolvers);
 
-                    //Rather than use TeamCity to resolve the issue to commit details (via TeamCity plugins) use the issue resolvers directly...
-                    var buildTypeDetailsWithCommitData = _api.GetBuildTypeDetailsById(buildWithCommitData);
-                    var vcsRoots = buildTypeDetailsWithCommitData.VcsRootEntries.Select(v => _api.GetVcsRootById(v.Id));
-                    var vcsUrls = GetUrlsFromVcsRoots(vcsRoots);
-                    var issues = useBuildSystemIssueResolution
-                                     ? _api.GetIssuesByBuildTypeAndBuildRange(buildTypeDetailsWithCommitData, @from, to, buildList).ToList()
-                                     : issueDetailResolver.GetAssociatedIssues(changeDetails, vcsUrls).ToList();
-
+                    var issues = GetIssues(@from, to, useBuildSystemIssueResolution, buildWithCommitData, buildList, issueDetailResolver, changeDetails);
                     changeManifest.GenerationLog.Add(new LogEntry(DateTime.Now,Status.Ok, string.Format("Got {0} issues for BuildType {1}.", issues.Count(),buildType)));
 
                     changeManifest.GenerationLog.Add(new LogEntry(DateTime.Now, Status.Ok, "Checking package dependencies."));
-                    var buildFrom = buildList.FirstOrDefault(b => b.Number == @from);
-                    var buildTo = buildList.FirstOrDefault(b => b.Number == to);
-                    var initialPackages = new List<TeamCityApi.PackageDetails>();
-                    var finalPackages = new List<TeamCityApi.PackageDetails>();
-                    if (buildFrom != null)
-                        initialPackages = _api.GetNuGetDependenciesByBuildTypeAndBuildId(buildType,buildFrom.Id).ToList();
-                    if (buildTo != null)
-                        finalPackages = _api.GetNuGetDependenciesByBuildTypeAndBuildId(buildType, buildTo.Id).ToList();
-
-                    var packageChanges = _packageChangeComparator.GetPackageChanges(initialPackages, finalPackages).ToList();
+                    var packageChanges = GetNuGetPackageChanges(buildType, @from, to, buildList);
 
                     var issueDetails = issueDetailResolver.GetExternalIssueDetails(issues);
 
@@ -160,7 +145,7 @@ namespace TeamCityBuildChanges.Commands
                     {
                         if (build.BuildConfigurationId == buildType)
                             continue;
-                        dependency.ChangeManifest = CreateChangeManifest(null, build.BuildConfigurationId, null, dependency.OldVersion, dependency.NewVersion, null, false, true); ;
+                        dependency.ChangeManifest = CreateChangeManifest(null, build.BuildConfigurationId, null, dependency.OldVersion, dependency.NewVersion, null, false, true);
                     }
                     else
                     {
@@ -173,6 +158,41 @@ namespace TeamCityBuildChanges.Commands
             return changeManifest;
         }
 
+        private List<NuGetPackageChange> GetNuGetPackageChanges(string buildType, string @from, string to, List<Build> buildList)
+        {
+            var buildFrom = buildList.FirstOrDefault(b => b.Number == @from);
+            var buildTo = buildList.FirstOrDefault(b => b.Number == to);
+            var initialPackages = new List<TeamCityApi.PackageDetails>();
+            var finalPackages = new List<TeamCityApi.PackageDetails>();
+            if (buildFrom != null)
+                initialPackages = _api.GetNuGetDependenciesByBuildTypeAndBuildId(buildType, buildFrom.Id).ToList();
+            if (buildTo != null)
+                finalPackages = _api.GetNuGetDependenciesByBuildTypeAndBuildId(buildType, buildTo.Id).ToList();
+
+            var packageChanges = _packageChangeComparator.GetPackageChanges(initialPackages, finalPackages).ToList();
+            return packageChanges;
+        }
+
+        private List<Issue> GetIssues(string @from, string to, bool useBuildSystemIssueResolution, string buildWithCommitData, List<Build> buildList, IssueDetailResolver issueDetailResolver, List<ChangeDetail> changeDetails)
+        {
+            List<Issue> issues;
+            var buildTypeDetailsWithCommitData = _api.GetBuildTypeDetailsById(buildWithCommitData);
+            if (useBuildSystemIssueResolution)
+            {
+                issues = _api.GetIssuesByBuildTypeAndBuildRange(buildTypeDetailsWithCommitData, @from, to, buildList).ToList();
+            }
+            else
+            {
+                //Rather than use TeamCity to resolve the issue to commit details (via TeamCity plugins) use the issue resolvers directly...
+                var vcsRoots = buildTypeDetailsWithCommitData.VcsRootEntries != null
+                                   ? buildTypeDetailsWithCommitData.VcsRootEntries.Select(v => _api.GetVcsRootById(v.Id))
+                                   : new List<VcsRoot>();
+                var vcsUrls = GetUrlsFromVcsRoots(vcsRoots);
+                issues = issueDetailResolver.GetAssociatedIssues(changeDetails, vcsUrls).ToList();
+            }
+            return issues;
+        }
+
         public IEnumerable<string> GetUrlsFromVcsRoots(IEnumerable<VcsRoot> vcsRoots)
         {
             var urls = new List<string>();
@@ -181,10 +201,12 @@ namespace TeamCityBuildChanges.Commands
                 switch (vcsRoot.VcsName)
                 {
                     case "tfs":
-                        urls.Add(vcsRoot.Properties.FirstOrDefault(p => p.Name == "tfs-url").value);
+                        var tfsUrlValue = vcsRoot.Properties.FirstOrDefault(p => p.Name == "tfs-url");
+                        if (tfsUrlValue != null) urls.Add(tfsUrlValue.value);
                         break;
                     case "jetbrains.git":
-                        urls.Add(vcsRoot.Properties.FirstOrDefault(p => p.Name == "url").value);
+                        var urlValue = vcsRoot.Properties.FirstOrDefault(p => p.Name == "url");
+                        if (urlValue != null) urls.Add(urlValue.value);
                         break;
                 }
             }

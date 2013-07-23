@@ -11,7 +11,7 @@ namespace TeamCityBuildChanges.Tests
         public void CanRenderSimpleTemplate()
         {
             var result = new RazorOutputRenderer(@".\templates\text.cshtml").Render(TestHelpers.CreateSimpleChangeManifest());
-            Assert.True(result.StartsWith("Version"));//Giddyup.
+            Assert.True(result.StartsWith("  Version"));//Giddyup.
         }
     }
 }

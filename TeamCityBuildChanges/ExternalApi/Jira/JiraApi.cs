@@ -5,7 +5,7 @@ using RestSharp;
 
 namespace TeamCityBuildChanges.ExternalApi.Jira
 {
-    public class JiraApi
+    public class JiraApi : IJiraApi
     {
         private readonly Lazy<AuthenticatedRestClient> _client;
 

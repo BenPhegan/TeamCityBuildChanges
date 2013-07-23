@@ -14,9 +14,8 @@ namespace TeamCityBuildChanges.Output
             
             var issues = source as TSource[] ?? source.ToArray();
 
-            foreach (var issue in issues)
-                if (!graph.ContainsVertex(issue))
-                    graph.AddVertex(issue);
+            foreach (var issue in issues.Where(issue => !graph.ContainsVertex(issue)))
+                graph.AddVertex(issue);
 
             foreach (var issue in issues)
                 ProcessIssue(graph, issue);
