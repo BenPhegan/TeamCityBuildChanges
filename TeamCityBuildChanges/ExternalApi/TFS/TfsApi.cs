@@ -8,9 +8,9 @@ using Microsoft.TeamFoundation.WorkItemTracking.Client;
 
 namespace TeamCityBuildChanges.ExternalApi.TFS
 {
-    public class TfsApi
+    public class TfsApi : ITfsApi
     {
-        public readonly string ConnectionUri;
+        public string ConnectionUri { get; private set; }
 
         private TfsTeamProjectCollection _connection;
 
