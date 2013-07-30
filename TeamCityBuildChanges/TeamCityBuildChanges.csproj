@@ -118,6 +118,7 @@
     <Compile Include="Commands\IPackageChangeComparator.cs" />
     <Compile Include="Commands\PackageChangeComparator.cs" />
     <Compile Include="ExternalApi\AuthenticatedRestClient.cs" />
+    <Compile Include="ExternalApi\TFS\ITfsApi.cs" />
     <Compile Include="ExternalApi\UriExtensions.cs" />
     <Compile Include="ExternalApi\TeamCity\ITeamCityApi.cs" />
     <Compile Include="ExternalApi\TFS\TfsApi.cs" />

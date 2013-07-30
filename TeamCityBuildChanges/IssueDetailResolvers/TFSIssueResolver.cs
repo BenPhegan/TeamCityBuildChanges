@@ -9,9 +9,9 @@ namespace TeamCityBuildChanges.IssueDetailResolvers
 {
     public class TFSIssueResolver : IExternalIssueResolver
     {
-        readonly TfsApi _tfsApi;
+        readonly ITfsApi _tfsApi;
 
-        public TFSIssueResolver(TfsApi tfsApi)
+        public TFSIssueResolver(ITfsApi tfsApi)
         {
             _tfsApi = tfsApi;
         }
@@ -28,7 +28,16 @@ namespace TeamCityBuildChanges.IssueDetailResolvers
         public IEnumerable<Issue> GetIssues(IEnumerable<ChangeDetail> changeDetails)
         {
             var issues = new List<Issue>();
-            foreach (var workItems in changeDetails.Select(changeDetail => _tfsApi.GetWorkItemsByCommit(Convert.ToInt32(changeDetail.Version))))
+            foreach (
+                var workItems in
+                    changeDetails.Select(
+                        changeDetail =>
+                            {
+                                int commit;
+                                return Int32.TryParse(changeDetail.Version, out commit).Equals(true)
+                                           ? _tfsApi.GetWorkItemsByCommit(commit)
+                                           : Enumerable.Empty<TfsWorkItem>();
+                            }))
             {
                 issues.AddRange(workItems.Select(GetIssueFromTfsWorkItem));
             }
@@ -89,7 +98,7 @@ namespace TeamCityBuildChanges.IssueDetailResolvers
 
         private static bool IsTfsUrl(string url)
         {
-            return url.Contains("/tfs");
+            return !string.IsNullOrEmpty(url) && url.Contains("/tfs");
         }
     }
 }
