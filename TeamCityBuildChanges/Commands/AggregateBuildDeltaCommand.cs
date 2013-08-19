@@ -30,7 +30,7 @@ namespace TeamCityBuildChanges.Commands
             Options.Add("tat=", "TeamCity Auth Token", c => _teamCityAuthToken = c);
             Options.Add("bpc|buildpackagecache=", "An xml build package cache file for package to build mapping.", c => _buildPackageCacheFile = c);
             Options.Add("r|recurse", "Recurse into package dependencies and generate full tree delta.", c => _recurse = c != null);
-            Options.Add("b|branch=", "The specific branch name in TeamCity", x => _branchName = x);
+            Options.Add("br=|branch=", "The specific branch name in TeamCity", x => _branchName = x);
             SkipsCommandSummaryBeforeRunning();
         }
 
