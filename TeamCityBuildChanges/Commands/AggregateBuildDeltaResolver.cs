@@ -45,10 +45,13 @@ namespace TeamCityBuildChanges.Commands
         /// <param name="to">The To build number</param>
         /// <param name="useBuildSystemIssueResolution">Uses the issues resolved by the build system at time of build, rather than getting them directly from the version control system.</param>
         /// <param name="recurse">Recurses down through any detected package dependency changes.</param>
-        /// <returns>The calculated ChangeManifest object.</returns>
-        public ChangeManifest CreateChangeManifestFromBuildTypeName(string projectName, string buildName, string referenceBuild = null, string @from = null, string to = null, bool useBuildSystemIssueResolution = true, bool recurse = false)
+        /// <param name="branchName">Name of the branch.</param>
+        /// <returns>
+        /// The calculated ChangeManifest object.
+        /// </returns>
+        public ChangeManifest CreateChangeManifestFromBuildTypeName(string projectName, string buildName, string referenceBuild = null, string @from = null, string to = null, bool useBuildSystemIssueResolution = true, bool recurse = false, string branchName = null)
         {
-            return CreateChangeManifest(buildName, null, referenceBuild, from, to, projectName, useBuildSystemIssueResolution, recurse);
+            return CreateChangeManifest(buildName, null, referenceBuild, from, to, projectName, useBuildSystemIssueResolution, recurse, branchName);
         }
 
         /// <summary>
@@ -60,13 +63,16 @@ namespace TeamCityBuildChanges.Commands
         /// <param name="to">The To build number</param>
         /// <param name="useBuildSystemIssueResolution">Uses the issues resolved by the build system at time of build, rather than getting them directly from the version control system.</param>
         /// <param name="recurse">Recurses down through any detected package dependency changes.</param>
-        /// <returns>The calculated ChangeManifest object.</returns>
-        public ChangeManifest CreateChangeManifestFromBuildTypeId(string buildType, string referenceBuild = null, string from = null, string to = null, bool useBuildSystemIssueResolution = true, bool recurse = false)
+        /// <param name="branchName">Name of the branch.</param>
+        /// <returns>
+        /// The calculated ChangeManifest object.
+        /// </returns>
+        public ChangeManifest CreateChangeManifestFromBuildTypeId(string buildType, string referenceBuild = null, string from = null, string to = null, bool useBuildSystemIssueResolution = true, bool recurse = false, string branchName = null)
         {
-            return CreateChangeManifest(null, buildType, referenceBuild, from, to, null, useBuildSystemIssueResolution, recurse);
+            return CreateChangeManifest(null, buildType, referenceBuild, from, to, null, useBuildSystemIssueResolution, recurse, branchName);
         }
 
-        private ChangeManifest CreateChangeManifest(string buildName, string buildType, string referenceBuild = null, string from = null, string to = null, string projectName = null, bool useBuildSystemIssueResolution = true, bool recurse = false)
+        private ChangeManifest CreateChangeManifest(string buildName, string buildType, string referenceBuild = null, string from = null, string to = null, string projectName = null, bool useBuildSystemIssueResolution = true, bool recurse = false, string branchName = null)
         {
             var changeManifest = new ChangeManifest();
             if (recurse && _packageBuildMappingCache == null)
@@ -80,13 +86,13 @@ namespace TeamCityBuildChanges.Commands
             if (String.IsNullOrEmpty(from))
             {
                 changeManifest.GenerationLog.Add(new LogEntry(DateTime.Now, Status.Warning, "Resolving FROM version based on the provided BuildType (FROM was not provided)."));
-                from = ResolveFromVersion(buildType);
+                from = ResolveFromVersion(buildType, branchName);
             }
 
             if (String.IsNullOrEmpty(to))
             {
                 changeManifest.GenerationLog.Add(new LogEntry(DateTime.Now, Status.Warning, "Resolving TO version based on the provided BuildType (TO was not provided)."));
-                to = ResolveToVersion(buildType);
+                to = ResolveToVersion(buildType, branchName);
             }
 
             var buildWithCommitData = referenceBuild ?? buildType;
@@ -188,10 +194,10 @@ namespace TeamCityBuildChanges.Commands
             return changeManifest;
         }
 
-        private string ResolveToVersion(string buildType)
+        private string ResolveToVersion(string buildType, string branchName = null)
         {
             string to;
-            var runningBuild = _api.GetRunningBuildByBuildType(buildType).FirstOrDefault();
+            var runningBuild = _api.GetRunningBuildByBuildType(buildType, branchName).FirstOrDefault();
             if (runningBuild != null)
                 to = runningBuild.Number;
             else
@@ -199,10 +205,10 @@ namespace TeamCityBuildChanges.Commands
             return to;
         }
 
-        private string ResolveFromVersion(string buildType)
+        private string ResolveFromVersion(string buildType, string branchName = null)
         {
             string from;
-            var latestSuccesfull = _api.GetLatestSuccesfulBuildByBuildType(buildType);
+            var latestSuccesfull = _api.GetLatestSuccesfulBuildByBuildType(buildType, branchName);
             if (latestSuccesfull != null)
                 from = latestSuccesfull.Number;
             else

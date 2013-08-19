@@ -17,6 +17,7 @@ namespace TeamCityBuildChanges.Commands
         private string _teamCityAuthToken;
         private string _buildPackageCacheFile;
         private bool _recurse;
+        private string _branchName;
 
         public AggregateBuildDeltaCommand()
         {
@@ -29,6 +30,7 @@ namespace TeamCityBuildChanges.Commands
             Options.Add("tat=", "TeamCity Auth Token", c => _teamCityAuthToken = c);
             Options.Add("bpc|buildpackagecache=", "An xml build package cache file for package to build mapping.", c => _buildPackageCacheFile = c);
             Options.Add("r|recurse", "Recurse into package dependencies and generate full tree delta.", c => _recurse = c != null);
+            Options.Add("b|branch=", "The specific branch name in TeamCity", x => _branchName = x);
             SkipsCommandSummaryBeforeRunning();
         }
 
@@ -40,8 +42,8 @@ namespace TeamCityBuildChanges.Commands
 
             var resolver = new AggregateBuildDeltaResolver(api, CreateExternalIssueResolvers(), new PackageChangeComparator(),buildPackageCache, new List<NuGetPackageChange>());
             ChangeManifest = string.IsNullOrEmpty(BuildType) 
-                ? resolver.CreateChangeManifestFromBuildTypeName(ProjectName, BuildName,_referenceBuild, _from, _to, _useBuildSystemIssueResolution, _recurse) 
-                : resolver.CreateChangeManifestFromBuildTypeId(BuildType, _referenceBuild, _from, _to, _useBuildSystemIssueResolution, _recurse);
+                ? resolver.CreateChangeManifestFromBuildTypeName(ProjectName, BuildName,_referenceBuild, _from, _to, _useBuildSystemIssueResolution, _recurse, _branchName)
+                : resolver.CreateChangeManifestFromBuildTypeId(BuildType, _referenceBuild, _from, _to, _useBuildSystemIssueResolution, _recurse, _branchName);
 
             OutputChanges(CreateOutputRenderers(), new List<Action<string>> {Console.Write, a =>
                 {

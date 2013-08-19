@@ -25,7 +25,7 @@ namespace TeamCityBuildChanges.ExternalApi.TeamCity
                               {
                                   Path = string.IsNullOrEmpty(this._client.AuthenticationToken) ? "guestAuth" : "httpAuth"
                               };
-            
+
             _client.BaseUrl = builder.ToString();
         }
 
@@ -131,9 +131,9 @@ namespace TeamCityBuildChanges.ExternalApi.TeamCity
             return latestBuild;
         }
 
-        public Build GetLatestSuccesfulBuildByBuildType(string buildType)
+        public Build GetLatestSuccesfulBuildByBuildType(string buildType, string branchName = null)
         {
-            var builds = GetBuildsByBuildType(buildType);
+            var builds = GetBuildsByBuildType(buildType, branchName);
             var latestBuild = builds.Where(b => b.Status == "SUCCESS").OrderByDescending(b => b.BuildTypeId).FirstOrDefault();
             return latestBuild;
         }
@@ -155,9 +155,17 @@ namespace TeamCityBuildChanges.ExternalApi.TeamCity
             return releaseNotes;
         }
 
-        public IEnumerable<Build> GetRunningBuildByBuildType(string buildType)
+        public IEnumerable<Build> GetRunningBuildByBuildType(string buildType, string branchName = null)
         {
-            var request = GetXmlBuildRequest("app/rest/builds/?locator=buildType:{BT},running:true", "BT", buildType);
+            RestRequest request;
+            if (string.IsNullOrEmpty(branchName))
+            {
+                request = GetXmlBuildRequest("app/rest/builds/?locator=buildType:{BT},running:true", "BT", buildType);
+            }
+            else
+            {
+                request = GetXmlBuildRequest(string.Format("app/rest/builds/?locator=buildType:{{BT}},running:true,branch:(name:{0})", branchName), "BT", buildType);
+            }
             var response = _client.Execute<List<Build>>(request).Data;
             return response;
         }
@@ -255,9 +263,17 @@ namespace TeamCityBuildChanges.ExternalApi.TeamCity
             return response.Data;
         }
 
-        public IEnumerable<Build> GetBuildsByBuildType(string buildType)
+        public IEnumerable<Build> GetBuildsByBuildType(string buildType, string branchName = null)
         {
-            var request = GetXmlBuildRequest("app/rest/builds/?locator=buildType:{ID}", "ID", buildType);
+            RestRequest request;
+            if (string.IsNullOrEmpty(branchName))
+            {
+                request = GetXmlBuildRequest("app/rest/builds/?locator=buildType:{ID}", "ID", buildType);
+            }
+            else
+            {
+                request = GetXmlBuildRequest(string.Format("app/rest/builds/?locator=buildType:{{ID}},branch:(name:{0})", branchName), "ID", buildType);
+            }
             var response = _client.Execute<List<Build>>(request);
             return response.Data;
         }

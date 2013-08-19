@@ -184,7 +184,7 @@ namespace TeamCityBuildChanges.Testing
                             relativefile = Path.GetTempFileName()
                         }).ToList(),
                 });
-            A.CallTo(() => api.GetBuildsByBuildType(template.BuildId)).Returns(builds);
+            A.CallTo(() => api.GetBuildsByBuildType(template.BuildId, null)).Returns(builds);
             return changeDetails;
         }
 
