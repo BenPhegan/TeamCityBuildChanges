@@ -38,7 +38,7 @@ namespace TeamCityBuildChanges.IssueDetailResolvers
                     issues.AddRange(workItems.Select(GetIssueFromTfsWorkItem));
                 }
             }
-            catch (Exception e)
+            catch (Exception)
             {
             }
             return issues;

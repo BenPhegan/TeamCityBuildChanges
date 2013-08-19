@@ -1,19 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using ServiceStack.Text;
 using TeamCityBuildChanges.ExternalApi.TeamCity;
 using TeamCityBuildChanges.NuGetPackage;
 using TeamCityBuildChanges.Output;
 
 namespace TeamCityBuildChanges.Commands
 {
+// ReSharper disable UnusedMember.Global
     internal class AggregateBuildDeltaCommand : TeamCityCommandBase
+// ReSharper restore UnusedMember.Global
     {
         private string _from;
         private string _referenceBuild;
         private string _to;
-        private string _zeroChangesComment;
         private bool _useBuildSystemIssueResolution = true;
         private string _teamCityAuthToken;
         private string _buildPackageCacheFile;
@@ -27,7 +27,6 @@ namespace TeamCityBuildChanges.Commands
             Options.Add("rb=|referencebuild=", "Reference build to query resolved version deltas from", s => _referenceBuild = s);
             Options.Add("f|from=", "Build number to start checking from (optional - detects the last successful build number if omitted)", x => _from = x);
             Options.Add("t|to=", "The build to check the delta change to", x => _to = x);
-            Options.Add("zerochangescomment=", "If there are no changes detected, add the provided comment rather than leave it null", x => _zeroChangesComment = x);
             Options.Add("directissueresolution|d", "Force issues to be resolved directly instead of via build system (if TFS -> queries commits directly against the TFS API to get Work Items / Issues, if JIRA -> query commit comments for issue IDs)", c => _useBuildSystemIssueResolution = false);
             Options.Add("tat=", "TeamCity Auth Token", c => _teamCityAuthToken = c);
             Options.Add("bpc|buildpackagecache=", "An xml build package cache file for package to build mapping.", c => _buildPackageCacheFile = c);
@@ -39,7 +38,7 @@ namespace TeamCityBuildChanges.Commands
 
         public override int Run(string[] remainingArguments)
         {
-            var api = string.IsNullOrEmpty(_teamCityAuthToken) ? new TeamCityApi(ServerName) : new TeamCityApi(ServerName,_teamCityAuthToken);
+            var api = string.IsNullOrEmpty(_teamCityAuthToken) ? new TeamCityApi(ServerName, new MemoryBasedBuildCache()) : new TeamCityApi(ServerName, new MemoryBasedBuildCache(), _teamCityAuthToken);
 
             var buildPackageCache = string.IsNullOrEmpty(_buildPackageCacheFile) ? null : new PackageBuildMappingCache(_buildPackageCacheFile);
 

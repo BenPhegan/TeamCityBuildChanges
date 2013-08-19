@@ -5,7 +5,9 @@ using TeamCityBuildChanges.NuGetPackage;
 
 namespace TeamCityBuildChanges.Commands
 {
+// ReSharper disable UnusedMember.Global
     public class BuildPackageMappingCacheCommand : ConsoleCommand
+// ReSharper restore UnusedMember.Global
     {
         private string _servers;
         private string _output;
@@ -35,7 +37,7 @@ namespace TeamCityBuildChanges.Commands
         /// <param name="logWriteLine">An Action that can be used to output a full line to a log</param>
         /// <param name="logWrite">An Action that can be used to output a partial line to a log</param>
         /// <returns>A PackageBuildMappingCache</returns>
-        public static IPackageBuildMappingCache BuildPackageMappingCache(string servers, bool useArtifacts, Action<string> logWriteLine, Action<string> logWrite)
+        private static IPackageBuildMappingCache BuildPackageMappingCache(string servers, bool useArtifacts, Action<string> logWriteLine, Action<string> logWrite)
         {
             var serverlist = servers.Split(';').ToList();
             if (!serverlist.Any()) return null;

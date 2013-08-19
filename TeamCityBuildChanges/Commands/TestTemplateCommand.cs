@@ -7,7 +7,9 @@ using TeamCityBuildChanges.Testing;
 
 namespace TeamCityBuildChanges.Commands
 {
+// ReSharper disable UnusedMember.Global
     public class TestTemplate : ConsoleCommand
+// ReSharper restore UnusedMember.Global
     {
         private string _templateFile;
         private string _outputFilename;

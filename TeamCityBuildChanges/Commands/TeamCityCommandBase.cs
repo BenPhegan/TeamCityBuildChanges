@@ -7,7 +7,6 @@ using NDesk.Options;
 using ServiceStack.Text;
 using TeamCityBuildChanges.ExternalApi.Jira;
 using TeamCityBuildChanges.ExternalApi.TFS;
-using TeamCityBuildChanges.ExternalApi.TeamCity;
 using TeamCityBuildChanges.IssueDetailResolvers;
 using TeamCityBuildChanges.Output;
 
@@ -15,35 +14,29 @@ namespace TeamCityBuildChanges.Commands
 {
     internal class TeamCityCommandBase : ConsoleCommand
     {
-        protected bool NoVersion;
-        protected Boolean Xml;
         protected string OutputFileName;
-        protected List<ChangeDetail> ChangeDetails;
-        protected List<Issue> IssueDetails;
         protected ChangeManifest ChangeManifest = new ChangeManifest();
         protected string ServerName;
         protected string BuildType;
         protected string ProjectName;
         protected string BuildName;
-        protected string JiraUrl;
-        protected string JiraToken;
-        protected string TfsUrl;
-        protected string Template;
+        private string _jiraUrl;
+        private string _jiraToken;
+        private string _tfsUrl;
+        private string _template;
 
-        public TeamCityCommandBase()
+        protected TeamCityCommandBase()
         {
             Options = new OptionSet
                 {
-                    {"noversion|nv", "Don't include the version in the output of the change details, instead use a *", v => NoVersion = true},
-                    {"x|xmloutput", "OutputFileName to XML", x => Xml = true},
                     {"o|output=", "OutputFileName filename (otherwise to console)", x => OutputFileName = x},
                     {"b=|buildType=", "TeamCity build type to get the details for.", s => BuildType = s},
                     {"p=|project=", "TeamCity project to search within for specific build name.", s => ProjectName = s},
                     {"bn=|buildName=", "TeamCity build type to get the details for.", s => BuildName = s},
-                    {"jiraurl=", "The Jira URL to query for issue details", x => JiraUrl = x},
-                    {"jiraauthtoken=", "The Jira authorisation token to use (refer to 'encode' subcommand", x => JiraToken = x},
-                    {"tfsurl=", "TFS URL to check issues on (can be semicolon separated)", x => TfsUrl = x},
-                    {"template=", "Template to use for output.  Must be a Razor template that accepts a ChangeManifest model.", x => Template = x}
+                    {"jiraurl=", "The Jira URL to query for issue details", x => _jiraUrl = x},
+                    {"jiraauthtoken=", "The Jira authorisation token to use (refer to 'encode' subcommand", x => _jiraToken = x},
+                    {"tfsurl=", "TFS URL to check issues on (can be semicolon separated)", x => _tfsUrl = x},
+                    {"template=", "Template to use for output.  Must be a Razor template that accepts a ChangeManifest model.", x => _template = x}
                 };
 
             HasRequiredOption("s|server=", "TeamCity server to target (just use base URL and have guestAuth enabled", s => ServerName = s);
@@ -70,14 +63,13 @@ namespace TeamCityBuildChanges.Commands
         {
             var resolvers = new List<IExternalIssueResolver>();
 
-            if (!string.IsNullOrEmpty(JiraUrl))
+            if (!string.IsNullOrEmpty(_jiraUrl))
             {
-                resolvers.Add(new JiraIssueResolver(new JiraApi(JiraUrl, JiraToken)));
+                resolvers.Add(new JiraIssueResolver(new JiraApi(_jiraUrl, _jiraToken)));
             }
-            if (!string.IsNullOrEmpty(TfsUrl))
+            if (!string.IsNullOrEmpty(_tfsUrl))
             {
-                foreach (var url in TfsUrl.Split(';'))
-                    resolvers.Add(new TFSIssueResolver(new TfsApi(url)));
+                resolvers.AddRange(_tfsUrl.Split(';').Select(url => new TFSIssueResolver(new TfsApi(url))));
             }
             return resolvers;
         }
@@ -86,7 +78,7 @@ namespace TeamCityBuildChanges.Commands
         {
             var renderers = new List<IOutputRenderer>
                 {
-                    string.IsNullOrEmpty(Template) ? new RazorOutputRenderer() : new RazorOutputRenderer(Template)
+                    string.IsNullOrEmpty(_template) ? new RazorOutputRenderer() : new RazorOutputRenderer(_template)
                 };
 
             return renderers;

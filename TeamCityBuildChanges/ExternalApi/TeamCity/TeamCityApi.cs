@@ -4,6 +4,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Runtime.Caching;
 using System.Text;
 using System.Xml.Linq;
 using System.Xml.Serialization;
@@ -15,11 +16,12 @@ namespace TeamCityBuildChanges.ExternalApi.TeamCity
     {
         private readonly string _teamCityServer;
         private readonly AuthenticatedRestClient _client;
-        private readonly MemoryBasedBuildCache _cache;
+        private readonly ICache _cache;
 
-        public TeamCityApi(string server, string authToken = null)
+        public TeamCityApi(string server, ICache cache, string authToken = null)
         {
             _teamCityServer = server;
+            _cache = cache;
 
             _client = new AuthenticatedRestClient(TeamCityServer, authToken);
 
@@ -49,12 +51,12 @@ namespace TeamCityBuildChanges.ExternalApi.TeamCity
         public BuildTypeDetails GetBuildTypeDetailsById(string id)
         {
             BuildTypeDetails buildTypeDetails;
-            if (_cache.TryCacheForDetailsByBuildTypeId(id, out buildTypeDetails))
+            if (_cache.TryGetItem(id, out buildTypeDetails))
                 return buildTypeDetails;
 
             var buildDetails = GetXmlBuildRequest("app/rest/buildTypes/id:{ID}", "ID", id);
             var response = _client.Execute<BuildTypeDetails>(buildDetails);
-            _cache.AddCacheBuildTypeDetailsById(id, response.Data);
+            _cache.SetItem(id, response.Data);
             return response.Data;
         }
 
@@ -62,7 +64,12 @@ namespace TeamCityBuildChanges.ExternalApi.TeamCity
         {
             var builds = new List<Build>();
             var idList = ids as IList<string> ?? ids.ToList();
-            builds.AddRange(idList.Select(x => _cache.TryCacheForBuildDetailsByBuildTypeIdAndNumber(x, number)).Where(b => b != null));
+            builds.AddRange(idList.Select(x =>
+                {
+                    Build value;
+                    _cache.TryGetItem(x, out value);
+                    return value.Number == number ? value : null;
+                }).Where(b => b != null));
             if (builds.Any())
                 return builds.First();
 
@@ -93,9 +100,9 @@ namespace TeamCityBuildChanges.ExternalApi.TeamCity
 
         public List<PackageDetails> GetNuGetDependenciesByBuildTypeAndBuildId(string buildType, string buildId)
         {
-            List<PackageDetails> packageDetails;
-            if (_cache.TryCacheForNuGetDependenciesByBuildTypeAndBuildId(buildType, buildId, out packageDetails))
-                return packageDetails;
+            //List<PackageDetails> packageDetails;
+            //if (_cache.TryCacheForNuGetDependenciesByBuildTypeAndBuildId(buildType, buildId, out packageDetails))
+            //    return packageDetails;
 
             var restUrl = new StringBuilder();
             restUrl.AppendFormat("{0}/repository/download/{1}/{2}:id/.teamcity/nuget/nuget.xml", _client.BaseUrl, buildType, buildId);
@@ -122,10 +129,10 @@ namespace TeamCityBuildChanges.ExternalApi.TeamCity
                         Version = p.Attribute("version").Value
                     }).ToList();
 
-                _cache.AddCacheNuGetDependencies(buildType, buildId, packageList);
+                //_cache.AddCacheNuGetDependencies(buildType, buildId, packageList);
                 return packageList;
             }
-            catch (WebException exception)
+            catch (WebException)
             {
                 //Evil?
                 return new List<PackageDetails>();
@@ -266,43 +273,43 @@ namespace TeamCityBuildChanges.ExternalApi.TeamCity
         public BuildDetails GetBuildDetailsByBuildId(string id)
         {
             BuildDetails buildDetails;
-            if (_cache.TryCacheForBuildDetailsByBuildId(id, out buildDetails))
+            if (_cache.TryGetItem(id, out buildDetails))
                 return buildDetails;
 
             var request = GetXmlBuildRequest("app/rest/builds/id:{ID}", "ID", id);
             var response = _client.Execute<BuildDetails>(request);
-            _cache.AddCacheBuildDetailsEntry(response.Data);
+            _cache.SetItem(id, response.Data);
             return response.Data;
         }
 
         public ChangeList GetChangeListByBuildId(string id)
         {
             ChangeList changeList;
-            if (_cache.TryCacheForChangeListByBuildId(id, out changeList))
+            if (_cache.TryGetItem(id, out changeList))
                 return changeList;
 
             var request = GetXmlBuildRequest("app/rest/changes?build=id:{ID}", "ID", id);
             var response = _client.Execute<ChangeList>(request);
-            _cache.AddCacheChangeListByBuildIdEntry(id, response.Data);
+            _cache.SetItem(id, response.Data);
             return response.Data;
         }
 
         public ChangeDetail GetChangeDetailsByChangeId(string id)
         {
             ChangeDetail changeDetail;
-            if (_cache.TryCacheForChangeDetailsByChangeId(id, out changeDetail))
+            if (_cache.TryGetItem(id, out changeDetail))
                 return changeDetail;
 
             var request = GetXmlBuildRequest("app/rest/changes/id:{ID}", "ID", id);
             var response = _client.Execute<ChangeDetail>(request);
-            _cache.AddCacheChangeDetailsByChangeIdEntry(id, response.Data);
+            _cache.SetItem(id, response.Data);
             return response.Data;
         }
 
         public IEnumerable<Build> GetBuildsByBuildType(string buildType)
         {
             IEnumerable<Build> builds;
-            if (_cache.TryCacheForBuildsByBuildTypeId(buildType, out builds))
+            if (_cache.TryGetItem(buildType, out builds))
                 return builds;
 
             var request = GetXmlBuildRequest("app/rest/builds/?locator=buildType:{ID}", "ID", buildType);

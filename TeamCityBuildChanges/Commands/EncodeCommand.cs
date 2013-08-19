@@ -4,7 +4,9 @@ using TeamCityBuildChanges.ExternalApi.Jira;
 
 namespace TeamCityBuildChanges.Commands
 {
+// ReSharper disable UnusedMember.Global
     public class EncodeCommand : ConsoleCommand
+// ReSharper restore UnusedMember.Global
     {
         private string _username;
         private string _password;
