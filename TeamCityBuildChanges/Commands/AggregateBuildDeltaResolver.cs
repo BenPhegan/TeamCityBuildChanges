@@ -196,24 +196,31 @@ namespace TeamCityBuildChanges.Commands
 
         private string ResolveToVersion(string buildType, string branchName = null)
         {
-            string to;
             var runningBuild = _api.GetRunningBuildByBuildType(buildType, branchName).FirstOrDefault();
             if (runningBuild != null)
-                to = runningBuild.Number;
-            else
-                throw new ApplicationException(String.Format("Could not resolve a build number for the running build."));
-            return to;
+            {
+                return runningBuild.Number;
+            }
+            
+            throw new ApplicationException(String.Format("Could not resolve a build number for the running build."));
         }
 
         private string ResolveFromVersion(string buildType, string branchName = null)
         {
-            string from;
-            var latestSuccesfull = _api.GetLatestSuccesfulBuildByBuildType(buildType, branchName);
-            if (latestSuccesfull != null)
-                from = latestSuccesfull.Number;
-            else
-                throw new ApplicationException(String.Format("Could not find latest build for build type {0}", buildType));
-            return from;
+            var latestSuccessful = _api.GetLatestSuccessfulBuildByBuildType(buildType, branchName);
+            if (latestSuccessful != null)
+            {
+                return latestSuccessful.Number;
+            }
+
+            // fall back to the current running build
+            var runningBuild = _api.GetRunningBuildByBuildType(buildType, branchName).FirstOrDefault();
+            if (runningBuild != null)
+            {
+                return runningBuild.Number;
+            }
+
+            throw new ApplicationException(String.Format("Could not find <from> build for build type {0}", buildType));
         }
 
         private string ResolveBuildTypeId(string projectName, string buildName)

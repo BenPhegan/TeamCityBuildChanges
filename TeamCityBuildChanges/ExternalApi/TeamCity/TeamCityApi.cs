@@ -131,7 +131,7 @@ namespace TeamCityBuildChanges.ExternalApi.TeamCity
             return latestBuild;
         }
 
-        public Build GetLatestSuccesfulBuildByBuildType(string buildType, string branchName = null)
+        public Build GetLatestSuccessfulBuildByBuildType(string buildType, string branchName = null)
         {
             var builds = GetBuildsByBuildType(buildType, branchName);
             var latestBuild = builds.Where(b => b.Status == "SUCCESS").OrderByDescending(b => b.BuildTypeId).FirstOrDefault();

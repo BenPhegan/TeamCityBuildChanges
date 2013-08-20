@@ -12,7 +12,7 @@ namespace TeamCityBuildChanges.ExternalApi.TeamCity
         List<TeamCityApi.PackageDetails> GetNuGetDependenciesByBuildTypeAndBuildId(string buildType, string buildId);
         IEnumerable<ChangeDetail> GetChangeDetailsForLastBuildByBuildType(string buildType);
         Build GetLatestBuildByBuildType(string buildType);
-        Build GetLatestSuccesfulBuildByBuildType(string buildType, string branchName = null);
+        Build GetLatestSuccessfulBuildByBuildType(string buildType, string branchName = null);
         IEnumerable<ChangeDetail> GetChangeDetailsByBuildId(string buildId);
         IEnumerable<ChangeDetail> GetChangeDetailsForCurrentBuildByBuildType(string buildType);
         IEnumerable<Build> GetRunningBuildByBuildType(string buildType, string branchName = null);
