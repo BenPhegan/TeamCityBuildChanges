@@ -102,7 +102,7 @@ namespace TeamCityBuildChanges.ExternalApi.TeamCity
             }
             catch (WebException exception)
             {
-                //Evil?
+                //Evil?  Yes :)
                 return new List<PackageDetails>();
             }
         }
@@ -177,15 +177,15 @@ namespace TeamCityBuildChanges.ExternalApi.TeamCity
             return response.Data.Where(b => b.ProjectName.Equals(project, StringComparison.InvariantCultureIgnoreCase) && b.Name.Equals(buildName, StringComparison.InvariantCultureIgnoreCase));
         }
 
-        public IEnumerable<ChangeDetail> GetChangeDetailsByBuildTypeAndBuildId(string buildType, string from, string to, Func<Build, string, bool> comparitor, IEnumerable<Build> buildList = null)
+        public IEnumerable<ChangeDetail> GetChangeDetailsByBuildTypeAndBuildId(string buildType, string from, string to, Func<Build, string, bool> comparitor, IEnumerable<Build> buildList = null, string branchName = null)
         {
-            var results = GetByBuildTypeAndBuildRange(buildType, from, to, comparitor, buildList, b => GetChangeDetailsByBuildId(b.Id));
+            var results = this.GetByBuildTypeAndBuildRange(buildType, @from, to, comparitor, buildList, b => this.GetChangeDetailsByBuildId(b.Id), branchName: branchName);
             return results;
         }
 
-        public IEnumerable<Issue> GetIssuesByBuildTypeAndBuildRange(string buildType, string from, string to, IEnumerable<Build> buildList = null)
+        public IEnumerable<Issue> GetIssuesByBuildTypeAndBuildRange(string buildType, string from, string to, IEnumerable<Build> buildList = null, string branchName = null)
         {
-            var results = GetByBuildTypeAndBuildRange(buildType, from, to, BuildNumberComparitor(), buildList, b => GetIssuesFromBuild(b.Id));
+            var results = this.GetByBuildTypeAndBuildRange(buildType, @from, to, BuildNumberComparitor(), buildList, b => this.GetIssuesFromBuild(b.Id), branchName: branchName);
             return results;
         }
 
@@ -195,9 +195,9 @@ namespace TeamCityBuildChanges.ExternalApi.TeamCity
             return buildDetails.RelatedIssues.Select(i => i.Issue).Distinct().ToList();
         }
 
-        private IEnumerable<T> GetByBuildTypeAndBuildRange<T>(string buildType, string from, string to, Func<Build, string, bool> comparitor, IEnumerable<Build> buildList, Func<Build, IEnumerable<T>> retriever, bool excludeResultsFromLowerBound = true)
+        private IEnumerable<T> GetByBuildTypeAndBuildRange<T>(string buildType, string @from, string to, Func<Build, string, bool> comparitor, IEnumerable<Build> buildList, Func<Build, IEnumerable<T>> retriever, bool excludeResultsFromLowerBound = true, string branchName = null)
         {
-            var builds = buildList ?? GetBuildsByBuildType(buildType);
+            var builds = buildList ?? GetBuildsByBuildType(buildType, branchName);
             var results = new List<T>();
 
             var captureChanges = false;
@@ -218,9 +218,9 @@ namespace TeamCityBuildChanges.ExternalApi.TeamCity
             return results;
         }
 
-        public IEnumerable<ChangeDetail> GetChangeDetailsByBuildTypeAndBuildId(string buildType, string from, string to)
+        public IEnumerable<ChangeDetail> GetChangeDetailsByBuildTypeAndBuildId(string buildType, string from, string to, string branchName = null)
         {
-            return GetChangeDetailsByBuildTypeAndBuildId(buildType, from, to, BuildIdComparitor());
+            return GetChangeDetailsByBuildTypeAndBuildId(buildType, from, to, BuildIdComparitor(), branchName: branchName);
         }
 
         private static Func<Build, string, bool> BuildIdComparitor()
@@ -228,13 +228,13 @@ namespace TeamCityBuildChanges.ExternalApi.TeamCity
             return (build, s) => build.Id.Equals(s, StringComparison.InvariantCultureIgnoreCase);
         }
 
-        public IEnumerable<ChangeDetail> GetChangeDetailsByBuildTypeAndBuildNumber(string buildType, string from, string to, IEnumerable<Build> buildList = null)
+        public IEnumerable<ChangeDetail> GetChangeDetailsByBuildTypeAndBuildNumber(string buildType, string from, string to, IEnumerable<Build> buildList = null, string branchName = null)
         {
             return GetChangeDetailsByBuildTypeAndBuildId(buildType,
                 from,
                 to,
                 BuildNumberComparitor(),
-                buildList);
+                buildList, branchName);
         }
 
         private static Func<Build, string, bool> BuildNumberComparitor()

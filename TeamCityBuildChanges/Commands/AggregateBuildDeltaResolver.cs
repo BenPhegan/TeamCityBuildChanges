@@ -102,17 +102,17 @@ namespace TeamCityBuildChanges.Commands
             if (!String.IsNullOrEmpty(from) && !String.IsNullOrEmpty(to) && !String.IsNullOrEmpty(buildWithCommitData))
             {
                 changeManifest.GenerationLog.Add(new LogEntry(DateTime.Now, Status.Ok, "Getting builds based on BuildType"));
-                var builds = _api.GetBuildsByBuildType(buildWithCommitData);
+                var builds = _api.GetBuildsByBuildType(buildWithCommitData, branchName);
                 if (builds != null)
                 {
                     var buildList = builds as List<Build> ?? builds.ToList();
                     changeManifest.GenerationLog.Add(new LogEntry(DateTime.Now,Status.Ok, string.Format("Got {0} builds for BuildType {1}.",buildList.Count(), buildType)));
-                    var changeDetails =_api.GetChangeDetailsByBuildTypeAndBuildNumber(buildWithCommitData, @from, to, buildList).ToList();
+                    var changeDetails =_api.GetChangeDetailsByBuildTypeAndBuildNumber(buildWithCommitData, @from, to, buildList, branchName).ToList();
                     var issueDetailResolver = new IssueDetailResolver(_externalIssueResolvers);
 
                     //Rather than use TeamCity to resolve the issue to commit details (via TeamCity plugins) use the issue resolvers directly...
                     var issues = useBuildSystemIssueResolution
-                                     ? _api.GetIssuesByBuildTypeAndBuildRange(buildWithCommitData, @from, to, buildList).ToList()
+                                     ? _api.GetIssuesByBuildTypeAndBuildRange(buildWithCommitData, @from, to, buildList, branchName).ToList()
                                      : issueDetailResolver.GetAssociatedIssues(changeDetails).ToList();
 
                     changeManifest.GenerationLog.Add(new LogEntry(DateTime.Now,Status.Ok, string.Format("Got {0} issues for BuildType {1}.", issues.Count(),buildType)));
@@ -180,7 +180,7 @@ namespace TeamCityBuildChanges.Commands
                                                               : new TeamCityApi(build.ServerUrl);
  
                         var resolver = new AggregateBuildDeltaResolver(instanceTeamCityApi, _externalIssueResolvers,_packageChangeComparator,_packageBuildMappingCache, _traversedPackageChanges);
-                        var dependencyManifest = resolver.CreateChangeManifest(null, build.BuildConfigurationId, null,dependency.OldVersion,dependency.NewVersion, null, true, true);
+                        var dependencyManifest = resolver.CreateChangeManifest(null, build.BuildConfigurationId, null,dependency.OldVersion,dependency.NewVersion, null, true, true, branchName);
                         dependency.ChangeManifest = dependencyManifest;
                     }
                     else
