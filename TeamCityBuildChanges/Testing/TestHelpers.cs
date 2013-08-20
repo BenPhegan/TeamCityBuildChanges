@@ -49,7 +49,7 @@ namespace TeamCityBuildChanges.Testing
                  });
 
             var changeDetails = SetupBuildTypeAndBuilds(api, template);
-            A.CallTo(() =>api.GetChangeDetailsByBuildTypeAndBuildNumber(template.BuildId, startBuild, finishBuild, A<IEnumerable<Build>>.Ignored))
+            A.CallTo(() =>api.GetChangeDetailsByBuildTypeAndBuildNumber(template.BuildId, startBuild, finishBuild, A<IEnumerable<Build>>.Ignored, null))
              .Returns(changeDetails.Where(c => Convert.ToInt16(c.Id) > template.StartBuildNumber && Convert.ToInt16(c.Id) <= template.FinishBuildNumber).ToList());
 
             //Issues
@@ -57,7 +57,7 @@ namespace TeamCityBuildChanges.Testing
             {
                 var issues = Enumerable.Range(1, template.IssueCount).Select(i => new Issue {Id = RandomNumber.Next(2000).ToString()}).ToList();
                 
-                A.CallTo(() => api.GetIssuesByBuildTypeAndBuildRange(template.BuildId, startBuild, finishBuild, A<IEnumerable<Build>>.Ignored))
+                A.CallTo(() => api.GetIssuesByBuildTypeAndBuildRange(template.BuildId, startBuild, finishBuild, A<IEnumerable<Build>>.Ignored, null))
                  .Returns(issues);
 
                 A.CallTo(issueResolver).WithReturnType<IEnumerable<ExternalIssueDetails>>()
@@ -184,7 +184,7 @@ namespace TeamCityBuildChanges.Testing
                             relativefile = Path.GetTempFileName()
                         }).ToList(),
                 });
-            A.CallTo(() => api.GetBuildsByBuildType(template.BuildId)).Returns(builds);
+            A.CallTo(() => api.GetBuildsByBuildType(template.BuildId, null)).Returns(builds);
             return changeDetails;
         }
 
