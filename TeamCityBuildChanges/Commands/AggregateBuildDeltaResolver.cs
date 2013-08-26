@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using ServiceStack.CacheAccess.Providers;
 using TeamCityBuildChanges.ExternalApi.TeamCity;
 using TeamCityBuildChanges.IssueDetailResolvers;
@@ -147,50 +148,59 @@ namespace TeamCityBuildChanges.Commands
                 }
             }
             //Now we need to see if we need to recurse, and whether we have been given a cache file....
-            if (changeManifest.NuGetPackageChanges.Any() && recurse && _packageBuildMappingCache != null)
-            {
-                foreach (var dependency in changeManifest.NuGetPackageChanges.Where(c => c.Type == NuGetPackageChangeType.Modified))
-                {
-                    var traversedDependency = _traversedPackageChanges.FirstOrDefault(p => p.NewVersion == dependency.NewVersion && p.OldVersion == dependency.OldVersion && p.PackageId == dependency.PackageId);
-                    if (traversedDependency != null)
-                    {
-                        dependency.ChangeManifest = traversedDependency.ChangeManifest;
-                        continue;
-                    }
-                    var mappings = _packageBuildMappingCache.PackageBuildMappings.Where(m => m.PackageId.Equals(dependency.PackageId, StringComparison.CurrentCultureIgnoreCase)).ToList();
-                    PackageBuildMapping build = null;
-                    if (mappings.Count == 1)
-                    {
-                        //We only got one back, this is good...
-                        build = mappings.First();
-                        changeManifest.GenerationLog.Add(new LogEntry(DateTime.Now, Status.Ok, string.Format("Found singular packages to build mapping {0}.", build.BuildConfigurationName)));
-                    }
-                    else if (mappings.Any())
-                    {
-                        //Ok, so multiple builds are outputting this package, so we need to try and constrain on project...
-                        build = mappings.FirstOrDefault(m => m.Project.Equals(buildTypeDetails.Project.Name, StringComparison.OrdinalIgnoreCase));
-                        if (build != null) changeManifest.GenerationLog.Add(new LogEntry(DateTime.Now, Status.Warning, string.Format("Found duplicate mappings, using package to build mapping {0}.", build.BuildConfigurationName)));
-                    }
+            if (!changeManifest.NuGetPackageChanges.Any() || !recurse || _packageBuildMappingCache == null) return changeManifest;
 
-                    if (build != null)
-                    {
-                        if (build.BuildConfigurationId == buildType)
-                            continue;
-                        var instanceTeamCityApi = _api.TeamCityServer.Equals(build.ServerUrl, StringComparison.OrdinalIgnoreCase)
-                                                              ? _api
-                                                              : new TeamCityApi(build.ServerUrl, new MemoryCacheClient());
- 
-                        var resolver = new AggregateBuildDeltaResolver(instanceTeamCityApi, _externalIssueResolvers,_packageChangeComparator,_packageBuildMappingCache, _traversedPackageChanges);
-                        var dependencyManifest = resolver.CreateChangeManifest(null, build.BuildConfigurationId, null,dependency.OldVersion,dependency.NewVersion, null, true, true, branchName);
-                        dependency.ChangeManifest = dependencyManifest;
-                    }
-                    else
-                    {
-                        changeManifest.GenerationLog.Add(new LogEntry(DateTime.Now, Status.Warning, string.Format("Did not find a mapping for package: {0}.", dependency.PackageId)));
-                    }
-                    _traversedPackageChanges.Add(dependency);
+            Parallel.ForEach(changeManifest.NuGetPackageChanges.Where(c => c.Type == NuGetPackageChangeType.Modified), dependency =>
+            {
+                var traversedDependency =
+                    _traversedPackageChanges.FirstOrDefault(
+                        p => p.NewVersion == dependency.NewVersion && p.OldVersion == dependency.OldVersion && p.PackageId == dependency.PackageId);
+                if (traversedDependency != null)
+                {
+                    dependency.ChangeManifest = traversedDependency.ChangeManifest;
+                    return;
                 }
-            }
+                var mappings =
+                    _packageBuildMappingCache.PackageBuildMappings.Where(
+                        m => m.PackageId.Equals(dependency.PackageId, StringComparison.CurrentCultureIgnoreCase)).ToList();
+                PackageBuildMapping build = null;
+                if (mappings.Count == 1)
+                {
+                    //We only got one back, this is good...
+                    build = mappings.First();
+                    changeManifest.GenerationLog.Add(new LogEntry(DateTime.Now, Status.Ok,
+                        string.Format("Found singular packages to build mapping {0}.", build.BuildConfigurationName)));
+                }
+                else if (mappings.Any())
+                {
+                    //Ok, so multiple builds are outputting this package, so we need to try and constrain on project...
+                    build = mappings.FirstOrDefault(m => m.Project.Equals(buildTypeDetails.Project.Name, StringComparison.OrdinalIgnoreCase));
+                    if (build != null)
+                        changeManifest.GenerationLog.Add(new LogEntry(DateTime.Now, Status.Warning,
+                            string.Format("Found duplicate mappings, using package to build mapping {0}.", build.BuildConfigurationName)));
+                }
+
+                if (build != null)
+                {
+                    if (build.BuildConfigurationId == buildType)
+                        return;
+                    var instanceTeamCityApi = _api.TeamCityServer.Equals(build.ServerUrl, StringComparison.OrdinalIgnoreCase)
+                        ? _api
+                        : new TeamCityApi(build.ServerUrl, new MemoryCacheClient());
+
+                    var resolver = new AggregateBuildDeltaResolver(instanceTeamCityApi, _externalIssueResolvers, _packageChangeComparator,
+                        _packageBuildMappingCache, _traversedPackageChanges);
+                    var dependencyManifest = resolver.CreateChangeManifest(null, build.BuildConfigurationId, null, dependency.OldVersion, dependency.NewVersion,
+                        null, true, true, branchName);
+                    dependency.ChangeManifest = dependencyManifest;
+                }
+                else
+                {
+                    changeManifest.GenerationLog.Add(new LogEntry(DateTime.Now, Status.Warning,
+                        string.Format("Did not find a mapping for package: {0}.", dependency.PackageId)));
+                }
+                _traversedPackageChanges.Add(dependency);
+            });
 
             return changeManifest;
         }
