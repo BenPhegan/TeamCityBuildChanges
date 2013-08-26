@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using ServiceStack.CacheAccess.Providers;
 using TeamCityBuildChanges.ExternalApi.TeamCity;
 using TeamCityBuildChanges.IssueDetailResolvers;
 using TeamCityBuildChanges.NuGetPackage;
@@ -177,7 +178,7 @@ namespace TeamCityBuildChanges.Commands
                             continue;
                         var instanceTeamCityApi = _api.TeamCityServer.Equals(build.ServerUrl, StringComparison.OrdinalIgnoreCase)
                                                               ? _api
-                                                              : new TeamCityApi(build.ServerUrl);
+                                                              : new TeamCityApi(build.ServerUrl, new MemoryCacheClient());
  
                         var resolver = new AggregateBuildDeltaResolver(instanceTeamCityApi, _externalIssueResolvers,_packageChangeComparator,_packageBuildMappingCache, _traversedPackageChanges);
                         var dependencyManifest = resolver.CreateChangeManifest(null, build.BuildConfigurationId, null,dependency.OldVersion,dependency.NewVersion, null, true, true, branchName);

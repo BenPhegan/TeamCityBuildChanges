@@ -97,6 +97,15 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\RestSharp.104.1\lib\net4\RestSharp.dll</HintPath>
     </Reference>
+    <Reference Include="ServiceStack.Common">
+      <HintPath>..\packages\ServiceStack.Common.3.9.59\lib\net35\ServiceStack.Common.dll</HintPath>
+    </Reference>
+    <Reference Include="ServiceStack.Interfaces">
+      <HintPath>..\packages\ServiceStack.Common.3.9.59\lib\net35\ServiceStack.Interfaces.dll</HintPath>
+    </Reference>
+    <Reference Include="ServiceStack.Text">
+      <HintPath>..\packages\ServiceStack.Text.3.9.59\lib\net35\ServiceStack.Text.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Web.Razor, Version=2.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
@@ -117,6 +126,7 @@
     <Compile Include="Commands\IPackageChangeComparator.cs" />
     <Compile Include="Commands\PackageChangeComparator.cs" />
     <Compile Include="ExternalApi\AuthenticatedRestClient.cs" />
+    <Compile Include="ExternalApi\TeamCity\MemoryCacheClient.cs" />
     <Compile Include="ExternalApi\TFS\ITfsApi.cs" />
     <Compile Include="ExternalApi\UriExtensions.cs" />
     <Compile Include="ExternalApi\TeamCity\ITeamCityApi.cs" />
@@ -145,7 +155,6 @@
     <Compile Include="Output\SubIssueEdge.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Commands\SingleBuildDeltaCommand.cs" />
     <Compile Include="ExternalApi\TeamCity\TeamCityApi.cs" />
     <Compile Include="Testing\BuildTemplate.cs" />
     <Compile Include="Testing\TestHelpers.cs" />
@@ -185,25 +194,7 @@ copy $(TargetDir)TeamCityBuildChanges.nuspec ..\Deploy.$(Configuration)\TeamCity
   </PropertyGroup>
   <Import Project="$(VSToolsPath)\WebApplications\Microsoft.WebApplication.targets" Condition="Exists('$(VSToolsPath)\WebApplications\Microsoft.WebApplication.targets')" />
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v10.0\WebApplications\Microsoft.WebApplication.targets" Condition="false" />
-  <ProjectExtensions>
-    <VisualStudio>
-      <FlavorProperties GUID="{349c5851-65df-11da-9384-00065b846f21}">
-        <WebProjectProperties>
-          <UseIIS>False</UseIIS>
-          <AutoAssignPort>True</AutoAssignPort>
-          <DevelopmentServerPort>5666</DevelopmentServerPort>
-          <DevelopmentServerVPath>/</DevelopmentServerVPath>
-          <IISUrl>
-          </IISUrl>
-          <NTLMAuthentication>False</NTLMAuthentication>
-          <UseCustomServer>False</UseCustomServer>
-          <CustomServerUrl>
-          </CustomServerUrl>
-          <SaveServerSettingsInUserFile>False</SaveServerSettingsInUserFile>
-        </WebProjectProperties>
-      </FlavorProperties>
-    </VisualStudio>
-  </ProjectExtensions>
+  <ProjectExtensions />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

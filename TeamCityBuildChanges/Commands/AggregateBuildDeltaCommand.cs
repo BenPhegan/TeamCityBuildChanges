@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using ServiceStack.CacheAccess;
 using TeamCityBuildChanges.ExternalApi.TeamCity;
 using TeamCityBuildChanges.NuGetPackage;
 using TeamCityBuildChanges.Output;
+using ServiceStack.CacheAccess.Providers;
 
 namespace TeamCityBuildChanges.Commands
 {
@@ -36,7 +38,8 @@ namespace TeamCityBuildChanges.Commands
 
         public override int Run(string[] remainingArguments)
         {
-            var api = string.IsNullOrEmpty(_teamCityAuthToken) ? new TeamCityApi(ServerName) : new TeamCityApi(ServerName,_teamCityAuthToken);
+            ICacheClient client = new MemoryCacheClient();
+            var api = string.IsNullOrEmpty(_teamCityAuthToken) ? new TeamCityApi(ServerName, client) : new TeamCityApi(ServerName, client, _teamCityAuthToken);
 
             var buildPackageCache = string.IsNullOrEmpty(_buildPackageCacheFile) ? null : new PackageBuildMappingCache(_buildPackageCacheFile);
 

@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Xml.Serialization;
+using ServiceStack.CacheAccess.Providers;
 using TeamCityBuildChanges.ExternalApi.TeamCity;
 
 namespace TeamCityBuildChanges.NuGetPackage
@@ -61,7 +62,7 @@ namespace TeamCityBuildChanges.NuGetPackage
         {
             foreach (var server in servers)
             {
-                var apiConnection = new TeamCityApi(server);
+                var apiConnection = new TeamCityApi(server, new MemoryCacheClient());
                 var buildConfigurations = apiConnection.GetBuildTypes();
                 StartedServerCheck(this, new ServerCheckEventArgs(){Count = buildConfigurations.Count, Url = server});
                 foreach (var configuration in buildConfigurations)
