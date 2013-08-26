@@ -49,6 +49,20 @@ namespace TeamCityBuildChanges.ExternalApi.TeamCity
             return result;
         }
 
+        private T GetFromCacheOrRest<T>(string key1, string key2, Func<string, string, T> restCall) where T : class
+        {
+            var key = string.Format("{0}:{1}", key1 ?? string.Empty, key2 ?? string.Empty);
+            var cacheHit = _cache.Get<T>(key);
+            if (cacheHit != null)
+            {
+                return cacheHit;
+            }
+            var result = restCall(key1,key2);
+            //TODO concurrency issue here?
+            _cache.Add(key, result);
+            return result;
+        }
+
         public List<BuildType> GetBuildTypes()
         {
             var request = new RestRequest("app/rest/buildTypes", Method.GET) { RequestFormat = DataFormat.Xml };
@@ -80,7 +94,7 @@ namespace TeamCityBuildChanges.ExternalApi.TeamCity
 
         public IEnumerable<Artifact> GetArtifactListByBuildType(string buildType)
         {
-            return GetFromCacheOrRest(buildType, query =>
+            return GetFromCacheOrRest(buildType, key =>
             {
                 var request = new RestRequest("repository/download/{ID}/lastSuccessful/teamcity-ivy.xml");
                 request.AddParameter("ID", buildType, ParameterType.UrlSegment);
@@ -94,38 +108,41 @@ namespace TeamCityBuildChanges.ExternalApi.TeamCity
 
         public List<PackageDetails> GetNuGetDependenciesByBuildTypeAndBuildId(string buildType, string buildId)
         {
-            var restUrl = new StringBuilder();
-            restUrl.AppendFormat("{0}/repository/download/{1}/{2}:id/.teamcity/nuget/nuget.xml", _client.BaseUrl, buildType, buildId);
-
-            var restRequest = (HttpWebRequest)WebRequest.Create(restUrl.ToString());
-
-            if (!string.IsNullOrEmpty(_client.AuthenticationToken))
+            return GetFromCacheOrRest(buildType, buildId, (key1,key2) =>
             {
-                restRequest.Headers.Add(HttpRequestHeader.Authorization, "Basic " + _client.AuthenticationToken);
-            }
+                var restUrl = new StringBuilder();
+                restUrl.AppendFormat("{0}/repository/download/{1}/{2}:id/.teamcity/nuget/nuget.xml", _client.BaseUrl, buildType, buildId);
 
-            try
-            {
-                var restResponse = (HttpWebResponse)restRequest.GetResponse();
-                string response;
-                using (var reader = new StreamReader(restResponse.GetResponseStream()))
+                var restRequest = (HttpWebRequest) WebRequest.Create(restUrl.ToString());
+
+                if (!string.IsNullOrEmpty(_client.AuthenticationToken))
                 {
-                    response = reader.ReadToEnd();
+                    restRequest.Headers.Add(HttpRequestHeader.Authorization, "Basic " + _client.AuthenticationToken);
                 }
-                var xDoc = XDocument.Parse(response.Normalize());
-                var packageList = xDoc.Root.Element("packages").Elements("package").Select(p => new PackageDetails
+
+                try
+                {
+                    var restResponse = (HttpWebResponse) restRequest.GetResponse();
+                    string response;
+                    using (var reader = new StreamReader(restResponse.GetResponseStream()))
+                    {
+                        response = reader.ReadToEnd();
+                    }
+                    var xDoc = XDocument.Parse(response.Normalize());
+                    var packageList = xDoc.Root.Element("packages").Elements("package").Select(p => new PackageDetails
                     {
                         Id = p.Attribute("id").Value,
                         Version = p.Attribute("version").Value
                     }).ToList();
 
-                return packageList;
-            }
-            catch (WebException exception)
-            {
-                //Evil?  Yes :)
-                return new List<PackageDetails>();
-            }
+                    return packageList;
+                }
+                catch (WebException)
+                {
+                    //Evil?  Yes :)
+                    return new List<PackageDetails>();
+                }
+            });
         }
 
         public class NuGetDependencies
@@ -147,6 +164,7 @@ namespace TeamCityBuildChanges.ExternalApi.TeamCity
 
         public Build GetLatestBuildByBuildType(string buildType)
         {
+            //TODO call directly using build locator for last successful, this is not fast....
             var builds = GetBuildsByBuildType(buildType);
             var latestBuild = builds.OrderByDescending(b => b.BuildTypeId).FirstOrDefault();
             return latestBuild;
@@ -154,6 +172,7 @@ namespace TeamCityBuildChanges.ExternalApi.TeamCity
 
         public Build GetLatestSuccessfulBuildByBuildType(string buildType, string branchName = null)
         {
+            //TODO call directly using build locator for last successful, this is not fast....
             var builds = GetBuildsByBuildType(buildType, branchName);
             var latestBuild = builds.Where(b => b.Status == "SUCCESS").OrderByDescending(b => b.BuildTypeId).FirstOrDefault();
             return latestBuild;
@@ -178,6 +197,7 @@ namespace TeamCityBuildChanges.ExternalApi.TeamCity
 
         public IEnumerable<Build> GetRunningBuildByBuildType(string buildType, string branchName = null)
         {
+            //NO CACHING HERE.  It says "running" on the tin, so caching is probably a bad idea....
             RestRequest request;
             if (string.IsNullOrEmpty(branchName))
             {
@@ -254,11 +274,7 @@ namespace TeamCityBuildChanges.ExternalApi.TeamCity
 
         public IEnumerable<ChangeDetail> GetChangeDetailsByBuildTypeAndBuildNumber(string buildType, string from, string to, IEnumerable<Build> buildList = null, string branchName = null)
         {
-            return GetChangeDetailsByBuildTypeAndBuildId(buildType,
-                from,
-                to,
-                BuildNumberComparitor(),
-                buildList, branchName);
+            return GetChangeDetailsByBuildTypeAndBuildId(buildType, from, to, BuildNumberComparitor(), buildList, branchName);
         }
 
         private static Func<Build, string, bool> BuildNumberComparitor()
@@ -299,17 +315,20 @@ namespace TeamCityBuildChanges.ExternalApi.TeamCity
 
         public IEnumerable<Build> GetBuildsByBuildType(string buildType, string branchName = null)
         {
-            RestRequest request;
-            if (string.IsNullOrEmpty(branchName))
+            return GetFromCacheOrRest(buildType, branchName, (key1, key2) =>
             {
-                request = GetXmlBuildRequest("app/rest/builds/?locator=buildType:{ID}", "ID", buildType);
-            }
-            else
-            {
-                request = GetXmlBuildRequest(string.Format("app/rest/builds/?locator=buildType:{{ID}},branch:(name:{0})", branchName), "ID", buildType);
-            }
-            var response = _client.Execute<List<Build>>(request);
-            return response.Data;
+                RestRequest request;
+                if (string.IsNullOrEmpty(branchName))
+                {
+                    request = GetXmlBuildRequest("app/rest/builds/?locator=buildType:{ID}", "ID", buildType);
+                }
+                else
+                {
+                    request = GetXmlBuildRequest(string.Format("app/rest/builds/?locator=buildType:{{ID}},branch:(name:{0})", branchName), "ID", buildType);
+                }
+                var response = _client.Execute<List<Build>>(request);
+                return response.Data;
+            });
         }
     }
 
