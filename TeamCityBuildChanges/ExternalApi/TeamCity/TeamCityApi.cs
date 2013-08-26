@@ -65,11 +65,14 @@ namespace TeamCityBuildChanges.ExternalApi.TeamCity
 
         public List<BuildType> GetBuildTypes()
         {
-            var request = new RestRequest("app/rest/buildTypes", Method.GET) { RequestFormat = DataFormat.Xml };
-            request.AddHeader("Accept", "application/xml");
+            return GetFromCacheOrRest("AllBuildTypes", key =>
+            {
+                var request = new RestRequest("app/rest/buildTypes", Method.GET) {RequestFormat = DataFormat.Xml};
+                request.AddHeader("Accept", "application/xml");
 
-            var buildConfigs = _client.Execute<List<BuildType>>(request);
-            return buildConfigs.Data;
+                var buildConfigs = _client.Execute<List<BuildType>>(request);
+                return buildConfigs.Data;
+            });
         }
 
         public BuildTypeDetails GetBuildTypeDetailsById(string id)
