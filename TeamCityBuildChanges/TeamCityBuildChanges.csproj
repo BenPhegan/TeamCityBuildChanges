@@ -137,7 +137,6 @@
     <Compile Include="IssueDetailResolvers\TFSIssueResolver.cs" />
     <Compile Include="NuGetPackage\PackageBuildMapping.cs" />
     <Compile Include="NuGetPackage\PackageBuildMappingCache.cs" />
-    <Compile Include="Output\ChangeDetailOutputFormatter.cs" />
     <Compile Include="Output\ChangeManifest.cs" />
     <Compile Include="Commands\EncodeCommand.cs" />
     <Compile Include="IssueDetailResolvers\ExternalIssueDetails.cs" />
@@ -145,7 +144,6 @@
     <Compile Include="IssueDetailResolvers\IssueDetailResolver.cs" />
     <Compile Include="IssueDetailResolvers\JiraIssueResolver.cs" />
     <Compile Include="ExternalApi\Jira\JiraApi.cs" />
-    <Compile Include="Output\ExternalIssueDetailsComparer.cs" />
     <Compile Include="Output\ExternalIssueDetailsEqualityComparer.cs" />
     <Compile Include="Output\LogEntry.cs" />
     <Compile Include="Output\NuGetPackageChange.cs" />
@@ -166,18 +164,18 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <None Include="ILBundle.targets" />
-    <None Include="Templates\Text.cshtml">
+    <Content Include="Templates\Text.cshtml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="Templates\Default.cshtml">
+    </Content>
+    <Content Include="Templates\Default.cshtml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
+    </Content>
     <None Include="TeamCityBuildChanges.nuspec">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Include="Templates\Xml.cshtml">
+    <Content Include="Templates\Xml.cshtml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
+    </Content>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config">
