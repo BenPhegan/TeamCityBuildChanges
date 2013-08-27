@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using TeamCityBuildChanges.ExternalApi.TeamCity;
 using TeamCityBuildChanges.ExternalApi.TFS;
 
@@ -18,11 +20,11 @@ namespace TeamCityBuildChanges.IssueDetailResolvers
 
         public IEnumerable<ExternalIssueDetails> GetDetails(IEnumerable<Issue> issues)
         {
-            var externalIssueDetails = new List<ExternalIssueDetails>();
+            var tfsIssues = issues.Distinct().Where(i => IsTfsUrl(i.Url)).ToList();
+            var queriedIssues = new ConcurrentBag<ExternalIssueDetails>();
+            Parallel.ForEach(tfsIssues, issue => queriedIssues.Add(GetDetails(issue)));
 
-            externalIssueDetails.AddRange(issues.Where(i => IsTfsUrl(i.Url)).Select(GetDetails));
-
-            return externalIssueDetails;
+            return queriedIssues;
         }
 
         public IEnumerable<Issue> GetIssues(IEnumerable<ChangeDetail> changeDetails)

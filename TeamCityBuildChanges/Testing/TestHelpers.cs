@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -30,7 +31,7 @@ namespace TeamCityBuildChanges.Testing
                 SetExpectations(template, api, issueResolver, packageCache);
             }
             
-            var resolver = new AggregateBuildDeltaResolver(api, new[] {issueResolver}, new PackageChangeComparator(), packageCache, new List<NuGetPackageChange>());
+            var resolver = new AggregateBuildDeltaResolver(api, new[] {issueResolver}, new PackageChangeComparator(), packageCache, new ConcurrentBag<NuGetPackageChange>());
             return resolver;
         }
 

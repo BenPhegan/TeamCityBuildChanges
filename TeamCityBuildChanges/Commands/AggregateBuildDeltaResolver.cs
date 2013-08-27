@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -19,7 +20,7 @@ namespace TeamCityBuildChanges.Commands
         private readonly IEnumerable<IExternalIssueResolver> _externalIssueResolvers;
         private readonly IPackageChangeComparator _packageChangeComparator;
         private readonly PackageBuildMappingCache _packageBuildMappingCache;
-        private List<NuGetPackageChange> _traversedPackageChanges;
+        private ConcurrentBag<NuGetPackageChange> _traversedPackageChanges;
 
         /// <summary>
         /// Provides the ability to generate delta change manifests between arbitrary build versions.
@@ -28,7 +29,7 @@ namespace TeamCityBuildChanges.Commands
         /// <param name="externalIssueResolvers">A list of IExternalIssueResolver objects.</param>
         /// <param name="packageChangeComparator">Provides package dependency comparison capability.</param>
         /// <param name="packageBuildMappingCache">Provides the ability to map from a Nuget package to the build that created the package.</param>
-        public AggregateBuildDeltaResolver(ITeamCityApi api, IEnumerable<IExternalIssueResolver> externalIssueResolvers, IPackageChangeComparator packageChangeComparator, PackageBuildMappingCache packageBuildMappingCache, List<NuGetPackageChange> traversedPackageChanges)
+        public AggregateBuildDeltaResolver(ITeamCityApi api, IEnumerable<IExternalIssueResolver> externalIssueResolvers, IPackageChangeComparator packageChangeComparator, PackageBuildMappingCache packageBuildMappingCache, ConcurrentBag<NuGetPackageChange> traversedPackageChanges)
         {
             _api = api;
             _externalIssueResolvers = externalIssueResolvers;
