@@ -181,8 +181,8 @@ namespace TeamCityBuildChanges.Testing
                         {
                             beforerevision = RandomNumber.Next(50,500).ToString(),
                             afterrevision = RandomNumber.Next(450, 700).ToString(),
-                            File = Path.GetTempFileName(),
-                            relativefile = Path.GetTempFileName()
+                            File = Path.GetRandomFileName(),
+                            relativefile = Path.GetRandomFileName()
                         }).ToList(),
                 });
             A.CallTo(() => api.GetBuildsByBuildType(template.BuildId, null)).Returns(builds);
