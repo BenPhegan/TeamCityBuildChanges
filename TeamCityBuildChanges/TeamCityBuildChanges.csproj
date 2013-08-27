@@ -132,6 +132,7 @@
     <Compile Include="ExternalApi\TeamCity\ITeamCityApi.cs" />
     <Compile Include="ExternalApi\TFS\TfsApi.cs" />
     <Compile Include="ExternalApi\TFS\TfsWorkItem.cs" />
+    <Compile Include="ILBundle.cs" />
     <Compile Include="IssueDetailResolvers\IssueEqualityComparer.cs" />
     <Compile Include="IssueDetailResolvers\TFSIssueResolver.cs" />
     <Compile Include="NuGetPackage\PackageBuildMapping.cs" />
@@ -165,6 +166,7 @@
     <Content Include="Templates\OctopusMarkdown.cshtml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <None Include="ILBundle.targets" />
     <None Include="Templates\Text.cshtml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
@@ -187,14 +189,13 @@
   </PropertyGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>if not exist ..\Deploy.$(Configuration) mkdir  ..\Deploy.$(Configuration)
-$(SolutionDir)tools\ilmerge\ilmerge.exe /v4 /t:exe /out:..\Deploy.$(Configuration)\$(TargetFileName) $(TargetPath) $(TargetDir)ManyConsole.dll $(TargetDir)NDesk.Options.dll  $(TargetDir)RestSharp.dll $(TargetDir)RazorEngine.dll $(TargetDir)QuickGraph.dll $(TargetDir)QuickGraph.Data.dll $(TargetDir)Castle.Core.dll  $(TargetDir)System.Web.Razor.dll  $(TargetDir)QuickGraph.Graphviz.dll $(TargetDir)QuickGraph.Serialization.dll $(TargetDir)FakeItEasy.dll $(TargetDir)Faker.Net4.dll
-xcopy $(TargetDir)Templates ..\Deploy.$(Configuration)\Templates /s /y /i
-copy $(TargetDir)TeamCityBuildChanges.nuspec ..\Deploy.$(Configuration)\TeamCityBuildChanges.nuspec /y</PostBuildEvent>
+    <PostBuildEvent>
+    </PostBuildEvent>
   </PropertyGroup>
   <Import Project="$(VSToolsPath)\WebApplications\Microsoft.WebApplication.targets" Condition="Exists('$(VSToolsPath)\WebApplications\Microsoft.WebApplication.targets')" />
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v10.0\WebApplications\Microsoft.WebApplication.targets" Condition="false" />
   <ProjectExtensions />
+  <Import Project="ILBundle.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">
