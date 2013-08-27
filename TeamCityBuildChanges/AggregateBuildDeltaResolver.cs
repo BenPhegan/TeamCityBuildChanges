@@ -150,9 +150,10 @@ namespace TeamCityBuildChanges
                 }
             }
             //Now we need to see if we need to recurse, and whether we have been given a cache file....
-            if (!changeManifest.NuGetPackageChanges.Any() || !recurse || _packageBuildMappingCache == null) return changeManifest;
+            var modifiedPackages = changeManifest.NuGetPackageChanges.Where(c => c.Type == NuGetPackageChangeType.Modified).ToList();
+            if (!modifiedPackages.Any() || !recurse || _packageBuildMappingCache == null) return changeManifest;
 
-            Parallel.ForEach(changeManifest.NuGetPackageChanges.Where(c => c.Type == NuGetPackageChangeType.Modified), dependency =>
+            Parallel.ForEach(modifiedPackages, dependency =>
             {
                 var traversedDependency =
                     _traversedPackageChanges.FirstOrDefault(
