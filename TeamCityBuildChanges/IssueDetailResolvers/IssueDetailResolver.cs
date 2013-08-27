@@ -19,9 +19,10 @@ namespace TeamCityBuildChanges.IssueDetailResolvers
             if (issues != null)
             {
                 var issueList = issues as List<Issue> ?? issues.ToList();
+                var distinctIssues = issueList.Distinct().ToList();
                 foreach (var resolver in _issueResolvers)
                 {
-                    details.AddRange(resolver.GetDetails(issueList));
+                    details.AddRange(resolver.GetDetails(distinctIssues));
                 }
             }
             return details;
