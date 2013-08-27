@@ -2,15 +2,18 @@
 @using System.IO
 @using System.Linq
 @using System.Xml.Serialization
-@using ExternalApi.TeamCity
+@using TeamCityBuildChanges.ExternalApi.TeamCity
+@using System.Web.Razor
 @inherits RazorEngine.Templating.TemplateBase<TeamCityBuildChanges.Output.ChangeManifest>
+
 @if (Model.ChangeDetails.Any())
 {
     string xml;
     using (var writer = new StringWriter())
     {
-        new XmlSerializer(typeof (List<ChangeDetail>)).Serialize(writer, Model);
+        new XmlSerializer(typeof (TeamCityBuildChanges.Output.ChangeManifest)).Serialize(writer, Model);
         xml = writer.ToString();
     }
-    @xml
+    @Raw(xml)
 }
+

@@ -355,7 +355,7 @@ namespace TeamCityBuildChanges.ExternalApi.TeamCity
         public string Href { get; set; }
         public string ProjectName { get; set; }
         public string ProjectId { get; set; }
-        public Uri WebUrl { get; set; }
+        public string WebUrl { get; set; }
 
         public override string ToString()
         {
