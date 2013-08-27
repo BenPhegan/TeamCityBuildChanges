@@ -5,13 +5,13 @@ using TeamCityBuildChanges.NuGetPackage;
 
 namespace TeamCityBuildChanges.Commands
 {
-    public class BuildPackageMappingCacheCommand : ConsoleCommand
+    public class BuildCacheCommand : ConsoleCommand
     {
         private string _servers;
         private string _output;
         private bool _useArtifacts;
 
-        public BuildPackageMappingCacheCommand()
+        public BuildCacheCommand()
         {
             IsCommand("buildcache", "Creates an XML cache of build configuration to NuGet package.");
             HasRequiredOption("s|servers=", "Servers to build cache from.", s => _servers = s);

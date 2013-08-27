@@ -3,14 +3,14 @@ using System.Linq;
 using TeamCityBuildChanges.ExternalApi.TeamCity;
 using TeamCityBuildChanges.Output;
 
-namespace TeamCityBuildChanges.Commands
+namespace TeamCityBuildChanges
 {
     /// <summary>
     /// Provides a list of NuGetPackageChange objects representing the difference in a set of build dependencies.
     /// </summary>
     public class PackageChangeComparator : IPackageChangeComparator
     {
-        public List<NuGetPackageChange> GetPackageChanges(List<TeamCityApi.PackageDetails> initialPackages, List<TeamCityApi.PackageDetails> finalPackages)
+        public IEnumerable<NuGetPackageChange> GetPackageChanges(List<TeamCityApi.PackageDetails> initialPackages, List<TeamCityApi.PackageDetails> finalPackages)
         {
             var returnList = new List<NuGetPackageChange>();
             foreach (var package in initialPackages)

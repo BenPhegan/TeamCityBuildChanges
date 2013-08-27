@@ -9,7 +9,7 @@ using TeamCityBuildChanges.IssueDetailResolvers;
 using TeamCityBuildChanges.NuGetPackage;
 using TeamCityBuildChanges.Output;
 
-namespace TeamCityBuildChanges.Commands
+namespace TeamCityBuildChanges
 {
     /// <summary>
     /// Calculates ChangeManifest objects based on TeamCity builds.
@@ -29,6 +29,7 @@ namespace TeamCityBuildChanges.Commands
         /// <param name="externalIssueResolvers">A list of IExternalIssueResolver objects.</param>
         /// <param name="packageChangeComparator">Provides package dependency comparison capability.</param>
         /// <param name="packageBuildMappingCache">Provides the ability to map from a Nuget package to the build that created the package.</param>
+        /// <param name="traversedPackageChanges">Packages changes that we have already calculated and can reuse.</param>
         public AggregateBuildDeltaResolver(ITeamCityApi api, IEnumerable<IExternalIssueResolver> externalIssueResolvers, IPackageChangeComparator packageChangeComparator, PackageBuildMappingCache packageBuildMappingCache, ConcurrentBag<NuGetPackageChange> traversedPackageChanges)
         {
             _api = api;

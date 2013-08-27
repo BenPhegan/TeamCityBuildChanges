@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using TeamCityBuildChanges.ExternalApi.TeamCity;
 using TeamCityBuildChanges.ExternalApi.TFS;
@@ -70,7 +70,7 @@ namespace TeamCityBuildChanges.IssueDetailResolvers
         {
             var eid = new ExternalIssueDetails
             {
-                Id = wi.Id.ToString(),
+                Id = wi.Id.ToString(CultureInfo.InvariantCulture),
                 Created = wi.Created.ToString("dd-MM-yyyy HH:mm:ss"),
                 Type = wi.Type,
                 Comments = wi.HistoryComments,
@@ -86,7 +86,7 @@ namespace TeamCityBuildChanges.IssueDetailResolvers
         {
             return new Issue
             {
-                Id = wi.Id.ToString(),
+                Id = wi.Id.ToString(CultureInfo.InvariantCulture),
                 Url = _tfsApi.ConnectionUri + "/web/wi.aspx?id=" + wi.Id
             };
         }
