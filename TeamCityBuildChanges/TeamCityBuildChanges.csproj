@@ -175,6 +175,9 @@
     <None Include="TeamCityBuildChanges.nuspec">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Include="Templates\Xml.cshtml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config">
