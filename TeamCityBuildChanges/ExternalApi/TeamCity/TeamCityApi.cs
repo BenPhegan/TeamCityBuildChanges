@@ -515,7 +515,10 @@ namespace TeamCityBuildChanges.ExternalApi.TeamCity
 
         public override int GetHashCode()
         {
-            return Id.GetHashCode() ^ Url.GetHashCode();
+            var hash = 13;
+            hash = Id != null ? (hash * 7) + Id.GetHashCode() : hash;
+            hash = Url != null ? (hash * 7) + Url.GetHashCode() : hash;
+            return hash;
         }
     }
 
