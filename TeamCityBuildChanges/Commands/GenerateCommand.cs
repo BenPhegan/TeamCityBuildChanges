@@ -39,7 +39,7 @@ namespace TeamCityBuildChanges.Commands
 
         public GenerateCommand()
         {
-            IsCommand("aggregatebuilddelta", "Provides a set of changes between two specific versions of a build type.");
+            IsCommand("generate", "Provides a set of changes between two specific versions of a build type.");
             Options.Add("rb=|referencebuild=", "Reference build to query resolved version deltas from", s => _referenceBuild = s);
             Options.Add("f|from=", "Build number to start checking from (optional - detects the last successful build number if omitted)", x => _from = x);
             Options.Add("t|to=", "The build to check the delta change to", x => _to = x);
