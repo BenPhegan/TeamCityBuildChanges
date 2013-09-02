@@ -39,5 +39,17 @@ namespace TeamCityBuildChanges.Tests.IssueDetailResolvers
             //Assert
             Assert.That(issues.Single().Id.Equals(expectedWorkItemId.ToString()));
         }
+
+        [Test]
+        public void WillNotMakApiCallOnAlphaIssueId()
+        {
+            var mockApi = A.Fake<ITfsApi>();
+
+            var resolver = new TFSIssueResolver(mockApi);
+
+            resolver.GetDetails(new List<Issue> {new Issue {Id = "JIRA-5555", Url = "http://some.server/tfs"}});
+
+            A.CallTo(() => mockApi.GetWorkItem(A<int>.Ignored)).MustNotHaveHappened();
+        }
     }
 }

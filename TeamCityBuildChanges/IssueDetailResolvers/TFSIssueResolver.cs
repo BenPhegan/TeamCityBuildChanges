@@ -20,7 +20,8 @@ namespace TeamCityBuildChanges.IssueDetailResolvers
 
         public IEnumerable<ExternalIssueDetails> GetDetails(IEnumerable<Issue> issues)
         {
-            var tfsIssues = issues.Where(i => IsTfsUrl(i.Url)).ToList();
+            int ignoredOut;
+            var tfsIssues = issues.Where(i => IsTfsUrl(i.Url) && int.TryParse(i.Id, out ignoredOut)).ToList();
             var queriedIssues = new ConcurrentBag<ExternalIssueDetails>();
             Parallel.ForEach(tfsIssues, issue => queriedIssues.Add(GetDetails(issue)));
 
