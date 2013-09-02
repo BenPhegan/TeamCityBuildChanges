@@ -123,6 +123,7 @@
     <Compile Include="AggregateBuildDeltaResolver.cs" />
     <Compile Include="Commands\BuildCacheCommand.cs" />
     <Compile Include="Commands\TestTemplateCommand.cs" />
+    <Compile Include="ExternalApi\Jira\IJiraApi.cs" />
     <Compile Include="IPackageChangeComparator.cs" />
     <Compile Include="IssueDetailResolvers\IIssueDetailResolver.cs" />
     <Compile Include="PackageChangeComparator.cs" />
