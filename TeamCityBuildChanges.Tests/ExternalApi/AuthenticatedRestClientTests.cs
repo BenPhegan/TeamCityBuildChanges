@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using TeamCityBuildChanges.ExternalApi;
 
 namespace TeamCityBuildChanges.Tests.ExternalApi
 {
@@ -15,7 +12,7 @@ namespace TeamCityBuildChanges.Tests.ExternalApi
         [TestCase("http://localhost/")]
         public void CreateWithNoAuth(string url)
         {
-            var restClient = new AuthenticatedRestClient(url);
+            IAuthenticatedRestClient restClient = new AuthenticatedRestClient(url);
             Assert.That(restClient.AuthenticationToken, Is.Null);
             Assert.That(restClient.BaseUrl, Is.EqualTo("http://localhost")); // ensure trailing slashes are omitted
         }
@@ -24,7 +21,7 @@ namespace TeamCityBuildChanges.Tests.ExternalApi
         [TestCase("http://user:password@localhost/")]
         public void CreateWithDerivedAuth(string url)
         {
-            var restClient = new AuthenticatedRestClient(url);
+            IAuthenticatedRestClient restClient = new AuthenticatedRestClient(url);
             Assert.That(restClient.AuthenticationToken, Is.EqualTo("dXNlcjpwYXNzd29yZA=="));
             Assert.That(restClient.BaseUrl, Is.EqualTo("http://localhost")); // ensure trailing slashes are omitted
         }
@@ -33,7 +30,7 @@ namespace TeamCityBuildChanges.Tests.ExternalApi
         [TestCase("http://localhost/", "dXNlcjpwYXNzd29yZA==")]
         public void CreateWithComposedAuth(string url, string authenticationToken)
         {
-            var restClient = new AuthenticatedRestClient(url, authenticationToken);
+            IAuthenticatedRestClient restClient = new AuthenticatedRestClient(url, authenticationToken);
             Assert.That(restClient.AuthenticationToken, Is.EqualTo("dXNlcjpwYXNzd29yZA=="));
             Assert.That(restClient.BaseUrl, Is.EqualTo("http://localhost")); // ensure trailing slashes are omitted
         }
@@ -42,7 +39,7 @@ namespace TeamCityBuildChanges.Tests.ExternalApi
         [TestCase("http://frank:sinatra@localhost/", "dXNlcjpwYXNzd29yZA==")]
         public void CreateWithBothDefaultsToComposedAuthToken(string url, string authenticationToken)
         {
-            var restClient = new AuthenticatedRestClient(url, authenticationToken);
+            IAuthenticatedRestClient restClient = new AuthenticatedRestClient(url, authenticationToken);
             Assert.That(restClient.AuthenticationToken, Is.EqualTo("dXNlcjpwYXNzd29yZA=="));
             Assert.That(restClient.BaseUrl, Is.EqualTo("http://localhost")); // ensure trailing slashes are omitted
         }

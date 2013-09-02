@@ -186,9 +186,10 @@ namespace TeamCityBuildChanges
                 {
                     if (build.BuildConfigurationId == buildType)
                         return;
+                    //TODO if we are newing up a new RestClientFactory, we dont have a token for it...none passed in....
                     var instanceTeamCityApi = _api.TeamCityServer.Equals(build.ServerUrl, StringComparison.OrdinalIgnoreCase)
                         ? _api
-                        : new TeamCityApi(build.ServerUrl, new MemoryCacheClient());
+                        : new TeamCityApi(new AuthenticatedRestClientFactory(build.ServerUrl), new MemoryCacheClient());
 
                     var resolver = new AggregateBuildDeltaResolver(instanceTeamCityApi, _issueDetailResolver, _packageChangeComparator,
                         _packageBuildMappingCache, _traversedPackageChanges);

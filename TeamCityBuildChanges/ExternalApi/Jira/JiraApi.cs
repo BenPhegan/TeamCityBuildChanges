@@ -7,11 +7,11 @@ namespace TeamCityBuildChanges.ExternalApi.Jira
 {
     public class JiraApi : IJiraApi
     {
-        private readonly Lazy<AuthenticatedRestClient> _client;
+        private readonly Lazy<IAuthenticatedRestClient> _client;
 
         public JiraApi(string url, string authenticationToken)
         {
-            _client = new Lazy<AuthenticatedRestClient>(() => new AuthenticatedRestClient(url, authenticationToken));
+            _client = new Lazy<IAuthenticatedRestClient>(() => new AuthenticatedRestClient(url, authenticationToken));
         }
 
         public static string GetEncodedCredentials(string username, string password)
@@ -89,30 +89,30 @@ namespace TeamCityBuildChanges.ExternalApi.Jira
         public Resolution Resolution { get; set; }
         public List<FixVersion> FixVersions { get; set; }
         public string Resolutiondate { get; set; }
-        public object Timespent { get; set; }
+        public string Timespent { get; set; }
         public Reporter Reporter { get; set; }
-        public object AggregateTimeOriginalEstimate { get; set; }
+        public string AggregateTimeOriginalEstimate { get; set; }
         public string Created { get; set; }
         public string Updated { get; set; }
         public string Description { get; set; }
         public Priority Priority { get; set; }
-        public object DueDate { get; set; }
-        public List<object> IssueLinks { get; set; }
+        public string DueDate { get; set; }
+        public List<string> IssueLinks { get; set; }
         public Watches Watches { get; set; }
         public List<Subtask> Subtasks { get; set; }
         public Status2 Status { get; set; }
-        public List<object> Labels { get; set; }
+        public List<string> Labels { get; set; }
         public int Workratio { get; set; }
         public Assignee Assignee { get; set; }
-        public List<object> Attachment { get; set; }
-        public object AggregateTimeEstimate { get; set; }
+        public List<string> Attachment { get; set; }
+        public string AggregateTimeEstimate { get; set; }
         public Project Project { get; set; }
-        public object Environment { get; set; }
-        public object TimeEstimate { get; set; }
+        public string Environment { get; set; }
+        public string TimeEstimate { get; set; }
         public Aggregateprogress AggregateProgress { get; set; }
         public Comment Comment { get; set; }
-        public object TimeOriginalEstimate { get; set; }
-        public object AggregateTimeSpent { get; set; }
+        public string TimeOriginalEstimate { get; set; }
+        public string AggregateTimeSpent { get; set; }
     }
 
     public class Fields2

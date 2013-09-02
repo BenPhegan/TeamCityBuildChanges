@@ -64,7 +64,7 @@ namespace TeamCityBuildChanges.Commands
         public override int Run(string[] remainingArguments)
         {
             ICacheClient client = new MemoryCacheClient();
-            var api = string.IsNullOrEmpty(_teamCityAuthToken) ? new TeamCityApi(_serverName, client) : new TeamCityApi(_serverName, client, _teamCityAuthToken);
+            var api = new TeamCityApi(new AuthenticatedRestClientFactory(_serverName, _teamCityAuthToken), client);
 
             var buildPackageCache = string.IsNullOrEmpty(_buildPackageCacheFile) ? null : new PackageBuildMappingCache(_buildPackageCacheFile);
 
