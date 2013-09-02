@@ -68,7 +68,9 @@ namespace TeamCityBuildChanges.Commands
 
             var buildPackageCache = string.IsNullOrEmpty(_buildPackageCacheFile) ? null : new PackageBuildMappingCache(_buildPackageCacheFile);
 
-            var resolver = new AggregateBuildDeltaResolver(api, CreateExternalIssueResolvers(), new PackageChangeComparator(), buildPackageCache, new ConcurrentBag<NuGetPackageChange>());
+            var issueDetailResolver = new IssueDetailResolver(CreateExternalIssueResolvers());
+
+            var resolver = new AggregateBuildDeltaResolver(api, issueDetailResolver, new PackageChangeComparator(), buildPackageCache, new ConcurrentBag<NuGetPackageChange>());
             _changeManifest = string.IsNullOrEmpty(_buildType) 
                 ? resolver.CreateChangeManifestFromBuildTypeName(_projectName, _buildName,_referenceBuild, _from, _to, _useBuildSystemIssueResolution, _recurse, _branchName)
                 : resolver.CreateChangeManifestFromBuildTypeId(_buildType, _referenceBuild, _from, _to, _useBuildSystemIssueResolution, _recurse, _branchName);

@@ -124,6 +124,7 @@
     <Compile Include="Commands\BuildCacheCommand.cs" />
     <Compile Include="Commands\TestTemplateCommand.cs" />
     <Compile Include="IPackageChangeComparator.cs" />
+    <Compile Include="IssueDetailResolvers\IIssueDetailResolver.cs" />
     <Compile Include="PackageChangeComparator.cs" />
     <Compile Include="ExternalApi\AuthenticatedRestClient.cs" />
     <Compile Include="ExternalApi\TeamCity\MemoryCacheClient.cs" />

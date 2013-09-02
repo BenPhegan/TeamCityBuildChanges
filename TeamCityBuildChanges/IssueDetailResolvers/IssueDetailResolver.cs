@@ -4,7 +4,7 @@ using TeamCityBuildChanges.ExternalApi.TeamCity;
 
 namespace TeamCityBuildChanges.IssueDetailResolvers
 {
-    public class IssueDetailResolver
+    public class IssueDetailResolver : IIssueDetailResolver
     {
         private readonly List<IExternalIssueResolver> _issueResolvers = new List<IExternalIssueResolver>();
 

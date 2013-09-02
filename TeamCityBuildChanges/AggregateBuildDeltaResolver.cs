@@ -17,23 +17,23 @@ namespace TeamCityBuildChanges
     public class AggregateBuildDeltaResolver
     {
         private readonly ITeamCityApi _api;
-        private readonly IEnumerable<IExternalIssueResolver> _externalIssueResolvers;
         private readonly IPackageChangeComparator _packageChangeComparator;
         private readonly PackageBuildMappingCache _packageBuildMappingCache;
-        private ConcurrentBag<NuGetPackageChange> _traversedPackageChanges;
+        private readonly ConcurrentBag<NuGetPackageChange> _traversedPackageChanges;
+        private readonly IIssueDetailResolver _issueDetailResolver;
 
         /// <summary>
         /// Provides the ability to generate delta change manifests between arbitrary build versions.
         /// </summary>
         /// <param name="api">A TeamCityApi.</param>
-        /// <param name="externalIssueResolvers">A list of IExternalIssueResolver objects.</param>
+        /// <param name="issueDetailResolver"></param>
         /// <param name="packageChangeComparator">Provides package dependency comparison capability.</param>
         /// <param name="packageBuildMappingCache">Provides the ability to map from a Nuget package to the build that created the package.</param>
         /// <param name="traversedPackageChanges">Packages changes that we have already calculated and can reuse.</param>
-        public AggregateBuildDeltaResolver(ITeamCityApi api, IEnumerable<IExternalIssueResolver> externalIssueResolvers, IPackageChangeComparator packageChangeComparator, PackageBuildMappingCache packageBuildMappingCache, ConcurrentBag<NuGetPackageChange> traversedPackageChanges)
+        public AggregateBuildDeltaResolver(ITeamCityApi api, IIssueDetailResolver issueDetailResolver, IPackageChangeComparator packageChangeComparator, PackageBuildMappingCache packageBuildMappingCache, ConcurrentBag<NuGetPackageChange> traversedPackageChanges)
         {
             _api = api;
-            _externalIssueResolvers = externalIssueResolvers;
+            _issueDetailResolver = issueDetailResolver;
             _packageChangeComparator = packageChangeComparator;
             _packageBuildMappingCache = packageBuildMappingCache;
             _traversedPackageChanges = traversedPackageChanges;
@@ -112,12 +112,11 @@ namespace TeamCityBuildChanges
                     var buildList = builds as List<Build> ?? builds.ToList();
                     changeManifest.GenerationLog.Add(new LogEntry(DateTime.Now,Status.Ok, string.Format("Got {0} builds for BuildType {1}.",buildList.Count(), buildType)));
                     var changeDetails =_api.GetChangeDetailsByBuildTypeAndBuildNumber(buildWithCommitData, @from, to, buildList, branchName).ToList();
-                    var issueDetailResolver = new IssueDetailResolver(_externalIssueResolvers);
 
                     //Rather than use TeamCity to resolve the issue to commit details (via TeamCity plugins) use the issue resolvers directly...
                     var issues = useBuildSystemIssueResolution
                                      ? _api.GetIssuesByBuildTypeAndBuildRange(buildWithCommitData, @from, to, buildList, branchName).ToList()
-                                     : issueDetailResolver.GetAssociatedIssues(changeDetails).ToList();
+                                     : _issueDetailResolver.GetAssociatedIssues(changeDetails).ToList();
 
                     changeManifest.GenerationLog.Add(new LogEntry(DateTime.Now,Status.Ok, string.Format("Got {0} issues for BuildType {1}.", issues.Count(),buildType)));
 
@@ -133,7 +132,7 @@ namespace TeamCityBuildChanges
 
                     var packageChanges = _packageChangeComparator.GetPackageChanges(initialPackages, finalPackages).ToList();
 
-                    var issueDetails = issueDetailResolver.GetExternalIssueDetails(issues);
+                    var issueDetails = _issueDetailResolver.GetExternalIssueDetails(issues);
 
                     changeManifest.NuGetPackageChanges = packageChanges;
                     changeManifest.ChangeDetails.AddRange(changeDetails);
@@ -191,7 +190,7 @@ namespace TeamCityBuildChanges
                         ? _api
                         : new TeamCityApi(build.ServerUrl, new MemoryCacheClient());
 
-                    var resolver = new AggregateBuildDeltaResolver(instanceTeamCityApi, _externalIssueResolvers, _packageChangeComparator,
+                    var resolver = new AggregateBuildDeltaResolver(instanceTeamCityApi, _issueDetailResolver, _packageChangeComparator,
                         _packageBuildMappingCache, _traversedPackageChanges);
                     var dependencyManifest = resolver.CreateChangeManifest(null, build.BuildConfigurationId, null, dependency.OldVersion, dependency.NewVersion,
                         null, true, true, branchName);

@@ -31,7 +31,7 @@ namespace TeamCityBuildChanges.Testing
                 SetExpectations(template, api, issueResolver, packageCache);
             }
             
-            var resolver = new AggregateBuildDeltaResolver(api, new[] {issueResolver}, new PackageChangeComparator(), packageCache, new ConcurrentBag<NuGetPackageChange>());
+            var resolver = new AggregateBuildDeltaResolver(api, new IssueDetailResolver(new[] {issueResolver}), new PackageChangeComparator(), packageCache, new ConcurrentBag<NuGetPackageChange>());
             return resolver;
         }
 
