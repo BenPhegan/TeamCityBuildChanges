@@ -63,6 +63,7 @@
     <Compile Include="ExternalApi\AuthenticatedRestClientTests.cs" />
     <Compile Include="HtmlOutputTests.cs" />
     <Compile Include="IssueDetailResolvers\IssueDetailResolverTests.cs" />
+    <Compile Include="IssueDetailResolvers\JiraIssueResolverTests.cs" />
     <Compile Include="IssueDetailResolvers\TfsIssueResolverTests.cs" />
     <Compile Include="TeamCityApiTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
