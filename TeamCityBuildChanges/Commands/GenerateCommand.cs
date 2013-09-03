@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using ManyConsole;
 using ServiceStack.CacheAccess;
+using TeamCityBuildChanges.ExternalApi;
 using TeamCityBuildChanges.ExternalApi.Jira;
 using TeamCityBuildChanges.ExternalApi.TFS;
 using TeamCityBuildChanges.ExternalApi.TeamCity;
@@ -64,7 +65,7 @@ namespace TeamCityBuildChanges.Commands
         public override int Run(string[] remainingArguments)
         {
             ICacheClient client = new MemoryCacheClient();
-            var api = new TeamCityApi(new AuthenticatedRestClientFactory(_serverName, _teamCityAuthToken), client);
+            var api = new TeamCityApi(new AuthenticatedRestClient(_serverName, _teamCityAuthToken), client);
 
             var buildPackageCache = string.IsNullOrEmpty(_buildPackageCacheFile) ? null : new PackageBuildMappingCache(_buildPackageCacheFile);
 

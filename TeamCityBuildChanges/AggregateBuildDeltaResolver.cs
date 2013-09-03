@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using ServiceStack.CacheAccess.Providers;
+using TeamCityBuildChanges.ExternalApi;
 using TeamCityBuildChanges.ExternalApi.TeamCity;
 using TeamCityBuildChanges.IssueDetailResolvers;
 using TeamCityBuildChanges.NuGetPackage;
@@ -187,9 +188,9 @@ namespace TeamCityBuildChanges
                     if (build.BuildConfigurationId == buildType)
                         return;
                     //TODO if we are newing up a new RestClientFactory, we dont have a token for it...none passed in....
-                    var instanceTeamCityApi = _api.TeamCityServer.Equals(build.ServerUrl, StringComparison.OrdinalIgnoreCase)
+                    var instanceTeamCityApi = _api.Url.Equals(build.ServerUrl, StringComparison.OrdinalIgnoreCase)
                         ? _api
-                        : new TeamCityApi(new AuthenticatedRestClientFactory(build.ServerUrl), new MemoryCacheClient());
+                        : new TeamCityApi(new AuthenticatedRestClient(build.ServerUrl), new MemoryCacheClient());
 
                     var resolver = new AggregateBuildDeltaResolver(instanceTeamCityApi, _issueDetailResolver, _packageChangeComparator,
                         _packageBuildMappingCache, _traversedPackageChanges);

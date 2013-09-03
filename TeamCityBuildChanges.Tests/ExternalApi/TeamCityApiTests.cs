@@ -13,12 +13,10 @@ namespace TeamCityBuildChanges.Tests.ExternalApi
         [Test]
         public void OnlyFirstRequestForSameItemShouldGoToRestClient()
         {
-            var mockRestClientFactory = A.Fake<IAuthenticatdRestClientFactory>();
             var mockClient = A.Fake<IAuthenticatedRestClient>();
             A.CallTo(mockClient).WithReturnType<BuildDetails>().ReturnsLazily(() => new BuildDetails {Id = "5555"});
-            A.CallTo(() => mockRestClientFactory.Client()).ReturnsLazily(() => mockClient);
 
-            var api = new TeamCityApi(mockRestClientFactory, new MemoryCacheClient());
+            var api = new TeamCityApi(mockClient, new MemoryCacheClient());
             api.GetBuildDetailsByBuildId("test");
             api.GetBuildDetailsByBuildId("test");
 

@@ -20,7 +20,7 @@ namespace TeamCityBuildChanges.Testing
             const string apiServer = "http://test.server";
 
             var api = A.Fake<ITeamCityApi>();
-            A.CallTo(() => api.TeamCityServer).Returns(apiServer);
+            A.CallTo(() => api.Url).Returns(apiServer);
 
             var packageCache = new PackageBuildMappingCache();
 
@@ -143,7 +143,7 @@ namespace TeamCityBuildChanges.Testing
                             BuildConfigurationName = diff.PackageId,
                             PackageId = diff.PackageId,
                             Project = diff.PackageId,
-                            ServerUrl = api.TeamCityServer
+                            ServerUrl = api.Url
                         });
                     }
 
