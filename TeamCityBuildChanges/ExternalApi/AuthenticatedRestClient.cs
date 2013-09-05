@@ -39,11 +39,16 @@ namespace TeamCityBuildChanges.ExternalApi
         /// <returns></returns>
         IRestResponse<T> IAuthenticatedRestClient.Execute<T>(IRestRequest request)
         {
+            SetAuthenticationHeader(request);
+            return base.Execute<T>(request);
+        }
+
+        protected void SetAuthenticationHeader(IRestRequest request)
+        {
             if (!string.IsNullOrEmpty(AuthenticationToken))
             {
                 request.AddHeader("Authorization", "Basic " + AuthenticationToken);
             }
-            return base.Execute<T>(request);
         }
     }
 }

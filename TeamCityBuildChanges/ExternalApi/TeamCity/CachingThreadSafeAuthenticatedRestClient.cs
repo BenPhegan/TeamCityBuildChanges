@@ -6,7 +6,7 @@ using ServiceStack.CacheAccess;
 
 namespace TeamCityBuildChanges.ExternalApi.TeamCity
 {
-    public class CachingThreadSafeAuthenticatedRestClient : AuthenticatedRestClient
+    public class CachingThreadSafeAuthenticatedRestClient : AuthenticatedRestClient, IAuthenticatedRestClient
     {
         private readonly ICacheClient _cacheClient;
         private readonly string _url;
@@ -21,7 +21,7 @@ namespace TeamCityBuildChanges.ExternalApi.TeamCity
             _cacheClient = cacheClient;
         }
 
-        public override IRestResponse<T> Execute<T>(IRestRequest request)
+        IRestResponse<T> IAuthenticatedRestClient.Execute<T>(IRestRequest request)
         {
             var key = String.Format("{0}/{1}", BaseUrl, request.Resource);
             //If we are waiting for a response already...
@@ -47,7 +47,7 @@ namespace TeamCityBuildChanges.ExternalApi.TeamCity
                 };
 
             client.BaseUrl = builder.ToString();
-
+            SetAuthenticationHeader(request);
             var result = client.Execute<T>(request);
 
             //Add to cache, and remove from the list of running requests...
@@ -55,6 +55,41 @@ namespace TeamCityBuildChanges.ExternalApi.TeamCity
             DateTime requestStarted;
             _runningRequests.TryRemove(key, out requestStarted);
             return result;
+        }
+
+        public override IRestResponse Execute(IRestRequest request)
+        {
+            throw new NotImplementedException("No thread safe implementation currently provided.");
+        }
+
+        public override RestRequestAsyncHandle ExecuteAsync<T>(IRestRequest request, Action<IRestResponse<T>, RestRequestAsyncHandle> callback)
+        {
+            throw new NotImplementedException("No thread safe implementation currently provided.");
+        }
+
+        public override RestRequestAsyncHandle ExecuteAsync(IRestRequest request, Action<IRestResponse, RestRequestAsyncHandle> callback)
+        {
+            throw new NotImplementedException("No thread safe implementation currently provided.");
+        }
+
+        public override RestRequestAsyncHandle ExecuteAsyncGet<T>(IRestRequest request, Action<IRestResponse<T>, RestRequestAsyncHandle> callback, string httpMethod)
+        {
+            throw new NotImplementedException("No thread safe implementation currently provided.");
+        }
+
+        public override RestRequestAsyncHandle ExecuteAsyncGet(IRestRequest request, Action<IRestResponse, RestRequestAsyncHandle> callback, string httpMethod)
+        {
+            throw new NotImplementedException("No thread safe implementation currently provided.");
+        }
+
+        public override RestRequestAsyncHandle ExecuteAsyncPost<T>(IRestRequest request, Action<IRestResponse<T>, RestRequestAsyncHandle> callback, string httpMethod)
+        {
+            throw new NotImplementedException("No thread safe implementation currently provided.");
+        }
+
+        public override RestRequestAsyncHandle ExecuteAsyncPost(IRestRequest request, Action<IRestResponse, RestRequestAsyncHandle> callback, string httpMethod)
+        {
+            throw new NotImplementedException("No thread safe implementation currently provided.");
         }
     }
 }
