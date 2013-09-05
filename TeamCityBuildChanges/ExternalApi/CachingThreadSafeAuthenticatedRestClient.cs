@@ -23,7 +23,7 @@ namespace TeamCityBuildChanges.ExternalApi
 
         IRestResponse<T> IAuthenticatedRestClient.Execute<T>(IRestRequest request)
         {
-            var key = String.Format("{0}/{1}", BaseUrl, request.Resource);
+            var key = String.Format("{0}/{1}/{2}", BaseUrl, request.Resource, String.Join("/", request.Parameters));
             //If we are waiting for a response already...
             if (_runningRequests.ContainsKey(key))
             {
