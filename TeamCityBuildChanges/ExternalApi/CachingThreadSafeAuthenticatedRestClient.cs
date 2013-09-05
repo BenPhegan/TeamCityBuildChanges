@@ -4,7 +4,7 @@ using System.Threading;
 using RestSharp;
 using ServiceStack.CacheAccess;
 
-namespace TeamCityBuildChanges.ExternalApi.TeamCity
+namespace TeamCityBuildChanges.ExternalApi
 {
     public class CachingThreadSafeAuthenticatedRestClient : AuthenticatedRestClient, IAuthenticatedRestClient
     {

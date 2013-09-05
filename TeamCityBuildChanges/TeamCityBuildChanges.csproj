@@ -140,7 +140,7 @@
     <Compile Include="Commands\TestTemplateCommand.cs" />
     <Compile Include="ExternalApi\IAuthenticatedRestClient.cs" />
     <Compile Include="ExternalApi\Jira\IJiraApi.cs" />
-    <Compile Include="ExternalApi\TeamCity\CachingThreadSafeAuthenticatedRestClient.cs" />
+    <Compile Include="ExternalApi\CachingThreadSafeAuthenticatedRestClient.cs" />
     <Compile Include="IPackageChangeComparator.cs" />
     <Compile Include="IssueDetailResolvers\IIssueDetailResolver.cs" />
     <Compile Include="PackageChangeComparator.cs" />
