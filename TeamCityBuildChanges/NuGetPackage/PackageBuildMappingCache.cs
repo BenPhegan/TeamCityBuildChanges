@@ -63,7 +63,7 @@ namespace TeamCityBuildChanges.NuGetPackage
         {
             foreach (var server in servers)
             {
-                var apiConnection = new TeamCityApi(new AuthenticatedRestClient(server, null), new MemoryCacheClient());
+                var apiConnection = new TeamCityApi(new CachingThreadSafeAuthenticatedRestClient(new MemoryCacheClient(), server, null), new MemoryCacheClient());
                 var buildConfigurations = apiConnection.GetBuildTypes();
                 StartedServerCheck(this, new ServerCheckEventArgs {Count = buildConfigurations.Count, Url = server});
                 foreach (var configuration in buildConfigurations)

@@ -190,7 +190,7 @@ namespace TeamCityBuildChanges
                     //TODO if we are newing up a new RestClientFactory, we dont have a token for it...none passed in....
                     var instanceTeamCityApi = _api.Url.Equals(build.ServerUrl, StringComparison.OrdinalIgnoreCase)
                         ? _api
-                        : new TeamCityApi(new AuthenticatedRestClient(build.ServerUrl), new MemoryCacheClient());
+                        : new TeamCityApi(new CachingThreadSafeAuthenticatedRestClient(new MemoryCacheClient(), build.ServerUrl), new MemoryCacheClient());
 
                     var resolver = new AggregateBuildDeltaResolver(instanceTeamCityApi, _issueDetailResolver, _packageChangeComparator,
                         _packageBuildMappingCache, _traversedPackageChanges);
