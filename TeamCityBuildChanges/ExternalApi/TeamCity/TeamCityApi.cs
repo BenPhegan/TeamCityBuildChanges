@@ -8,6 +8,7 @@ using System.Text;
 using System.Xml.Linq;
 using RestSharp;
 using ServiceStack.CacheAccess;
+using TeamCityBuildChanges.ExtensionMethods;
 
 namespace TeamCityBuildChanges.ExternalApi.TeamCity
 {
