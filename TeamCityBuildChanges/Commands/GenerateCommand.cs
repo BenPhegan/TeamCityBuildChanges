@@ -106,7 +106,7 @@ namespace TeamCityBuildChanges.Commands
             }
             if (!string.IsNullOrEmpty(_tfsUrl))
             {
-                resolvers.Add(new TFSIssueResolver(new TfsApi(_tfsUrl)));
+                resolvers.Add(new TFSIssueResolver(new TfsApi(_tfsUrl, new MemoryCacheClient())));
             }
             return resolvers;
         }
