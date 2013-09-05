@@ -27,55 +27,26 @@ namespace TeamCityBuildChanges.ExternalApi.TeamCity
             get { return _client.BaseUrl; }
         }
 
-        private T GetFromCacheOrRest<T>(string key, Func<string, T> restCall) where T : class
-        {
-            var typedKey = String.Format("{0}:{1}", typeof (T).FullName, key);
-            var cacheHit = _cache.Get<T>(typedKey);
-            if (cacheHit != null)
-            {
-                return cacheHit;
-            }
-            var result = restCall(key);
-            //TODO concurrency issue here?
-            _cache.Add(typedKey, result);
-            return result;
-        }
-
-        private T GetFromCacheOrRest<T>(string key1, string key2, Func<string, string, T> restCall) where T : class
-        {
-            var typedKey = string.Format("{0}:{1}:{2}", typeof(T).FullName, key1 ?? string.Empty, key2 ?? string.Empty);
-
-            var cacheHit = _cache.Get<T>(typedKey);
-            if (cacheHit != null)
-            {
-                return cacheHit;
-            }
-            var result = restCall(key1,key2);
-            //TODO concurrency issue here?
-            _cache.Add(typedKey, result);
-            return result;
-        }
-
         public List<BuildType> GetBuildTypes()
         {
-            return GetFromCacheOrRest("AllBuildTypes", key =>
-            {
-                var request = new RestRequest("app/rest/buildTypes", Method.GET) {RequestFormat = DataFormat.Xml};
-                request.AddHeader("Accept", "application/xml");
+            return _cache.GetFromCacheOrFunc("AllBuildTypes", key =>
+                {
+                    var request = new RestRequest("app/rest/buildTypes", Method.GET) {RequestFormat = DataFormat.Xml};
+                    request.AddHeader("Accept", "application/xml");
 
-                var buildConfigs = _client.Execute<List<BuildType>>(request);
-                return buildConfigs.Data;
-            });
+                    var buildConfigs = _client.Execute<List<BuildType>>(request);
+                    return buildConfigs.Data;
+                });
         }
 
         public BuildTypeDetails GetBuildTypeDetailsById(string id)
         {
-            return GetFromCacheOrRest(id, query =>
-            {
-                var buildDetails = GetXmlBuildRequest("app/rest/buildTypes/id:{ID}", "ID", id);
-                var response = _client.Execute<BuildTypeDetails>(buildDetails);
-                return response.Data;
-            });
+            return _cache.GetFromCacheOrFunc(id, query =>
+                {
+                    var buildDetails = GetXmlBuildRequest("app/rest/buildTypes/id:{ID}", "ID", id);
+                    var response = _client.Execute<BuildTypeDetails>(buildDetails);
+                    return response.Data;
+                });
         }
 
         private static RestRequest GetXmlBuildRequest(string endpoint, string variable = null, string replacement = null)
@@ -90,55 +61,55 @@ namespace TeamCityBuildChanges.ExternalApi.TeamCity
 
         public IEnumerable<Artifact> GetArtifactListByBuildType(string buildType)
         {
-            return GetFromCacheOrRest(buildType, key =>
-            {
-                var request = new RestRequest("repository/download/{ID}/lastSuccessful/teamcity-ivy.xml");
-                request.AddParameter("ID", buildType, ParameterType.UrlSegment);
-                request.RequestFormat = DataFormat.Xml;
-                request.AddHeader("Accept", "application/xml");
+            return _cache.GetFromCacheOrFunc(buildType, key =>
+                {
+                    var request = new RestRequest("repository/download/{ID}/lastSuccessful/teamcity-ivy.xml");
+                    request.AddParameter("ID", buildType, ParameterType.UrlSegment);
+                    request.RequestFormat = DataFormat.Xml;
+                    request.AddHeader("Accept", "application/xml");
 
-                var response = _client.Execute<IvyModule>(request);
-                return response.Data != null ? response.Data.Publications : new List<Artifact>();
-            });
+                    var response = _client.Execute<IvyModule>(request);
+                    return response.Data != null ? response.Data.Publications : new List<Artifact>();
+                });
         }
 
         public List<PackageDetails> GetNuGetDependenciesByBuildTypeAndBuildId(string buildType, string buildId)
         {
-            return GetFromCacheOrRest(buildType, buildId, (key1,key2) =>
-            {
-                var restUrl = new StringBuilder();
-                restUrl.AppendFormat("{0}/repository/download/{1}/{2}:id/.teamcity/nuget/nuget.xml", _client.BaseUrl, buildType, buildId);
-
-                var restRequest = (HttpWebRequest) WebRequest.Create(restUrl.ToString());
-
-                if (!string.IsNullOrEmpty(_client.AuthenticationToken))
+            return _cache.GetFromCacheOrFunc(buildType, buildId, (key1, key2) =>
                 {
-                    restRequest.Headers.Add(HttpRequestHeader.Authorization, "Basic " + _client.AuthenticationToken);
-                }
+                    var restUrl = new StringBuilder();
+                    restUrl.AppendFormat("{0}/repository/download/{1}/{2}:id/.teamcity/nuget/nuget.xml", _client.BaseUrl, buildType, buildId);
 
-                try
-                {
-                    var restResponse = (HttpWebResponse) restRequest.GetResponse();
-                    string response;
-                    using (var reader = new StreamReader(restResponse.GetResponseStream()))
+                    var restRequest = (HttpWebRequest) WebRequest.Create(restUrl.ToString());
+
+                    if (!string.IsNullOrEmpty(_client.AuthenticationToken))
                     {
-                        response = reader.ReadToEnd();
+                        restRequest.Headers.Add(HttpRequestHeader.Authorization, "Basic " + _client.AuthenticationToken);
                     }
-                    var xDoc = XDocument.Parse(response.Normalize());
-                    var packageList = xDoc.Root.Element("packages").Elements("package").Select(p => new PackageDetails
-                    {
-                        Id = p.Attribute("id").Value,
-                        Version = p.Attribute("version").Value
-                    }).ToList();
 
-                    return packageList;
-                }
-                catch (WebException)
-                {
-                    //Evil?  Yes :)
-                    return new List<PackageDetails>();
-                }
-            });
+                    try
+                    {
+                        var restResponse = (HttpWebResponse) restRequest.GetResponse();
+                        string response;
+                        using (var reader = new StreamReader(restResponse.GetResponseStream()))
+                        {
+                            response = reader.ReadToEnd();
+                        }
+                        var xDoc = XDocument.Parse(response.Normalize());
+                        var packageList = xDoc.Root.Element("packages").Elements("package").Select(p => new PackageDetails
+                            {
+                                Id = p.Attribute("id").Value,
+                                Version = p.Attribute("version").Value
+                            }).ToList();
+
+                        return packageList;
+                    }
+                    catch (WebException)
+                    {
+                        //Evil?  Yes :)
+                        return new List<PackageDetails>();
+                    }
+                });
         }
 
         public class NuGetDependencies
@@ -214,12 +185,12 @@ namespace TeamCityBuildChanges.ExternalApi.TeamCity
 
         public IEnumerable<BuildType> GetBuildTypeByProjectAndName(string project, string buildName)
         {
-            return GetFromCacheOrRest(String.Format("{0}:{1}", project, buildName), query =>
-            {
-                var request = GetXmlBuildRequest("app/rest/buildTypes");
-                var response = _client.Execute<List<BuildType>>(request);
-                return response.Data.Where(b => b.ProjectName.Equals(project, StringComparison.InvariantCultureIgnoreCase) && b.Name.Equals(buildName, StringComparison.InvariantCultureIgnoreCase));
-            });
+            return _cache.GetFromCacheOrFunc(String.Format("{0}:{1}", project, buildName), query =>
+                {
+                    var request = GetXmlBuildRequest("app/rest/buildTypes");
+                    var response = _client.Execute<List<BuildType>>(request);
+                    return response.Data.Where(b => b.ProjectName.Equals(project, StringComparison.InvariantCultureIgnoreCase) && b.Name.Equals(buildName, StringComparison.InvariantCultureIgnoreCase));
+                });
         }
 
         public IEnumerable<ChangeDetail> GetChangeDetailsByBuildTypeAndBuildId(string buildType, string from, string to, Func<Build, string, bool> comparitor, IEnumerable<Build> buildList = null, string branchName = null)
@@ -289,51 +260,51 @@ namespace TeamCityBuildChanges.ExternalApi.TeamCity
 
         public BuildDetails GetBuildDetailsByBuildId(string id)
         {
-            return GetFromCacheOrRest(id, query =>
-            {
-                var request = GetXmlBuildRequest("app/rest/builds/id:{ID}", "ID", id);
-                var response = _client.Execute<BuildDetails>(request);
-                return response.Data;
-            });
+            return _cache.GetFromCacheOrFunc(id, query =>
+                {
+                    var request = GetXmlBuildRequest("app/rest/builds/id:{ID}", "ID", id);
+                    var response = _client.Execute<BuildDetails>(request);
+                    return response.Data;
+                });
         }
 
         public ChangeList GetChangeListByBuildId(string id)
         {
-            return GetFromCacheOrRest(id, query =>
-            {
-                var request = GetXmlBuildRequest("app/rest/changes?build=id:{ID}", "ID", id);
-                var response = _client.Execute<ChangeList>(request);
-                return response.Data;
-            });
+            return _cache.GetFromCacheOrFunc(id, query =>
+                {
+                    var request = GetXmlBuildRequest("app/rest/changes?build=id:{ID}", "ID", id);
+                    var response = _client.Execute<ChangeList>(request);
+                    return response.Data;
+                });
         }
 
         public ChangeDetail GetChangeDetailsByChangeId(string id)
         {
-            return GetFromCacheOrRest(id, query =>
-            {
+            return _cache.GetFromCacheOrFunc(id, query =>
+                {
 
-                var request = GetXmlBuildRequest("app/rest/changes/id:{ID}", "ID", id);
-                var response = _client.Execute<ChangeDetail>(request);
-                return response.Data;
-            });
+                    var request = GetXmlBuildRequest("app/rest/changes/id:{ID}", "ID", id);
+                    var response = _client.Execute<ChangeDetail>(request);
+                    return response.Data;
+                });
         }
 
         public IEnumerable<Build> GetBuildsByBuildType(string buildType, string branchName = null)
         {
-            return GetFromCacheOrRest(buildType, branchName, (key1, key2) =>
-            {
-                RestRequest request;
-                if (string.IsNullOrEmpty(branchName))
+            return _cache.GetFromCacheOrFunc(buildType, branchName, (key1, key2) =>
                 {
-                    request = GetXmlBuildRequest("app/rest/builds/?locator=buildType:{ID}", "ID", buildType);
-                }
-                else
-                {
-                    request = GetXmlBuildRequest(string.Format("app/rest/builds/?locator=buildType:{{ID}},branch:(name:{0})", branchName), "ID", buildType);
-                }
-                var response = _client.Execute<List<Build>>(request);
-                return response.Data;
-            });
+                    RestRequest request;
+                    if (string.IsNullOrEmpty(branchName))
+                    {
+                        request = GetXmlBuildRequest("app/rest/builds/?locator=buildType:{ID}", "ID", buildType);
+                    }
+                    else
+                    {
+                        request = GetXmlBuildRequest(string.Format("app/rest/builds/?locator=buildType:{{ID}},branch:(name:{0})", branchName), "ID", buildType);
+                    }
+                    var response = _client.Execute<List<Build>>(request);
+                    return response.Data;
+                });
         }
     }
 
