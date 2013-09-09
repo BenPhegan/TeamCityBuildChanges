@@ -222,7 +222,7 @@ namespace TeamCityBuildChanges.ExternalApi.TeamCity
             var results = new List<T>();
 
             var captureChanges = false;
-            foreach (var build in builds.OrderBy(b => b.Id))
+            foreach (var build in builds.OrderBy(b => Convert.ToInt32(b.Id)))
             {
                 if (comparitor(build, from))
                 {
