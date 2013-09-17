@@ -51,6 +51,24 @@ namespace TeamCityBuildChanges.Tests.IssueDetailResolvers
             A.CallTo(() => mockApi.GetJiraIssue(A<string>.Ignored)).MustHaveHappened(Repeated.Exactly.Times(3));
         }
 
+        [Test]
+        public void OnlyDetectsActualJiraIssueIds()
+        {
+            var mockApi = A.Fake<IJiraApi>();
+
+            var resolver = new JiraIssueResolver(mockApi);
+            var issues = resolver.GetIssues(new List<ChangeDetail>
+                {
+                    new ChangeDetail { Comment = "This should not trigger-"},
+                    new ChangeDetail { Comment = "Neither should -this"},
+                    new ChangeDetail { Comment = "-"},
+                    new ChangeDetail { Comment = "454-fdfd"}
+                });
+
+            Assert.AreEqual(0, issues.Count());
+        }
+
+
         private RootObject GetJiraRootObject(string jiraId)
         {
             return new RootObject

@@ -11,7 +11,7 @@ namespace TeamCityBuildChanges.IssueDetailResolvers
     public class JiraIssueResolver : IExternalIssueResolver
     {
         private readonly IJiraApi _api;
-        private const string JiraIssueRegex = @"[A-Z]*-[0-9]*";
+        private const string JiraIssueRegex = @"[A-Z]+-[0-9]+";
 
         public JiraIssueResolver(IJiraApi api)
         {
@@ -50,7 +50,6 @@ namespace TeamCityBuildChanges.IssueDetailResolvers
                 var changeIssues = Regex.Matches(change.Comment, JiraIssueRegex, RegexOptions.IgnoreCase)
                        .Cast<Match>()
                        .Select(x => new Issue { Id = x.Value })
-                       .Where(x => x.Id != "-") // need a better regex but I'm crap at that
                        .ToList();
                 issues.AddRange(changeIssues);
             }
