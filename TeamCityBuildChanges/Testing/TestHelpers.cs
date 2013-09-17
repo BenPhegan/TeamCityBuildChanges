@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -19,7 +20,7 @@ namespace TeamCityBuildChanges.Testing
             const string apiServer = "http://test.server";
 
             var api = A.Fake<ITeamCityApi>();
-            A.CallTo(() => api.TeamCityServer).Returns(apiServer);
+            A.CallTo(() => api.Url).Returns(apiServer);
 
             var packageCache = new PackageBuildMappingCache();
 
@@ -30,7 +31,7 @@ namespace TeamCityBuildChanges.Testing
                 SetExpectations(template, api, issueResolver, packageCache);
             }
             
-            var resolver = new AggregateBuildDeltaResolver(api, new[] {issueResolver}, new PackageChangeComparator(), packageCache, new List<NuGetPackageChange>());
+            var resolver = new AggregateBuildDeltaResolver(api, new IssueDetailResolver(new[] {issueResolver}), new PackageChangeComparator(), packageCache, new ConcurrentBag<NuGetPackageChange>());
             return resolver;
         }
 
@@ -142,7 +143,7 @@ namespace TeamCityBuildChanges.Testing
                             BuildConfigurationName = diff.PackageId,
                             PackageId = diff.PackageId,
                             Project = diff.PackageId,
-                            ServerUrl = api.TeamCityServer
+                            ServerUrl = api.Url
                         });
                     }
 
@@ -180,8 +181,8 @@ namespace TeamCityBuildChanges.Testing
                         {
                             beforerevision = RandomNumber.Next(50,500).ToString(),
                             afterrevision = RandomNumber.Next(450, 700).ToString(),
-                            File = Path.GetTempFileName(),
-                            relativefile = Path.GetTempFileName()
+                            File = Path.GetRandomFileName(),
+                            relativefile = Path.GetRandomFileName()
                         }).ToList(),
                 });
             A.CallTo(() => api.GetBuildsByBuildType(template.BuildId, null)).Returns(builds);

@@ -1,0 +1,19 @@
+﻿@using System.Collections.Generic
+@using System.IO
+@using System.Linq
+@using System.Xml.Serialization
+@using TeamCityBuildChanges.ExternalApi.TeamCity
+@using System.Web.Razor
+@inherits RazorEngine.Templating.TemplateBase<TeamCityBuildChanges.Output.ChangeManifest>
+
+@if (Model.ChangeDetails.Any())
+{
+    string xml;
+    using (var writer = new StringWriter())
+    {
+        new XmlSerializer(typeof (TeamCityBuildChanges.Output.ChangeManifest)).Serialize(writer, Model);
+        xml = writer.ToString();
+    }
+    @Raw(xml)
+}
+

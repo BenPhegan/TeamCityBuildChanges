@@ -9,8 +9,15 @@ namespace TeamCityBuildChanges
     {
         static int Main(string[] args)
         {
+            ILBundle.RegisterAssemblyResolver();
+            return Run(args);
+        }
+        
+        private static int Run(string[] args)
+        {
             var commands = GetCommands();
             return ConsoleCommandDispatcher.DispatchCommand(commands, args, Console.Out);
+            
         }
 
         static IEnumerable<ConsoleCommand> GetCommands()

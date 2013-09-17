@@ -20,11 +20,11 @@ namespace TeamCityBuildChanges.Commands
         }
         public override int Run(string[] remainingArguments)
         {
-            if (RemainingArgumentsCount != 1) throw new ArgumentException("Please provide the path to the template file to parse.");
+            if (RemainingArgumentsCount != 1) throw new ConsoleHelpAsException("Please provide the path to the template file to parse.");
 
             _templateFile = remainingArguments[0];
 
-            if (!File.Exists(_templateFile)) throw new ArgumentException("Please provide a template file that exists.");
+            if (!File.Exists(_templateFile)) throw new ConsoleHelpAsException("Please provide a template file that exists.");
 
             var resolver = CreateMockedAggregateBuildDeltaResolver();
 

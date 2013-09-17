@@ -97,6 +97,30 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\RestSharp.104.1\lib\net4\RestSharp.dll</HintPath>
     </Reference>
+    <Reference Include="ServiceStack">
+      <HintPath>..\packages\ServiceStack.3.9.59\lib\net35\ServiceStack.dll</HintPath>
+    </Reference>
+    <Reference Include="ServiceStack.Common">
+      <HintPath>..\packages\ServiceStack.Common.3.9.59\lib\net35\ServiceStack.Common.dll</HintPath>
+    </Reference>
+    <Reference Include="ServiceStack.Interfaces">
+      <HintPath>..\packages\ServiceStack.Common.3.9.59\lib\net35\ServiceStack.Interfaces.dll</HintPath>
+    </Reference>
+    <Reference Include="ServiceStack.OrmLite">
+      <HintPath>..\packages\ServiceStack.OrmLite.SqlServer.3.9.59\lib\ServiceStack.OrmLite.dll</HintPath>
+    </Reference>
+    <Reference Include="ServiceStack.OrmLite.SqlServer">
+      <HintPath>..\packages\ServiceStack.OrmLite.SqlServer.3.9.59\lib\ServiceStack.OrmLite.SqlServer.dll</HintPath>
+    </Reference>
+    <Reference Include="ServiceStack.Redis">
+      <HintPath>..\packages\ServiceStack.Redis.3.9.59\lib\net35\ServiceStack.Redis.dll</HintPath>
+    </Reference>
+    <Reference Include="ServiceStack.ServiceInterface">
+      <HintPath>..\packages\ServiceStack.3.9.59\lib\net35\ServiceStack.ServiceInterface.dll</HintPath>
+    </Reference>
+    <Reference Include="ServiceStack.Text">
+      <HintPath>..\packages\ServiceStack.Text.3.9.59\lib\net35\ServiceStack.Text.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Web.Razor, Version=2.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
@@ -110,32 +134,35 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Commands\AggregateBuildDeltaCommand.cs" />
-    <Compile Include="Commands\AggregateBuildDeltaResolver.cs" />
-    <Compile Include="Commands\BuildPackageMappingCacheCommand.cs" />
+    <Compile Include="Commands\GenerateCommand.cs" />
+    <Compile Include="AggregateBuildDeltaResolver.cs" />
+    <Compile Include="Commands\BuildCacheCommand.cs" />
     <Compile Include="Commands\TestTemplateCommand.cs" />
-    <Compile Include="Commands\IPackageChangeComparator.cs" />
-    <Compile Include="Commands\PackageChangeComparator.cs" />
+    <Compile Include="ExternalApi\IAuthenticatedRestClient.cs" />
+    <Compile Include="ExternalApi\Jira\IJiraApi.cs" />
+    <Compile Include="ExternalApi\CachingThreadSafeAuthenticatedRestClient.cs" />
+    <Compile Include="ExtensionMethods\ICacheClientExtensions.cs" />
+    <Compile Include="IPackageChangeComparator.cs" />
+    <Compile Include="IssueDetailResolvers\IIssueDetailResolver.cs" />
+    <Compile Include="PackageChangeComparator.cs" />
     <Compile Include="ExternalApi\AuthenticatedRestClient.cs" />
     <Compile Include="ExternalApi\TFS\ITfsApi.cs" />
     <Compile Include="ExternalApi\UriExtensions.cs" />
     <Compile Include="ExternalApi\TeamCity\ITeamCityApi.cs" />
     <Compile Include="ExternalApi\TFS\TfsApi.cs" />
     <Compile Include="ExternalApi\TFS\TfsWorkItem.cs" />
+    <Compile Include="ILBundle.cs" />
     <Compile Include="IssueDetailResolvers\IssueEqualityComparer.cs" />
     <Compile Include="IssueDetailResolvers\TFSIssueResolver.cs" />
     <Compile Include="NuGetPackage\PackageBuildMapping.cs" />
     <Compile Include="NuGetPackage\PackageBuildMappingCache.cs" />
-    <Compile Include="Output\ChangeDetailOutputFormatter.cs" />
     <Compile Include="Output\ChangeManifest.cs" />
     <Compile Include="Commands\EncodeCommand.cs" />
     <Compile Include="IssueDetailResolvers\ExternalIssueDetails.cs" />
     <Compile Include="IssueDetailResolvers\IExternalIssueResolver.cs" />
     <Compile Include="IssueDetailResolvers\IssueDetailResolver.cs" />
     <Compile Include="IssueDetailResolvers\JiraIssueResolver.cs" />
-    <Compile Include="Commands\TeamCityCommandBase.cs" />
     <Compile Include="ExternalApi\Jira\JiraApi.cs" />
-    <Compile Include="Output\ExternalIssueDetailsComparer.cs" />
     <Compile Include="Output\ExternalIssueDetailsEqualityComparer.cs" />
     <Compile Include="Output\LogEntry.cs" />
     <Compile Include="Output\NuGetPackageChange.cs" />
@@ -145,7 +172,6 @@
     <Compile Include="Output\SubIssueEdge.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Commands\SingleBuildDeltaCommand.cs" />
     <Compile Include="ExternalApi\TeamCity\TeamCityApi.cs" />
     <Compile Include="Testing\BuildTemplate.cs" />
     <Compile Include="Testing\TestHelpers.cs" />
@@ -156,15 +182,19 @@
     <Content Include="Templates\OctopusMarkdown.cshtml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <None Include="Templates\Text.cshtml">
+    <None Include="ILBundle.targets" />
+    <Content Include="Templates\Text.cshtml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="Templates\Default.cshtml">
+    </Content>
+    <Content Include="Templates\Default.cshtml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
+    </Content>
     <None Include="TeamCityBuildChanges.nuspec">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <Content Include="Templates\Xml.cshtml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config">
@@ -178,32 +208,13 @@
   </PropertyGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>if not exist ..\Deploy.$(Configuration) mkdir  ..\Deploy.$(Configuration)
-$(SolutionDir)tools\ilmerge\ilmerge.exe /v4 /t:exe /out:..\Deploy.$(Configuration)\$(TargetFileName) $(TargetPath) $(TargetDir)ManyConsole.dll $(TargetDir)NDesk.Options.dll  $(TargetDir)RestSharp.dll $(TargetDir)RazorEngine.dll $(TargetDir)QuickGraph.dll $(TargetDir)QuickGraph.Data.dll $(TargetDir)Castle.Core.dll  $(TargetDir)System.Web.Razor.dll  $(TargetDir)QuickGraph.Graphviz.dll $(TargetDir)QuickGraph.Serialization.dll $(TargetDir)FakeItEasy.dll $(TargetDir)Faker.Net4.dll
-xcopy $(TargetDir)Templates ..\Deploy.$(Configuration)\Templates /s /y /i
-copy $(TargetDir)TeamCityBuildChanges.nuspec ..\Deploy.$(Configuration)\TeamCityBuildChanges.nuspec /y</PostBuildEvent>
+    <PostBuildEvent>
+    </PostBuildEvent>
   </PropertyGroup>
   <Import Project="$(VSToolsPath)\WebApplications\Microsoft.WebApplication.targets" Condition="Exists('$(VSToolsPath)\WebApplications\Microsoft.WebApplication.targets')" />
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v10.0\WebApplications\Microsoft.WebApplication.targets" Condition="false" />
-  <ProjectExtensions>
-    <VisualStudio>
-      <FlavorProperties GUID="{349c5851-65df-11da-9384-00065b846f21}">
-        <WebProjectProperties>
-          <UseIIS>False</UseIIS>
-          <AutoAssignPort>True</AutoAssignPort>
-          <DevelopmentServerPort>5666</DevelopmentServerPort>
-          <DevelopmentServerVPath>/</DevelopmentServerVPath>
-          <IISUrl>
-          </IISUrl>
-          <NTLMAuthentication>False</NTLMAuthentication>
-          <UseCustomServer>False</UseCustomServer>
-          <CustomServerUrl>
-          </CustomServerUrl>
-          <SaveServerSettingsInUserFile>False</SaveServerSettingsInUserFile>
-        </WebProjectProperties>
-      </FlavorProperties>
-    </VisualStudio>
-  </ProjectExtensions>
+  <ProjectExtensions />
+  <Import Project="ILBundle.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">
