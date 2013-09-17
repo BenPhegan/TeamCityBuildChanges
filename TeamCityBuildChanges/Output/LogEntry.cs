@@ -8,6 +8,10 @@ namespace TeamCityBuildChanges.Output
         Status Status { get; set; }
         string StatusText { get; set; }
 
+        public LogEntry()
+        {
+        }
+
         public LogEntry(DateTime occurred, Status status, string text)
         {
             Occurred = occurred;

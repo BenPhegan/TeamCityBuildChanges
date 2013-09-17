@@ -48,6 +48,14 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\RestSharp.104.1\lib\net4\RestSharp.dll</HintPath>
     </Reference>
+    <Reference Include="ServiceStack, Version=3.9.59.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\ServiceStack.3.9.59\lib\net35\ServiceStack.dll</HintPath>
+    </Reference>
+    <Reference Include="ServiceStack.Interfaces, Version=3.9.59.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\ServiceStack.Common.3.9.59\lib\net35\ServiceStack.Interfaces.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -61,11 +69,13 @@
     <Compile Include="Commands\AggregateBuildDeltaResolverTests.cs" />
     <Compile Include="Commands\PackageChangeComparatorTests.cs" />
     <Compile Include="ExternalApi\AuthenticatedRestClientTests.cs" />
+    <Compile Include="ExternalApi\TeamCityApiTests.cs" />
     <Compile Include="HtmlOutputTests.cs" />
+    <Compile Include="IssueDetailResolvers\IssueDetailResolverTests.cs" />
+    <Compile Include="IssueDetailResolvers\JiraIssueResolverTests.cs" />
     <Compile Include="IssueDetailResolvers\TfsIssueResolverTests.cs" />
     <Compile Include="TeamCityApiTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="TfsApiIntegrationTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

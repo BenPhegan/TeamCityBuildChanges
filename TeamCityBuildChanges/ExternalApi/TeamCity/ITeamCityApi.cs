@@ -5,7 +5,7 @@ namespace TeamCityBuildChanges.ExternalApi.TeamCity
 {
     public interface ITeamCityApi
     {
-        string TeamCityServer { get; }
+        string Url { get; }
         List<BuildType> GetBuildTypes();
         BuildTypeDetails GetBuildTypeDetailsById(string id);
         IEnumerable<Artifact> GetArtifactListByBuildType(string buildType);

@@ -1,23 +1,20 @@
-﻿namespace TeamCityBuildChanges.ExternalApi
+﻿
+
+using System;
+using RestSharp;
+using TeamCityBuildChanges.ExternalApi.TeamCity;
+
+namespace TeamCityBuildChanges.ExternalApi
 {
-    using System;
-    using RestSharp;
-    using TeamCityBuildChanges.ExternalApi.TeamCity;
-
-    public class AuthenticatedRestClient : RestClient
+    public class AuthenticatedRestClient : RestClient, IAuthenticatedRestClient
     {
-        private readonly string authenticationToken;
-
         /// <summary>
         /// Gets the authentication token.
         /// </summary>
         /// <value>
         /// The authentication token.
         /// </value>
-        public string AuthenticationToken
-        {
-            get { return this.authenticationToken; }
-        }
+        public string AuthenticationToken { get; private set; }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="AuthenticatedRestClient"/> class.
@@ -28,8 +25,8 @@
         {
             var uri = new Uri(url);
             var derivedAuthToken = uri.TryResolveAuthToken(out uri);
-            
-            this.authenticationToken = authenticationToken ?? derivedAuthToken;
+
+            AuthenticationToken = authenticationToken ?? derivedAuthToken;
 
             base.BaseUrl = uri.ToString();
         }
@@ -40,13 +37,18 @@
         /// <typeparam name="T"></typeparam>
         /// <param name="request">The request.</param>
         /// <returns></returns>
-        public override IRestResponse<T> Execute<T>(IRestRequest request)
+        IRestResponse<T> IAuthenticatedRestClient.Execute<T>(IRestRequest request)
+        {
+            SetAuthenticationHeader(request);
+            return base.Execute<T>(request);
+        }
+
+        protected void SetAuthenticationHeader(IRestRequest request)
         {
             if (!string.IsNullOrEmpty(AuthenticationToken))
             {
                 request.AddHeader("Authorization", "Basic " + AuthenticationToken);
             }
-            return base.Execute<T>(request);
         }
     }
 }

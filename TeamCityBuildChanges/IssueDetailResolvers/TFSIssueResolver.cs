@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
-using System.Text;
+using System.Threading.Tasks;
 using TeamCityBuildChanges.ExternalApi.TeamCity;
 using TeamCityBuildChanges.ExternalApi.TFS;
 
@@ -18,11 +20,12 @@ namespace TeamCityBuildChanges.IssueDetailResolvers
 
         public IEnumerable<ExternalIssueDetails> GetDetails(IEnumerable<Issue> issues)
         {
-            var externalIssueDetails = new List<ExternalIssueDetails>();
+            int ignoredOut;
+            var tfsIssues = issues.Where(i => IsTfsUrl(i.Url) && int.TryParse(i.Id, out ignoredOut)).ToList();
+            var queriedIssues = new ConcurrentBag<ExternalIssueDetails>();
+            Parallel.ForEach(tfsIssues, issue => queriedIssues.Add(GetDetails(issue)));
 
-            externalIssueDetails.AddRange(issues.Where(i => IsTfsUrl(i.Url)).Select(GetDetails));
-
-            return externalIssueDetails;
+            return queriedIssues;
         }
 
         public IEnumerable<Issue> GetIssues(IEnumerable<ChangeDetail> changeDetails)
@@ -68,7 +71,7 @@ namespace TeamCityBuildChanges.IssueDetailResolvers
         {
             var eid = new ExternalIssueDetails
             {
-                Id = wi.Id.ToString(),
+                Id = wi.Id.ToString(CultureInfo.InvariantCulture),
                 Created = wi.Created.ToString("dd-MM-yyyy HH:mm:ss"),
                 Type = wi.Type,
                 Comments = wi.HistoryComments,
@@ -84,7 +87,7 @@ namespace TeamCityBuildChanges.IssueDetailResolvers
         {
             return new Issue
             {
-                Id = wi.Id.ToString(),
+                Id = wi.Id.ToString(CultureInfo.InvariantCulture),
                 Url = _tfsApi.ConnectionUri + "/web/wi.aspx?id=" + wi.Id
             };
         }

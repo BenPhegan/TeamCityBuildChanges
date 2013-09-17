@@ -10,9 +10,10 @@ namespace TeamCityBuildChanges.IssueDetailResolvers
 
     public class JiraIssueResolver : IExternalIssueResolver
     {
-        private readonly JiraApi _api;
+        private readonly IJiraApi _api;
+        private const string JiraIssueRegex = @"[A-Z]+-[0-9]+";
 
-        public JiraIssueResolver(JiraApi api)
+        public JiraIssueResolver(IJiraApi api)
         {
             _api = api;
         }
@@ -20,7 +21,8 @@ namespace TeamCityBuildChanges.IssueDetailResolvers
         public IEnumerable<ExternalIssueDetails> GetDetails(IEnumerable<Issue> issues)
         {
             var results = new List<ExternalIssueDetails>();
-            foreach (var issue in issues)
+            var jiraIssues = issues.Where(i => Regex.IsMatch(i.Id, JiraIssueRegex, RegexOptions.IgnoreCase)).ToList();
+            foreach (var issue in jiraIssues)
             {
                 var jiraDetails = _api.GetJiraIssue(issue.Id);
                 if (jiraDetails != null && jiraDetails.Id != null && jiraDetails.Fields != null)
@@ -45,10 +47,9 @@ namespace TeamCityBuildChanges.IssueDetailResolvers
             var issues = new List<Issue>();
             foreach (var change in changeDetails)
             {
-                var changeIssues = Regex.Matches(change.Comment, @"[A-Z]*-[0-9]*", RegexOptions.IgnoreCase)
+                var changeIssues = Regex.Matches(change.Comment, JiraIssueRegex, RegexOptions.IgnoreCase)
                        .Cast<Match>()
                        .Select(x => new Issue { Id = x.Value })
-                       .Where(x => x.Id != "-") // need a better regex but I'm crap at that
                        .ToList();
                 issues.AddRange(changeIssues);
             }
