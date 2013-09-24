@@ -105,9 +105,9 @@ namespace TeamCityBuildChanges.ExternalApi.TeamCity
 
                         return packageList;
                     }
-                    catch (WebException)
+                    catch (Exception)
                     {
-                        //Evil?  Yes :)
+                        //Evil?  Yes :)  More evil now....  :)
                         return new List<PackageDetails>();
                     }
                 });
