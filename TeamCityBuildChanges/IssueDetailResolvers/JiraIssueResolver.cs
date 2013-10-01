@@ -11,7 +11,7 @@ namespace TeamCityBuildChanges.IssueDetailResolvers
     public class JiraIssueResolver : IExternalIssueResolver
     {
         private readonly IJiraApi _api;
-        private const string JiraIssueRegex = @"[A-Z]*-[0-9]*";
+        private const string JiraIssueRegex = @"[A-Z]+-[0-9]+";
 
         public JiraIssueResolver(IJiraApi api)
         {
