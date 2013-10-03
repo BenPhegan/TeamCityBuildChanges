@@ -297,11 +297,11 @@ namespace TeamCityBuildChanges.ExternalApi.TeamCity
                     RestRequest request;
                     if (string.IsNullOrEmpty(branchName))
                     {
-                        request = GetXmlBuildRequest("app/rest/builds/?locator=buildType:{ID},branch:(branched:any)", "ID", buildType);
+                        request = GetXmlBuildRequest("app/rest/builds/?locator=buildType:{ID},branch:(branched:any)&count=9999", "ID", buildType);
                     }
                     else
                     {
-                        request = GetXmlBuildRequest(string.Format("app/rest/builds/?locator=buildType:{{ID}},branch:(name:{0})", branchName), "ID", buildType);
+                        request = GetXmlBuildRequest(string.Format("app/rest/builds/?locator=buildType:{{ID}},branch:(name:{0})&count=9999", branchName), "ID", buildType);
                     }
                     var response = _client.Execute<List<Build>>(request);
                     return response.Data;
