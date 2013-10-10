@@ -411,6 +411,7 @@ namespace TeamCityBuildChanges.ExternalApi.TeamCity
         public string Number { get; set; }
         public string Status { get; set; }
         public string BuildTypeId { get; set; }
+        public string BranchName { get; set; }
         public string WebUrl { get; set; }
     }
 
