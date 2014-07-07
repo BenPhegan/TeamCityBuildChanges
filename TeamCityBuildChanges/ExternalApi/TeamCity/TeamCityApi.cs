@@ -441,9 +441,6 @@ namespace TeamCityBuildChanges.ExternalApi.TeamCity
         public static DateTime ConvertToDateTime(string value)
         {
             return DateTime.ParseExact(value, "yyyyMMdd'T'HHmmsszzz", CultureInfo.InvariantCulture);
-            //Values come in looking like this: 20121022T215947+1100
-            //var splitString = value.Split("+-".ToCharArray()).ToList();
-            //return DateTime.ParseExact(splitString[0], "yyyyMMddTHHmmss", CultureInfo.CurrentCulture);
         }
     }
 
