@@ -432,16 +432,12 @@ namespace TeamCityBuildChanges.ExternalApi.TeamCity
         public ChangeSummary ChangeSummary { get; set; }
         public List<IssueUsage> RelatedIssues { get; set; }
 
-
-        public static DateTimeOffset GetDateTimeOffset(string value)
+        public static DateTime ConvertToDateTime(string value)
         {
+            return DateTime.ParseExact(value, "yyyyMMdd'T'HHmmsszzz", CultureInfo.InvariantCulture);
             //Values come in looking like this: 20121022T215947+1100
-            var splitString = value.Split("+-".ToCharArray()).ToList();
-            if (splitString.Count == 2)
-            {
-                var datePortion = DateTime.ParseExact(splitString[0], "yyyymmddTHHmmss", CultureInfo.CurrentCulture);
-            }
-            return new DateTimeOffset();
+            //var splitString = value.Split("+-".ToCharArray()).ToList();
+            //return DateTime.ParseExact(splitString[0], "yyyyMMddTHHmmss", CultureInfo.CurrentCulture);
         }
     }
 
