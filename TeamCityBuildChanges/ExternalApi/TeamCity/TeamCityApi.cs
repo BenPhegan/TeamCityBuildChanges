@@ -335,6 +335,12 @@ namespace TeamCityBuildChanges.ExternalApi.TeamCity
         public List<Trigger> Triggers { get; set; }
         public List<Step> Steps { get; set; }
         public List<Feature> Features { get; set; }
+        public List<SnapshotDependency> SnapshotDependencies { get; set; } 
+    }
+
+    public class SnapshotDependency
+    {
+        public string Id { get; set; }
     }
 
     public class Feature : GenericTeamCityPropertyGroup
