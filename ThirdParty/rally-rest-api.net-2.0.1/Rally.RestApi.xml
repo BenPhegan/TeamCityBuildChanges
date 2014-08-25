@@ -1,0 +1,713 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Rally.RestApi</name>
+    </assembly>
+    <members>
+        <member name="M:Rally.RestApi.HttpService.#ctor(Rally.RestApi.IConnectionInfo)">
+            <summary>
+            
+            </summary>
+            <param name="connectionInfo">Connection Information</param>
+        </member>
+        <member name="T:Rally.RestApi.DynamicJsonObject">
+            <summary>
+            Representation of a Rally object
+            </summary>
+        </member>
+        <member name="M:Rally.RestApi.DynamicJsonObject.#ctor(System.Collections.Generic.IDictionary{System.String,System.Object})">
+            <summary>
+            Create a new object from the specified dictionary
+            </summary>
+            <param name="dictionary">A dictionary of members and values
+            with which to initialize this object</param>
+        </member>
+        <member name="M:Rally.RestApi.DynamicJsonObject.#ctor">
+            <summary>
+            Create a new empty object
+            </summary>
+        </member>
+        <member name="M:Rally.RestApi.DynamicJsonObject.TryGetMember(System.Dynamic.GetMemberBinder,System.Object@)">
+            <summary>
+            Try to get the specified member
+            </summary>
+            <param name="binder">The member to get</param>
+            <param name="result">The value</param>
+            <returns>true if successful, false otherwise</returns>
+        </member>
+        <member name="M:Rally.RestApi.DynamicJsonObject.GetMember(System.String)">
+            <summary>
+            Get the value of the specified member
+            Equivalent to using [name].
+            </summary>
+            <param name="name">The specified member</param>
+            <returns>The value of the specified member</returns>
+        </member>
+        <member name="M:Rally.RestApi.DynamicJsonObject.FormatSetValue(System.Object)">
+            <summary>
+            Format the specified value into a type
+            that is compatible with DynamicJsonObject
+            </summary>
+            <param name="value">The value to be formatted</param>
+            <returns>The formatted item</returns>
+        </member>
+        <member name="M:Rally.RestApi.DynamicJsonObject.TrySetMember(System.Dynamic.SetMemberBinder,System.Object)">
+            <summary>
+            Attempt to the specified member's value
+            </summary>
+            <param name="binder">The member</param>
+            <param name="value">The value</param>
+            <returns>true if successful, false otherwise</returns>
+        </member>
+        <member name="M:Rally.RestApi.DynamicJsonObject.SetMember(System.String,System.Object)">
+            <summary>
+            Set the specified member's value.
+            Equivalent to using [name] = value.
+            </summary>
+            <param name="name">The member</param>
+            <param name="value">The value</param>
+        </member>
+        <member name="M:Rally.RestApi.DynamicJsonObject.IsNumeric(System.Object)">
+            <summary>
+            Determine if the specified expression is numeric
+            </summary>
+            <param name="expression">The expression to be evaluated</param>
+            <returns>true if numeric, false otherwise</returns>
+        </member>
+        <member name="M:Rally.RestApi.DynamicJsonObject.GetHashCode">
+            <summary>
+            Get the hash code for this object
+            </summary>
+            <returns>The hash code for this object</returns>
+        </member>
+        <member name="M:Rally.RestApi.DynamicJsonObject.HasMember(System.String)">
+            <summary>
+            Determine if this object contains the specified member
+            </summary>
+            <param name="key">The member to search for</param>
+            <returns>true if it is present, false otherwise</returns>
+        </member>
+        <member name="M:Rally.RestApi.DynamicJsonObject.Equals(System.Object)">
+            <summary>
+            Return whether this object equals the specified object
+            </summary>
+            <param name="obj">The object to compare</param>
+            <returns>true if equal, false otherwise</returns>
+        </member>
+        <member name="P:Rally.RestApi.DynamicJsonObject.Item(System.String)">
+            <summary>
+            Get the value of the specified member
+            </summary>
+            <param name="key">The member to retrieve</param>
+            <returns>The value of the specified member</returns>
+        </member>
+        <member name="P:Rally.RestApi.DynamicJsonObject.Fields">
+            <summary>
+            Get the members contained in this object.
+            </summary>
+        </member>
+        <member name="T:Rally.RestApi.Response.CreateResult">
+            <summary>
+            Object returned from a create opreration
+            </summary>
+        </member>
+        <member name="T:Rally.RestApi.Response.OperationResult">
+            <summary>
+            This class represents the result of
+            an operation against the WSAPI.
+            </summary>
+        </member>
+        <member name="M:Rally.RestApi.Response.OperationResult.#ctor">
+            <summary>
+            Create a new empty OperationResult
+            </summary>
+        </member>
+        <member name="P:Rally.RestApi.Response.OperationResult.Errors">
+            <summary>
+            A list of any errors that occurred during the request
+            </summary>
+        </member>
+        <member name="P:Rally.RestApi.Response.OperationResult.Warnings">
+            <summary>
+            A list of any warnings that occurred during the request
+            </summary>
+        </member>
+        <member name="P:Rally.RestApi.Response.OperationResult.Success">
+            <summary>
+            Whether the request was successful or not
+            Returns true if Errors is empty
+            </summary>
+        </member>
+        <member name="M:Rally.RestApi.Response.CreateResult.#ctor">
+            <summary>
+            Create a new empty CreateResult
+            </summary>
+        </member>
+        <member name="P:Rally.RestApi.Response.CreateResult.Reference">
+            <summary>
+            The ref of the created item
+            </summary>
+        </member>
+        <member name="P:Rally.RestApi.Response.CreateResult.Object">
+            <summary>
+            The object created
+            </summary>
+        </member>
+        <member name="T:Rally.RestApi.Response.QueryResult">
+            <summary>
+            This class represents the result
+            of a query operation
+            </summary>
+        </member>
+        <member name="M:Rally.RestApi.Response.QueryResult.#ctor(Rally.RestApi.DynamicJsonObject)">
+            <summary>
+            Constructor
+            </summary>
+        </member>
+        <member name="P:Rally.RestApi.Response.QueryResult.TotalResultCount">
+            <summary>
+            The total number of results
+            </summary>
+        </member>
+        <member name="P:Rally.RestApi.Response.QueryResult.StartIndex">
+            <summary>
+            The start index of this result set
+            </summary>
+        </member>
+        <member name="P:Rally.RestApi.Response.QueryResult.Results">
+            <summary>
+            The results of the query
+            </summary>
+        </member>
+        <member name="T:Rally.RestApi.Query">
+            <summary>
+            This class represents a filter
+            for query operations.
+            </summary>
+        </member>
+        <member name="M:Rally.RestApi.Query.#ctor">
+            <summary>
+            Create a new empty query
+            </summary>
+        </member>
+        <member name="M:Rally.RestApi.Query.#ctor(System.String,Rally.RestApi.Query.Operator,System.String)">
+            <summary>
+            Create a new query built from the specified
+            attribute, operator and value
+            </summary>
+            <param name="attribute">The attribute to be filtered by</param>
+            <param name="op">The filter operator</param>
+            <param name="value">The value to be filtered on</param>
+        </member>
+        <member name="M:Rally.RestApi.Query.#ctor(System.String)">
+            <summary>
+            Create a new query from the specified string.
+            </summary>
+            <param name="queryClause">The query string</param>
+        </member>
+        <member name="M:Rally.RestApi.Query.Join(Rally.RestApi.Query,Rally.RestApi.Query,Rally.RestApi.Query.ClauseOperator)">
+            <summary>
+            Join the two specified queries with the specified operator
+            </summary>
+            <param name="a">The first query to be joined</param>
+            <param name="b">The second query to be joined</param>
+            <param name="op">The operator</param>
+            <returns>The joined query</returns>
+        </member>
+        <member name="M:Rally.RestApi.Query.GetOperator(Rally.RestApi.Query.Operator)">
+            <summary>
+            Get the string version of the specified operator
+            </summary>
+            <param name="op">The operator to translate</param>
+            <returns>The string version of the specified operator</returns>
+        </member>
+        <member name="M:Rally.RestApi.Query.GetOperator(System.String)">
+            <summary>
+            Parse the specified string operator into
+            a value of the Operator enum.
+            </summary>
+            <param name="op">The operator to translate</param>
+            <returns>The matching Operator value</returns>
+        </member>
+        <member name="M:Rally.RestApi.Query.And(Rally.RestApi.Query)">
+            <summary>
+            Join the specified query to this query
+            using the AND operator.
+            </summary>
+            <param name="q">The query to be joined</param>
+            <returns>The joined query</returns>
+        </member>
+        <member name="M:Rally.RestApi.Query.Or(Rally.RestApi.Query)">
+            <summary>
+            Join the specified query to this query
+            using the OR operator.
+            </summary>
+            <param name="q">The query to be joined</param>
+            <returns>The joined query</returns>
+        </member>
+        <member name="M:Rally.RestApi.Query.And(Rally.RestApi.Query[])">
+            <summary>
+            Join the specified queries using the AND operator
+            </summary>
+            <param name="queries">The queries to be joined</param>
+            <returns>The joined query</returns>
+        </member>
+        <member name="M:Rally.RestApi.Query.Or(Rally.RestApi.Query[])">
+            <summary>
+            Join the specified queries using the OR operator
+            </summary>
+            <param name="queries">The queries to be joined</param>
+            <returns>The joined query</returns>
+        </member>
+        <member name="M:Rally.RestApi.Query.ToString">
+            <summary>
+            Same as QueryClause
+            </summary>
+            <returns>The string representation of the query</returns>
+        </member>
+        <member name="M:Rally.RestApi.Query.Parse(System.String)">
+            <summary>
+            Parse the specified string into a query
+            </summary>
+            <param name="query">The query string to be parsed</param>
+            <returns>A query object, or null if the string could not be parsed</returns>
+        </member>
+        <member name="P:Rally.RestApi.Query.Attribute">
+            <summary>
+            The attribute to filter by
+            </summary>
+        </member>
+        <member name="P:Rally.RestApi.Query.QueryOperator">
+            <summary>
+            The filter operator
+            </summary>
+        </member>
+        <member name="P:Rally.RestApi.Query.Value">
+            <summary>
+            The value to be filtered on
+            </summary>
+        </member>
+        <member name="P:Rally.RestApi.Query.QueryClause">
+            <summary>
+            Get the string representation of this query
+            </summary>
+        </member>
+        <member name="T:Rally.RestApi.Query.Operator">
+            <summary>
+            The available query operators
+            </summary>
+        </member>
+        <member name="F:Rally.RestApi.Query.Operator.Equals">
+            <summary>
+            =
+            </summary>
+        </member>
+        <member name="F:Rally.RestApi.Query.Operator.DoesNotEqual">
+            <summary>
+            !=
+            </summary>
+        </member>
+        <member name="F:Rally.RestApi.Query.Operator.Contains">
+            <summary>
+            contains
+            </summary>
+        </member>
+        <member name="F:Rally.RestApi.Query.Operator.DoesNotContain">
+            <summary>
+            !contains
+            </summary>
+        </member>
+        <member name="F:Rally.RestApi.Query.Operator.LessThan">
+            <summary>
+            <![CDATA[<]]>
+            </summary>
+        </member>
+        <member name="F:Rally.RestApi.Query.Operator.LessThanOrEqualTo">
+            <summary>
+            <![CDATA[<=]]>
+            </summary>
+        </member>
+        <member name="F:Rally.RestApi.Query.Operator.GreaterThan">
+            <summary>
+            <![CDATA[>]]>
+            </summary>
+        </member>
+        <member name="F:Rally.RestApi.Query.Operator.GreaterThanOrEqualTo">
+            <summary>
+            <![CDATA[>=]]>
+            </summary>
+        </member>
+        <member name="T:Rally.RestApi.Query.ClauseOperator">
+            <summary>
+            An enumeration of the available operators
+            to join query clauses
+            </summary>
+        </member>
+        <member name="F:Rally.RestApi.Query.ClauseOperator.And">
+            <summary>
+            AND
+            </summary>
+        </member>
+        <member name="F:Rally.RestApi.Query.ClauseOperator.Or">
+            <summary>
+            OR
+            </summary>
+        </member>
+        <member name="T:Rally.RestApi.Request">
+            <summary>
+            Represents a request to be sent to Rally
+            </summary>
+        </member>
+        <member name="F:Rally.RestApi.Request.MAX_PAGE_SIZE">
+            <summary>
+            The maximum page size (200).
+            </summary>
+        </member>
+        <member name="M:Rally.RestApi.Request.#ctor(System.String)">
+            <summary>
+            Create a new Request with the specified artifact type
+            </summary>
+            <param name="artifactName">The Rally artifact type being requested</param>
+        </member>
+        <member name="M:Rally.RestApi.Request.#ctor(Rally.RestApi.DynamicJsonObject)">
+            <summary>
+            Create a new Request for the specified collection. (ie Defect.Tasks)
+            The collection should have a _ref property.
+            </summary>
+            <param name="collection">The object containing the collection ref</param>
+        </member>
+        <member name="M:Rally.RestApi.Request.#ctor">
+            <summary>
+            Create a new empty Request.
+            </summary>
+        </member>
+        <member name="M:Rally.RestApi.Request.BuildQueryString(System.String)">
+            <summary>
+            Create a query string from this request.
+            </summary>
+            <param name="extension">The extension to use for the type (default = "")</param>
+            <returns>A query string representation of this request</returns>
+        </member>
+        <member name="M:Rally.RestApi.Request.Clone">
+            <summary>
+            Perform a deep clone of this request and all its parameters.
+            </summary>
+            <returns>The clone request</returns>
+        </member>
+        <member name="P:Rally.RestApi.Request.Query">
+            <summary>
+            A filter query to be applied to results before being returned
+            </summary>
+        </member>
+        <member name="P:Rally.RestApi.Request.Limit">
+            <summary>
+            An upper bound on the total results to be returned.
+            </summary>
+        </member>
+        <member name="P:Rally.RestApi.Request.ArtifactName">
+            <summary>
+            The name of the artifact that will be queried
+            </summary>
+        </member>
+        <member name="P:Rally.RestApi.Request.PageSize">
+            <summary>
+            Page size for results. Must be between 1 and MAX_PAGE_SIZE, default is MAX_PAGE_SIZE. 
+            </summary>
+        </member>
+        <member name="P:Rally.RestApi.Request.ProjectScopeUp">
+            <summary>
+            Default is the user's default from Rally. In addition to the specified project, include projects above the specified one. 
+            </summary>
+        </member>
+        <member name="P:Rally.RestApi.Request.ProjectScopeDown">
+            <summary>
+            Default is the user's default from Rally. In addition to the specified project, include child projects below the specified one. 
+            </summary>
+        </member>
+        <member name="P:Rally.RestApi.Request.Start">
+            <summary>
+            Start index (1-based) for queries. The default is 1. 
+            </summary>
+        </member>
+        <member name="P:Rally.RestApi.Request.Workspace">
+            <summary>
+            The ref for the workspace that you want the results from
+            <example>
+            /workspace/12345
+            </example>
+            </summary>
+        </member>
+        <member name="P:Rally.RestApi.Request.Project">
+            <summary>
+            The ref for the project that you want the results from
+            <example>
+            /project/12345
+            </example>
+            </summary>
+        </member>
+        <member name="P:Rally.RestApi.Request.Fetch">
+            <summary>
+            A list of attributes to be returned in the result set.
+            If null or empty true will be used.
+            </summary>
+        </member>
+        <member name="P:Rally.RestApi.Request.Order">
+            <summary>
+             A sort string. 
+             <example>ObjectId Desc</example>
+             <example>FormattedId</example>
+            </summary>
+        </member>
+        <member name="T:Rally.RestApi.Ref">
+            <summary>
+            The Ref class contains a set of utility methods
+            for working with refs.
+            </summary>
+        </member>
+        <member name="M:Rally.RestApi.Ref.IsRef(System.String)">
+            <summary>
+            Determine whether the specified string is a reference
+            </summary>
+            <param name="reference">the ref to test</param>
+            <returns>true if a ref, false otherwise</returns>
+        </member>
+        <member name="M:Rally.RestApi.Ref.GetRelativeRef(System.String)">
+            <summary>
+            Get a relative ref from the specified ref.
+            All server information will be stripped before being returned.
+            </summary>
+            <param name="reference">The absolute ref to be made relative</param>
+            <returns>The relative version of the specified absolute ref</returns>
+        </member>
+        <member name="M:Rally.RestApi.Ref.GetTypeFromRef(System.String)">
+            <summary>
+            Get the type from the specified ref
+            </summary>
+            <param name="reference">The ref to get the type from</param>
+            <returns>The type of the specified ref</returns>
+        </member>
+        <member name="M:Rally.RestApi.Ref.GetOidFromRef(System.String)">
+            <summary>
+            Get the object id from the specified ref
+            </summary>
+            <param name="reference">The ref to get the object id from</param>
+            <returns>The object id of the specified ref</returns>
+        </member>
+        <member name="T:Rally.RestApi.RallyRestApi">
+            <summary>
+            The main interface to the Rally REST API
+            </summary>
+        </member>
+        <member name="F:Rally.RestApi.RallyRestApi.DEFAULT_WSAPI_VERSION">
+            <summary>
+            The default WSAPI version to use
+            </summary>
+        </member>
+        <member name="F:Rally.RestApi.RallyRestApi.DEFAULT_SERVER">
+            <summary>
+            The default server to use: (https://rally1.rallydev.com)
+            </summary>
+        </member>
+        <member name="F:Rally.RestApi.RallyRestApi.Headers">
+            <summary>
+            The HTTP headers to be included on all REST requests
+            </summary>
+        </member>
+        <member name="M:Rally.RestApi.RallyRestApi.#ctor(System.String,System.String,System.Uri,System.String,System.Net.WebProxy)">
+            <summary>
+            Construct a new RallyRestApi with the specified
+            username, password, server and WSAPI version
+            </summary>
+            <param name="username">The username to be used for access</param>
+            <param name="password">The password to be used for access</param>
+            <param name="serverUrl">The Rally server to use (defaults to DEFAULT_SERVER)</param>
+            <param name="webServiceVersion">The WSAPI version to use (defaults to DEFAULT_WSAPI_VERSION)</param>
+            <param name="proxy">Optional proxy configuration</param>
+        </member>
+        <member name="M:Rally.RestApi.RallyRestApi.#ctor(Rally.RestApi.IConnectionInfo)">
+            <summary>
+            Construct a new RallyRestApi from the specified ConnectionInfo
+            </summary>
+            <param name="connectionInfo">ConnectionInfo</param>
+        </member>
+        <member name="M:Rally.RestApi.RallyRestApi.GetFullyQualifiedRef(System.String)">
+            <summary>
+            Ensure the specified ref is fully qualified
+            with the full WSAPI url
+            </summary>
+            <param name="aRef">A Rally object ref</param>
+            <returns>The fully qualified ref</returns>
+        </member>
+        <member name="M:Rally.RestApi.RallyRestApi.GetFullyQualifiedUri(System.String)">
+            <summary>
+            Ensure the specified ref is fully qualified
+            with the full WSAPI url
+            </summary>
+            <param name="aRef">A Rally object ref</param>
+            <returns>The fully qualified ref</returns>
+        </member>
+        <member name="M:Rally.RestApi.RallyRestApi.Query(Rally.RestApi.Request)">
+            <summary>
+            Perform a read against the WSAPI operation based
+            on the data in the specified request
+            </summary>
+            <param name="request">The request configuration</param>
+            <returns>The results of the read operation</returns>
+        </member>
+        <member name="M:Rally.RestApi.RallyRestApi.GetCurrentUser(System.String[])">
+            <summary>
+            Get the current user
+            </summary>
+            <param name="fetchedFields">p</param>
+            <returns></returns>
+        </member>
+        <member name="M:Rally.RestApi.RallyRestApi.GetSubscription(System.String[])">
+            <summary>
+            Get the current subscription
+            </summary>
+            <param name="fetchedFields">An optional list of fields to be fetched</param>
+            <returns></returns>
+        </member>
+        <member name="M:Rally.RestApi.RallyRestApi.GetByReference(System.String,System.Int64,System.String[])">
+            <summary>
+            Get the object described by the specified type and object id.
+            </summary>
+            <param name="typePath">the type</param>
+            <param name="oid">the object id</param>
+            <param name="fetchedFields">the list of object fields to be fetched</param>
+            <returns>The requested object</returns>
+        </member>
+        <member name="M:Rally.RestApi.RallyRestApi.GetByReference(System.String,System.String[])">
+            <summary>
+            Get the object described by the specified reference.
+            </summary>
+            <param name="aRef">the reference</param>
+            <param name="fetchedFields">the list of object fields to be fetched</param>
+            <returns>The requested object</returns>
+        </member>
+        <member name="M:Rally.RestApi.RallyRestApi.Delete(System.String,System.String,System.Int64)">
+            <summary>
+            Delete the object described by the specified type and object id.
+            </summary>
+            <param name="workspaceRef">the workspace from which the object will be deleted.  Null means that the server will pick a workspace.</param>
+            <param name="typePath">the type</param>
+            <param name="oid">the object id</param>
+            <returns>An OperationResult with information on the status of the request</returns>
+        </member>
+        <member name="M:Rally.RestApi.RallyRestApi.Delete(System.String,System.Int64)">
+            <summary>
+            Delete the object described by the specified type and object id.
+            </summary>
+            <param name="typePath">the type</param>
+            <param name="oid">the object id</param>
+            <returns>An OperationResult with information on the status of the request</returns>
+        </member>
+        <member name="M:Rally.RestApi.RallyRestApi.Delete(System.String)">
+            <summary>
+            Delete the object described by the specified reference.
+            </summary>
+            <param name="aRef">the reference</param>
+            <returns>An OperationResult with information on the status of the request</returns>
+        </member>
+        <member name="M:Rally.RestApi.RallyRestApi.Delete(System.String,System.String)">
+            <summary>
+            Delete the object described by the specified reference.
+            </summary>
+            <param name="workspaceRef">the workspace from which the object will be deleted.  Null means that the server will pick a workspace.</param>
+            <param name="aRef">the reference</param>
+            <returns>An OperationResult with information on the status of the request</returns>
+        </member>
+        <member name="M:Rally.RestApi.RallyRestApi.Create(System.String,System.String,Rally.RestApi.DynamicJsonObject)">
+            <summary>
+            Create an object of the specified type from the specified object
+            </summary>
+            <param name="workspaceRef">the workspace into which the object should be created.  Null means that the server will pick a workspace.</param>
+            <param name="typePath">the type to be created</param>
+            <param name="obj">the object to be created</param>
+            <returns></returns>
+        </member>
+        <member name="M:Rally.RestApi.RallyRestApi.Create(System.String,Rally.RestApi.DynamicJsonObject)">
+            <summary>
+            Create an object of the specified type from the specified object
+            </summary>
+            <param name="typePath">the type to be created</param>
+            <param name="obj">the object to be created</param>
+            <returns></returns>
+        </member>
+        <member name="M:Rally.RestApi.RallyRestApi.Update(System.String,Rally.RestApi.DynamicJsonObject)">
+            <summary>
+            Update the item described by the specified reference with
+            the fields of the specified object
+            </summary>
+            <param name="reference">the reference to be updated</param>
+            <param name="obj">the object fields to update</param>
+            <returns>An OperationResult describing the status of the request</returns>
+        </member>
+        <member name="M:Rally.RestApi.RallyRestApi.Update(System.String,System.String,Rally.RestApi.DynamicJsonObject)">
+            <summary>
+            Update the item described by the specified type and object id with
+            the fields of the specified object
+            </summary>
+            <param name="typePath">the type of the item to be updated</param>
+            <param name="oid">the object id of the item to be updated</param>
+            <param name="obj">the object fields to update</param>
+            <returns>An OperationResult describing the status of the request</returns>
+        </member>
+        <member name="M:Rally.RestApi.RallyRestApi.GetAllowedAttributeValues(System.String,System.String)">
+            <summary>
+            Get the allowed values for the specified type and attribute
+            </summary>
+            <param name="typePath">the type</param>
+            <param name="attributeName">the attribute to retireve allowed values for</param>
+            <returns>The allowed values for the specified attribute</returns>
+        </member>
+        <member name="M:Rally.RestApi.RallyRestApi.GetAttributesByType(System.String)">
+            <summary>
+            Get the attribute definitions for the specified type
+            </summary>
+            <param name="type">The type to get attributes for</param>
+            <returns>The attribute definitions for the specified type</returns>
+        </member>
+        <member name="P:Rally.RestApi.RallyRestApi.WebServiceUrl">
+            <summary>
+            The full WSAPI url
+            </summary>
+        </member>
+        <member name="T:Rally.RestApi.RallyRestApi.HeaderType">
+            <summary>
+            Enumeration of the valid HTTP headers that
+            may be passed on REST requests
+            </summary>
+        </member>
+        <member name="F:Rally.RestApi.RallyRestApi.HeaderType.Operation">
+            <summary>
+            X-RallyIntegrationOperation
+            </summary>
+        </member>
+        <member name="F:Rally.RestApi.RallyRestApi.HeaderType.Guid">
+            <summary>
+            X-Trace-Id
+            </summary>
+        </member>
+        <member name="F:Rally.RestApi.RallyRestApi.HeaderType.Library">
+            <summary>
+            X-RallyIntegrationLibrary
+            </summary>
+        </member>
+        <member name="F:Rally.RestApi.RallyRestApi.HeaderType.Name">
+            <summary>
+            X-RallyIntegrationName
+            </summary>
+        </member>
+        <member name="F:Rally.RestApi.RallyRestApi.HeaderType.Vendor">
+            <summary>
+            X-RallyIntegrationVendor
+            </summary>
+        </member>
+        <member name="F:Rally.RestApi.RallyRestApi.HeaderType.Version">
+            <summary>
+            X-RallyIntegrationVersion
+            </summary>
+        </member>
+    </members>
+</doc>

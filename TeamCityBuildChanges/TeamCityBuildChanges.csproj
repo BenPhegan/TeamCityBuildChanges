@@ -89,6 +89,9 @@
     <Reference Include="QuickGraph.Serialization">
       <HintPath>..\packages\QuickGraph.3.6.61119.7\lib\net4\QuickGraph.Serialization.dll</HintPath>
     </Reference>
+    <Reference Include="Rally.RestApi">
+      <HintPath>..\ThirdParty\rally-rest-api.net-2.0.1\Rally.RestApi.dll</HintPath>
+    </Reference>
     <Reference Include="RazorEngine, Version=3.2.0.0, Culture=neutral, PublicKeyToken=9ee697374c7e744a, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\RazorEngine.3.2.0\lib\net40\RazorEngine.dll</HintPath>
@@ -142,8 +145,14 @@
     <Compile Include="ExternalApi\Jira\IJiraApi.cs" />
     <Compile Include="ExternalApi\CachingThreadSafeAuthenticatedRestClient.cs" />
     <Compile Include="ExtensionMethods\ICacheClientExtensions.cs" />
+    <Compile Include="ExternalApi\Rally\Artifact.cs" />
+    <Compile Include="ExternalApi\Rally\Defect.cs" />
+    <Compile Include="ExternalApi\Rally\IRallyApi.cs" />
+    <Compile Include="ExternalApi\Rally\RallyApi.cs" />
+    <Compile Include="ExternalApi\Rally\UserStory.cs" />
     <Compile Include="IPackageChangeComparator.cs" />
     <Compile Include="IssueDetailResolvers\IIssueDetailResolver.cs" />
+    <Compile Include="IssueDetailResolvers\RallyIssueResolver.cs" />
     <Compile Include="PackageChangeComparator.cs" />
     <Compile Include="ExternalApi\AuthenticatedRestClient.cs" />
     <Compile Include="ExternalApi\TFS\ITfsApi.cs" />
