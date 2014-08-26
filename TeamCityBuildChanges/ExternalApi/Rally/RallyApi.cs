@@ -10,13 +10,13 @@ namespace TeamCityBuildChanges.ExternalApi.Rally
     {
         private readonly RallyRestApi _rallyRestApi;
         private readonly Regex _defectIdResolver;
-        private readonly Regex _UserStoryIdResolver;
+        private readonly Regex _userStoryIdResolver;
 
         public RallyApi(string username, string password, string endpoint)
         {
             _rallyRestApi = new RallyRestApi(username, password, endpoint);
             _defectIdResolver = new Regex("/defect/(?<Id>[0-9]+)$", RegexOptions.IgnoreCase | RegexOptions.Compiled);
-            _UserStoryIdResolver = new Regex("/PortfolioItem/Feature/UserStories/(?<Id>[0-9]+)$", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+            _userStoryIdResolver = new Regex("/PortfolioItem/Feature/UserStories/(?<Id>[0-9]+)$", RegexOptions.IgnoreCase | RegexOptions.Compiled);
         }
 
         public Defect GetRallyDefect(string key)
@@ -72,7 +72,7 @@ namespace TeamCityBuildChanges.ExternalApi.Rally
                 return null;
 
             // Extract the user story id
-            var userStoryIdMatch = _UserStoryIdResolver.Match(firstResult["_ref"] as string);
+            var userStoryIdMatch = _userStoryIdResolver.Match(firstResult["_ref"] as string);
             if (!userStoryIdMatch.Success)
                 return null;
 
