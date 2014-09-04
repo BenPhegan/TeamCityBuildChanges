@@ -58,6 +58,9 @@
     <Reference Include="Faker.NET4">
       <HintPath>..\packages\Faker.Net.1.0.3\lib\net40\Faker.NET4.dll</HintPath>
     </Reference>
+    <Reference Include="LazyEnumerable">
+      <HintPath>..\packages\LazyEnumerable.1.0.1\lib\net35\LazyEnumerable.dll</HintPath>
+    </Reference>
     <Reference Include="ManyConsole">
       <HintPath>..\packages\ManyConsole.0.4.2.7\lib\ManyConsole.dll</HintPath>
     </Reference>

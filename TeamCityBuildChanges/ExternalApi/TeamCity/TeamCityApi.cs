@@ -9,6 +9,7 @@ using System.Xml.Linq;
 using RestSharp;
 using ServiceStack.CacheAccess;
 using TeamCityBuildChanges.ExtensionMethods;
+using LazyEnumerable;
 
 namespace TeamCityBuildChanges.ExternalApi.TeamCity
 {
@@ -294,17 +295,14 @@ namespace TeamCityBuildChanges.ExternalApi.TeamCity
         {
             return _cache.GetFromCacheOrFunc(buildType, branchName, (key1, key2) =>
                 {
-                    RestRequest request;
-                    if (string.IsNullOrEmpty(branchName))
-                    {
-                        request = GetXmlBuildRequest("app/rest/builds/?locator=buildType:{ID},branch:(branched:any)&count=9999", "ID", buildType);
-                    }
-                    else
-                    {
-                        request = GetXmlBuildRequest(string.Format("app/rest/builds/?locator=buildType:{{ID}},branch:(name:{0})&count=9999", branchName), "ID", buildType);
-                    }
-                    var response = _client.Execute<List<Build>>(request);
-                    return response.Data;
+                    var branch = string.IsNullOrEmpty(branchName) ? "(branched:any)" : string.Format("(name:{0})", branchName);
+
+                    return new LazyEnumerable<Build>(100, (start, count) =>
+                        {
+                            var request = GetXmlBuildRequest(string.Format("app/rest/builds/?locator=buildType:{0},start:{1},count:{2},branch:{3}", buildType, start, count, branch));
+                            var response = _client.Execute<List<Build>>(request);
+                            return response.Data;
+                        });
                 });
         }
     }
