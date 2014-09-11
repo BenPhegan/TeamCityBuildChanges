@@ -54,9 +54,9 @@ namespace TeamCityBuildChanges
         /// <returns>
         /// The calculated ChangeManifest object.
         /// </returns>
-        public ChangeManifest CreateChangeManifestFromBuildTypeName(string projectName, string buildName, string referenceBuild = null, string @from = null, string to = null, bool useBuildSystemIssueResolution = true, bool recurse = false, string branchName = null)
+        public ChangeManifest CreateChangeManifestFromBuildTypeName(string projectName, string buildName, string referenceBuild = null, string @from = null, string to = null, bool useBuildSystemIssueResolution = true, bool recurse = false)
         {
-            return CreateChangeManifest(buildName, null, referenceBuild, from, to, projectName, useBuildSystemIssueResolution, recurse, branchName);
+            return CreateChangeManifest(buildName, null, referenceBuild, from, to, projectName, useBuildSystemIssueResolution, recurse);
         }
 
         /// <summary>
@@ -68,16 +68,15 @@ namespace TeamCityBuildChanges
         /// <param name="to">The To build number</param>
         /// <param name="useBuildSystemIssueResolution">Uses the issues resolved by the build system at time of build, rather than getting them directly from the version control system.</param>
         /// <param name="recurse">Recurses down through any detected package dependency changes.</param>
-        /// <param name="branchName">Name of the branch.</param>
         /// <returns>
         /// The calculated ChangeManifest object.
         /// </returns>
-        public ChangeManifest CreateChangeManifestFromBuildTypeId(string buildType, string referenceBuild = null, string from = null, string to = null, bool useBuildSystemIssueResolution = true, bool recurse = false, string branchName = null)
+        public ChangeManifest CreateChangeManifestFromBuildTypeId(string buildType, string referenceBuild = null, string from = null, string to = null, bool useBuildSystemIssueResolution = true, bool recurse = false)
         {
-            return CreateChangeManifest(null, buildType, referenceBuild, from, to, null, useBuildSystemIssueResolution, recurse, branchName);
+            return CreateChangeManifest(null, buildType, referenceBuild, from, to, null, useBuildSystemIssueResolution, recurse);
         }
 
-        private ChangeManifest CreateChangeManifest(string buildName, string buildType, string referenceBuild = null, string from = null, string to = null, string projectName = null, bool useBuildSystemIssueResolution = true, bool recurse = false, string branchName = null)
+        private ChangeManifest CreateChangeManifest(string buildName, string buildType, string referenceBuild = null, string from = null, string to = null, string projectName = null, bool useBuildSystemIssueResolution = true, bool recurse = false)
         {
             var changeManifest = new ChangeManifest();
             if (recurse && _packageBuildMappingCache == null)
@@ -91,13 +90,13 @@ namespace TeamCityBuildChanges
             if (String.IsNullOrEmpty(from))
             {
                 changeManifest.GenerationLog.Add(new LogEntry(DateTime.Now, Status.Warning, "Resolving FROM version based on the provided BuildType (FROM was not provided)."));
-                from = ResolveFromVersion(buildType, branchName);
+                from = ResolveFromVersion(buildType);
             }
 
             if (String.IsNullOrEmpty(to))
             {
                 changeManifest.GenerationLog.Add(new LogEntry(DateTime.Now, Status.Warning, "Resolving TO version based on the provided BuildType (TO was not provided)."));
-                to = ResolveToVersion(buildType, branchName);
+                to = ResolveToVersion(buildType);
             }
 
             var buildWithCommitData = referenceBuild ?? buildType;
@@ -107,16 +106,16 @@ namespace TeamCityBuildChanges
             if (!String.IsNullOrEmpty(from) && !String.IsNullOrEmpty(to) && !String.IsNullOrEmpty(buildWithCommitData))
             {
                 changeManifest.GenerationLog.Add(new LogEntry(DateTime.Now, Status.Ok, "Getting builds based on BuildType"));
-                var builds = _api.GetBuildsByBuildType(buildWithCommitData, branchName);
+                var builds = _api.GetBuildsByBuildType(buildWithCommitData);
                 if (builds != null)
                 {
                     var buildList = builds as List<Build> ?? builds.ToList();
                     changeManifest.GenerationLog.Add(new LogEntry(DateTime.Now,Status.Ok, string.Format("Got {0} builds for BuildType {1}.",buildList.Count(), buildType)));
-                    var changeDetails =_api.GetChangeDetailsByBuildTypeAndBuildNumber(buildWithCommitData, @from, to, buildList, branchName).ToList();
+                    var changeDetails =_api.GetChangeDetailsByBuildTypeAndBuildNumber(buildWithCommitData, @from, to, buildList).ToList();
 
                     //Rather than use TeamCity to resolve the issue to commit details (via TeamCity plugins) use the issue resolvers directly...
                     var issues = useBuildSystemIssueResolution
-                                     ? _api.GetIssuesByBuildTypeAndBuildRange(buildWithCommitData, @from, to, buildList, branchName).ToList()
+                                     ? _api.GetIssuesByBuildTypeAndBuildRange(buildWithCommitData, @from, to, buildList).ToList()
                                      : _issueDetailResolver.GetAssociatedIssues(changeDetails).ToList();
 
                     changeManifest.GenerationLog.Add(new LogEntry(DateTime.Now,Status.Ok, string.Format("Got {0} issues for BuildType {1}.", issues.Count(),buildType)));
@@ -195,7 +194,7 @@ namespace TeamCityBuildChanges
                     var resolver = new AggregateBuildDeltaResolver(instanceTeamCityApi, _issueDetailResolver, _packageChangeComparator,
                         _packageBuildMappingCache, _traversedPackageChanges);
                     var dependencyManifest = resolver.CreateChangeManifest(null, build.BuildConfigurationId, null, dependency.OldVersion, dependency.NewVersion,
-                        null, true, true, branchName);
+                        null, true, true);
                     dependency.ChangeManifest = dependencyManifest;
                 }
                 else
@@ -209,9 +208,9 @@ namespace TeamCityBuildChanges
             return changeManifest;
         }
 
-        private string ResolveToVersion(string buildType, string branchName = null)
+        private string ResolveToVersion(string buildType)
         {
-            var runningBuild = _api.GetRunningBuildByBuildType(buildType, branchName).FirstOrDefault();
+            var runningBuild = _api.GetRunningBuildByBuildType(buildType).FirstOrDefault();
             if (runningBuild != null)
             {
                 return runningBuild.Number;
@@ -220,16 +219,16 @@ namespace TeamCityBuildChanges
             throw new ApplicationException(String.Format("Could not resolve a build number for the running build."));
         }
 
-        private string ResolveFromVersion(string buildType, string branchName = null)
+        private string ResolveFromVersion(string buildType)
         {
-            var latestSuccessful = _api.GetLatestSuccessfulBuildByBuildType(buildType, branchName);
+            var latestSuccessful = _api.GetLatestSuccessfulBuildByBuildType(buildType);
             if (latestSuccessful != null)
             {
                 return latestSuccessful.Number;
             }
 
             // fall back to the current running build
-            var runningBuild = _api.GetRunningBuildByBuildType(buildType, branchName).FirstOrDefault();
+            var runningBuild = _api.GetRunningBuildByBuildType(buildType).FirstOrDefault();
             if (runningBuild != null)
             {
                 return runningBuild.Number;

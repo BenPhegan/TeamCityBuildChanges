@@ -139,10 +139,10 @@ namespace TeamCityBuildChanges.ExternalApi.TeamCity
             return latestBuild;
         }
 
-        public Build GetLatestSuccessfulBuildByBuildType(string buildType, string branchName = null)
+        public Build GetLatestSuccessfulBuildByBuildType(string buildType)
         {
             //TODO call directly using build locator for last successful, this is not fast....
-            var builds = GetBuildsByBuildType(buildType, branchName);
+            var builds = GetBuildsByBuildType(buildType);
             var latestBuild = builds.Where(b => b.Status == "SUCCESS").OrderByDescending(b => b.BuildTypeId).FirstOrDefault();
             return latestBuild;
         }
@@ -169,18 +169,10 @@ namespace TeamCityBuildChanges.ExternalApi.TeamCity
             return releaseNotes;
         }
 
-        public IEnumerable<Build> GetRunningBuildByBuildType(string buildType, string branchName = null)
+        public IEnumerable<Build> GetRunningBuildByBuildType(string buildType)
         {
             //NO CACHING HERE.  It says "running" on the tin, so caching is probably a bad idea....
-            RestRequest request;
-            if (string.IsNullOrEmpty(branchName))
-            {
-                request = GetXmlBuildRequest("app/rest/builds/?locator=buildType:{BT},running:true", "BT", buildType);
-            }
-            else
-            {
-                request = GetXmlBuildRequest(string.Format("app/rest/builds/?locator=buildType:{{BT}},running:true,branch:(name:{0})", branchName), "BT", buildType);
-            }
+            var request = GetXmlBuildRequest("app/rest/builds/?locator=buildType:{BT},running:true", "BT", buildType);
             var response = _client.Execute<List<Build>>(request).Data;
             return response;
         }
@@ -195,15 +187,15 @@ namespace TeamCityBuildChanges.ExternalApi.TeamCity
                 });
         }
 
-        public IEnumerable<ChangeDetail> GetChangeDetailsByBuildTypeAndBuildId(string buildType, string from, string to, Func<Build, string, bool> comparitor, IEnumerable<Build> buildList = null, string branchName = null)
+        public IEnumerable<ChangeDetail> GetChangeDetailsByBuildTypeAndBuildId(string buildType, string from, string to, Func<Build, string, bool> comparitor, IEnumerable<Build> buildList = null)
         {
-            var results = GetByBuildTypeAndBuildRange(buildType, @from, to, comparitor, buildList, b => GetChangeDetailsByBuildId(b.Id), branchName: branchName);
+            var results = GetByBuildTypeAndBuildRange(buildType, @from, to, comparitor, buildList, b => GetChangeDetailsByBuildId(b.Id));
             return results;
         }
 
-        public IEnumerable<Issue> GetIssuesByBuildTypeAndBuildRange(string buildType, string from, string to, IEnumerable<Build> buildList = null, string branchName = null)
+        public IEnumerable<Issue> GetIssuesByBuildTypeAndBuildRange(string buildType, string from, string to, IEnumerable<Build> buildList = null)
         {
-            var results = GetByBuildTypeAndBuildRange(buildType, @from, to, BuildNumberComparitor(), buildList, b => GetIssuesFromBuild(b.Id), branchName: branchName);
+            var results = GetByBuildTypeAndBuildRange(buildType, @from, to, BuildNumberComparitor(), buildList, b => GetIssuesFromBuild(b.Id));
             return results;
         }
 
@@ -217,9 +209,9 @@ namespace TeamCityBuildChanges.ExternalApi.TeamCity
             return new List<Issue>();
         }
 
-        private IEnumerable<T> GetByBuildTypeAndBuildRange<T>(string buildType, string @from, string to, Func<Build, string, bool> comparitor, IEnumerable<Build> buildList, Func<Build, IEnumerable<T>> retriever, bool excludeResultsFromLowerBound = true, string branchName = null)
+        private IEnumerable<T> GetByBuildTypeAndBuildRange<T>(string buildType, string @from, string to, Func<Build, string, bool> comparitor, IEnumerable<Build> buildList, Func<Build, IEnumerable<T>> retriever, bool excludeResultsFromLowerBound = true)
         {
-            var builds = buildList ?? GetBuildsByBuildType(buildType, branchName);
+            var builds = buildList ?? GetBuildsByBuildType(buildType);
             var results = new List<T>();
 
             var captureChanges = false;
@@ -240,9 +232,9 @@ namespace TeamCityBuildChanges.ExternalApi.TeamCity
             return results;
         }
 
-        public IEnumerable<ChangeDetail> GetChangeDetailsByBuildTypeAndBuildId(string buildType, string from, string to, string branchName = null)
+        public IEnumerable<ChangeDetail> GetChangeDetailsByBuildTypeAndBuildId(string buildType, string from, string to)
         {
-            return GetChangeDetailsByBuildTypeAndBuildId(buildType, from, to, BuildIdComparitor(), branchName: branchName);
+            return GetChangeDetailsByBuildTypeAndBuildId(buildType, from, to, BuildIdComparitor());
         }
 
         private static Func<Build, string, bool> BuildIdComparitor()
@@ -250,9 +242,9 @@ namespace TeamCityBuildChanges.ExternalApi.TeamCity
             return (build, s) => build.Id.Equals(s, StringComparison.InvariantCultureIgnoreCase);
         }
 
-        public IEnumerable<ChangeDetail> GetChangeDetailsByBuildTypeAndBuildNumber(string buildType, string from, string to, IEnumerable<Build> buildList = null, string branchName = null)
+        public IEnumerable<ChangeDetail> GetChangeDetailsByBuildTypeAndBuildNumber(string buildType, string from, string to, IEnumerable<Build> buildList = null)
         {
-            return GetChangeDetailsByBuildTypeAndBuildId(buildType, from, to, BuildNumberComparitor(), buildList, branchName);
+            return GetChangeDetailsByBuildTypeAndBuildId(buildType, from, to, BuildNumberComparitor(), buildList);
         }
 
         private static Func<Build, string, bool> BuildNumberComparitor()
@@ -291,19 +283,14 @@ namespace TeamCityBuildChanges.ExternalApi.TeamCity
                 });
         }
 
-        public IEnumerable<Build> GetBuildsByBuildType(string buildType, string branchName = null)
+        public IEnumerable<Build> GetBuildsByBuildType(string buildType)
         {
-            return _cache.GetFromCacheOrFunc(buildType, branchName, (key1, key2) =>
+            return _cache.GetFromCacheOrFunc(buildType, key => new LazyEnumerable<Build>(100, (start, count) =>
                 {
-                    var branch = string.IsNullOrEmpty(branchName) ? "(branched:any)" : string.Format("(name:{0})", branchName);
-
-                    return new LazyEnumerable<Build>(100, (start, count) =>
-                        {
-                            var request = GetXmlBuildRequest(string.Format("app/rest/builds/?locator=buildType:{0},start:{1},count:{2},branch:{3}", buildType, start, count, branch));
-                            var response = _client.Execute<List<Build>>(request);
-                            return response.Data;
-                        });
-                });
+                    var request = GetXmlBuildRequest(string.Format("app/rest/builds/?locator=buildType:{0},start:{1},count:{2},branch:(branched:any)", buildType, start, count));
+                    var response = _client.Execute<List<Build>>(request);
+                    return response.Data;
+                }));
         }
     }
 
