@@ -71,12 +71,12 @@ namespace TeamCityBuildChanges
         /// <returns>
         /// The calculated ChangeManifest object.
         /// </returns>
-        public ChangeManifest CreateChangeManifestFromBuildTypeId(string buildType, string referenceBuild = null, string from = null, string to = null, bool useBuildSystemIssueResolution = true, bool recurse = false)
+        public ChangeManifest CreateChangeManifestFromBuildTypeId(string buildType, string referenceBuild = null, string from = null, string to = null, bool useBuildSystemIssueResolution = true, bool recurse = false, bool branchFiltering = true)
         {
-            return CreateChangeManifest(null, buildType, referenceBuild, from, to, null, useBuildSystemIssueResolution, recurse);
+            return CreateChangeManifest(null, buildType, referenceBuild, from, to, null, useBuildSystemIssueResolution, recurse, branchFiltering);
         }
 
-        private ChangeManifest CreateChangeManifest(string buildName, string buildType, string referenceBuild = null, string from = null, string to = null, string projectName = null, bool useBuildSystemIssueResolution = true, bool recurse = false)
+        private ChangeManifest CreateChangeManifest(string buildName, string buildType, string referenceBuild = null, string from = null, string to = null, string projectName = null, bool useBuildSystemIssueResolution = true, bool recurse = false, bool branchFiltering = true)
         {
             var changeManifest = new ChangeManifest();
             if (recurse && _packageBuildMappingCache == null)
@@ -107,9 +107,21 @@ namespace TeamCityBuildChanges
             {
                 changeManifest.GenerationLog.Add(new LogEntry(DateTime.Now, Status.Ok, "Getting builds based on BuildType"));
                 var builds = _api.GetBuildsByBuildType(buildWithCommitData);
+
                 if (builds != null)
                 {
                     var buildList = builds as List<Build> ?? builds.ToList();
+
+                    // Get to and from branch names
+                    if (branchFiltering)
+                    {
+                        var toBranchBuild = buildList.FirstOrDefault(b => b.Number == to);
+                        var fromBranchBuild = buildList.FirstOrDefault(b => b.Number == from);
+
+                        if (toBranchBuild != null && fromBranchBuild != null)
+                            buildList = buildList.Where(b => b.BranchName == toBranchBuild.BranchName || b.BranchName == fromBranchBuild.BranchName).ToList();
+                    }
+
                     changeManifest.GenerationLog.Add(new LogEntry(DateTime.Now,Status.Ok, string.Format("Got {0} builds for BuildType {1}.",buildList.Count(), buildType)));
                     var changeDetails =_api.GetChangeDetailsByBuildTypeAndBuildNumber(buildWithCommitData, @from, to, buildList).ToList();
 
