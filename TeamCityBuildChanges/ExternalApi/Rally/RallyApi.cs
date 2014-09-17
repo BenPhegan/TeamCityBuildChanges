@@ -10,8 +10,9 @@ namespace TeamCityBuildChanges.ExternalApi.Rally
     {
         private static readonly Regex DefectIdResolver = new Regex("/defect/(?<Id>[0-9]+)$", RegexOptions.IgnoreCase | RegexOptions.Compiled);
         private static readonly Regex UserStoryIdResolver = new Regex("/PortfolioItem/Feature/UserStories/(?<Id>[0-9]+)$", RegexOptions.IgnoreCase | RegexOptions.Compiled);
-        private readonly RallyRestApi _rallyRestApi;
 
+        private readonly RallyRestApi _rallyRestApi;
+        
         public RallyApi(string username, string password, string endpoint)
         {
             _rallyRestApi = new RallyRestApi(username, password, endpoint);
