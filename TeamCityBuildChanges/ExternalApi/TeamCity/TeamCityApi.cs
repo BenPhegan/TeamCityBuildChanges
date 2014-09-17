@@ -436,9 +436,9 @@ namespace TeamCityBuildChanges.ExternalApi.TeamCity
         public ChangeSummary ChangeSummary { get; set; }
         public List<IssueUsage> RelatedIssues { get; set; }
 
-        public static DateTime ConvertToDateTime(string value)
+        public static DateTimeOffset ConvertToDateTime(string value)
         {
-            return DateTime.ParseExact(value, "yyyyMMdd'T'HHmmsszzz", CultureInfo.InvariantCulture);
+            return DateTimeOffset.ParseExact(value, "yyyyMMdd'T'HHmmsszzz", CultureInfo.InvariantCulture);
         }
     }
 
