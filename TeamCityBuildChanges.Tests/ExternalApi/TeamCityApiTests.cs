@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using FakeItEasy;
 using NUnit.Framework;
@@ -56,6 +57,23 @@ namespace TeamCityBuildChanges.Tests.ExternalApi
 
             Assert.AreEqual(3, issues.Count());
 
+        }
+
+        [Test]
+        public void TeamCityDateTimeParsingIsCorrect()
+        {
+            const string input = "20121022T215947+1100";
+            var actual = BuildDetails.ConvertToDateTime(input);
+
+            Assert.AreEqual(2012, actual.Year);
+            Assert.AreEqual(10, actual.Month);
+            Assert.AreEqual(22, actual.Day);
+            
+            Assert.AreEqual(21, actual.Hour);
+            Assert.AreEqual(59, actual.Minute);
+            Assert.AreEqual(47, actual.Second);
+
+            Assert.AreEqual(TimeSpan.FromHours(11), actual.Offset);
         }
 
         private static void SetMockReturnValues(IAuthenticatedRestClient mockClient, string buildTypeId, string buildId, IEnumerable<IssueUsage> issues)

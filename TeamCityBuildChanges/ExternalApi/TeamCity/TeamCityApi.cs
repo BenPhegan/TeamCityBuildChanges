@@ -9,6 +9,7 @@ using System.Xml.Linq;
 using RestSharp;
 using ServiceStack.CacheAccess;
 using TeamCityBuildChanges.ExtensionMethods;
+using LazyEnumerable;
 
 namespace TeamCityBuildChanges.ExternalApi.TeamCity
 {
@@ -294,17 +295,14 @@ namespace TeamCityBuildChanges.ExternalApi.TeamCity
         {
             return _cache.GetFromCacheOrFunc(buildType, branchName, (key1, key2) =>
                 {
-                    RestRequest request;
-                    if (string.IsNullOrEmpty(branchName))
-                    {
-                        request = GetXmlBuildRequest("app/rest/builds/?locator=buildType:{ID}", "ID", buildType);
-                    }
-                    else
-                    {
-                        request = GetXmlBuildRequest(string.Format("app/rest/builds/?locator=buildType:{{ID}},branch:(name:{0})", branchName), "ID", buildType);
-                    }
-                    var response = _client.Execute<List<Build>>(request);
-                    return response.Data;
+                    var branch = string.IsNullOrEmpty(branchName) ? "(branched:any)" : string.Format("(name:{0})", branchName);
+
+                    return new LazyEnumerable<Build>(100, (start, count) =>
+                        {
+                            var request = GetXmlBuildRequest(string.Format("app/rest/builds/?locator=buildType:{0},start:{1},count:{2},branch:{3}", buildType, start, count, branch));
+                            var response = _client.Execute<List<Build>>(request);
+                            return response.Data;
+                        });
                 });
         }
     }
@@ -335,6 +333,12 @@ namespace TeamCityBuildChanges.ExternalApi.TeamCity
         public List<Trigger> Triggers { get; set; }
         public List<Step> Steps { get; set; }
         public List<Feature> Features { get; set; }
+        public List<SnapshotDependency> SnapshotDependencies { get; set; } 
+    }
+
+    public class SnapshotDependency
+    {
+        public string Id { get; set; }
     }
 
     public class Feature : GenericTeamCityPropertyGroup
@@ -432,16 +436,9 @@ namespace TeamCityBuildChanges.ExternalApi.TeamCity
         public ChangeSummary ChangeSummary { get; set; }
         public List<IssueUsage> RelatedIssues { get; set; }
 
-
-        public static DateTimeOffset GetDateTimeOffset(string value)
+        public static DateTimeOffset ConvertToDateTime(string value)
         {
-            //Values come in looking like this: 20121022T215947+1100
-            var splitString = value.Split("+-".ToCharArray()).ToList();
-            if (splitString.Count == 2)
-            {
-                var datePortion = DateTime.ParseExact(splitString[0], "yyyymmddTHHmmss", CultureInfo.CurrentCulture);
-            }
-            return new DateTimeOffset();
+            return DateTimeOffset.ParseExact(value, "yyyyMMdd'T'HHmmsszzz", CultureInfo.InvariantCulture);
         }
     }
 

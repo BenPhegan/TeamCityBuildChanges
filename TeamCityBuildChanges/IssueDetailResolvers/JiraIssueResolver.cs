@@ -1,13 +1,11 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Text.RegularExpressions;
 using TeamCityBuildChanges.ExternalApi.Jira;
 using TeamCityBuildChanges.ExternalApi.TeamCity;
 
 namespace TeamCityBuildChanges.IssueDetailResolvers
 {
-    using System.Linq;
-    using Castle.Core;
-
     public class JiraIssueResolver : IExternalIssueResolver
     {
         private readonly IJiraApi _api;

@@ -5,7 +5,7 @@ namespace TeamCityBuildChanges.IssueDetailResolvers
 {
     public interface IExternalIssueResolver
     {
-        IEnumerable<ExternalIssueDetails> GetDetails(IEnumerable<Issue> issue);
+        IEnumerable<ExternalIssueDetails> GetDetails(IEnumerable<Issue> issues);
         IEnumerable<Issue> GetIssues(IEnumerable<ChangeDetail> changeDetails);
     }
 }
