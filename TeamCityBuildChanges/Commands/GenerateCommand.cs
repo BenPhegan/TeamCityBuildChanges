@@ -25,7 +25,6 @@ namespace TeamCityBuildChanges.Commands
         private string _teamCityAuthToken;
         private string _buildPackageCacheFile;
         private bool _recurse;
-        private string _branchName;
         private string _outputFileName;
         private ChangeManifest _changeManifest = new ChangeManifest();
         private string _serverName;
@@ -48,7 +47,6 @@ namespace TeamCityBuildChanges.Commands
             Options.Add("tat=", "TeamCity Auth Token", c => _teamCityAuthToken = c);
             Options.Add("bpc|buildpackagecache=", "An xml build package cache file for package to build mapping.", c => _buildPackageCacheFile = c);
             Options.Add("r|recurse", "Recurse into package dependencies and generate full tree delta.", c => _recurse = c != null);
-            Options.Add("br=|branch=", "The specific branch name in TeamCity", x => _branchName = x);
             Options.Add("o|output=", "OutputFileName filename (otherwise to console)", x => _outputFileName = x);
             Options.Add("b=|buildType=", "TeamCity build type to get the details for.", s => _buildType = s);
             Options.Add("p=|project=", "TeamCity project to search within for specific build name.", s => _projectName = s);
@@ -73,8 +71,8 @@ namespace TeamCityBuildChanges.Commands
 
             var resolver = new AggregateBuildDeltaResolver(api, issueDetailResolver, new PackageChangeComparator(), buildPackageCache, new ConcurrentBag<NuGetPackageChange>());
             _changeManifest = string.IsNullOrEmpty(_buildType) 
-                ? resolver.CreateChangeManifestFromBuildTypeName(_projectName, _buildName,_referenceBuild, _from, _to, _useBuildSystemIssueResolution, _recurse, _branchName)
-                : resolver.CreateChangeManifestFromBuildTypeId(_buildType, _referenceBuild, _from, _to, _useBuildSystemIssueResolution, _recurse, _branchName);
+                ? resolver.CreateChangeManifestFromBuildTypeName(_projectName, _buildName,_referenceBuild, _from, _to, _useBuildSystemIssueResolution, _recurse)
+                : resolver.CreateChangeManifestFromBuildTypeId(_buildType, _referenceBuild, _from, _to, _useBuildSystemIssueResolution, _recurse);
 
             OutputChanges(CreateOutputRenderers(), new List<Action<string>> {Console.Write, a =>
                 {
