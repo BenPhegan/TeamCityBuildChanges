@@ -1,6 +1,8 @@
 TeamCityBuildChanges
 ====================
 
+[![Build status](https://ci.appveyor.com/api/projects/status/1l5ryy615dam05ab?svg=true)](https://ci.appveyor.com/project/BenPhegan/teamcitybuildchanges)
+
 Provides a command line utility to query changes associated with TeamCity builds.  Useful to create dynamic build/release notes as part of a TeamCity build.  Think pretty, Razor-templated release notes automagically.
 
 Features
