@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using Rally.RestApi;
+using Rally.RestApi.Response;
 
 namespace TeamCityBuildChanges.ExternalApi.Rally
 {
@@ -26,7 +27,19 @@ namespace TeamCityBuildChanges.ExternalApi.Rally
                     Query = new Query("FormattedId", Query.Operator.Equals, key)
                 };
 
-            var queryResult = _rallyRestApi.Query(request);
+            //If we get an exception from the underlying connection, we currently need to swallow it and return a null...
+            QueryResult queryResult;
+            try
+            {
+                queryResult = _rallyRestApi.Query(request);
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+
+            //Likewise if the result is null or we don't get any results...
+            if (queryResult == null || !queryResult.Results.Any()) return null;
 
             var firstResult = queryResult.Results.FirstOrDefault();
 
@@ -44,15 +57,15 @@ namespace TeamCityBuildChanges.ExternalApi.Rally
             var baseUrl = string.Format("{0}://{1}#/detail/defect/{2}", baseUri.Scheme, baseUri.Host, defectId);
 
             return new Defect
-                {
-                    Id = defectId,
-                    FormattedId = key,
-                    Created = DateTime.Parse(firstResult["CreationDate"]),
-                    State = firstResult["State"],
-                    Name = firstResult["Name"],
-                    Description = firstResult["Description"],
-                    Url = baseUrl
-                };
+            {
+                Id = defectId,
+                FormattedId = key,
+                Created = DateTime.Parse(firstResult["CreationDate"]),
+                State = firstResult["State"],
+                Name = firstResult["Name"],
+                Description = firstResult["Description"],
+                Url = baseUrl
+            };
         }
 
         public UserStory GetRallyUserStory(string key)
@@ -63,7 +76,19 @@ namespace TeamCityBuildChanges.ExternalApi.Rally
                 Query = new Query("FormattedId", Query.Operator.Equals, key)
             };
 
-            var queryResult = _rallyRestApi.Query(request);
+            //If we get an exception from the underlying connection, we currently need to swallow it and return a null...
+            QueryResult queryResult;
+            try
+            {
+                queryResult = _rallyRestApi.Query(request);
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+
+            //Likewise if the result is null or we don't get any results...
+            if (queryResult == null || !queryResult.Results.Any()) return null;
 
             var firstResult = queryResult.Results.FirstOrDefault();
 

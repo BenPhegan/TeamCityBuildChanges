@@ -76,6 +76,7 @@
     <Compile Include="Commands\AggregateBuildDeltaResolverTests.cs" />
     <Compile Include="Commands\PackageChangeComparatorTests.cs" />
     <Compile Include="ExternalApi\AuthenticatedRestClientTests.cs" />
+    <Compile Include="ExternalApi\RallyApiTests.cs" />
     <Compile Include="ExternalApi\TeamCityApiTests.cs" />
     <Compile Include="HtmlOutputTests.cs" />
     <Compile Include="IssueDetailResolvers\IssueDetailResolverTests.cs" />
